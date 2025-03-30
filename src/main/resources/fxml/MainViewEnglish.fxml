@@ -19,7 +19,7 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0"
             prefWidth="1600.0" stylesheets="@/css/main.css" xmlns="http://javafx.com/javafx/23.0.1"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
+            xmlns:fx="http://javafx.com/fxml/1">
 
     <!-- Top Section with Header and Language Toggle -->
     <top>

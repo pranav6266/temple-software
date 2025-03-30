@@ -17,9 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-            minWidth="-Infinity" prefHeight="720.0" prefWidth="1600.0" stylesheets="@/css/main.css" xmlns="http://javafx.com/javafx/23.0.1"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1600.0" stylesheets="@/css/main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
 
     <!-- Top Section with Header and Language Toggle -->
     <top>
@@ -30,15 +28,10 @@
                   <Insets right="1100.0" />
                </HBox.margin>
             </Button>
-                <Button alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" prefHeight="36.0"
-                        prefWidth="108.0" styleClass="lang-toggle" text="EN/ಕನ್ನಡ" textAlignment="JUSTIFY" fx:id="langController"/>
+                <Button fx:id="langController" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" prefHeight="36.0" prefWidth="108.0" styleClass="lang-toggle" text="EN/ಕನ್ನಡ" textAlignment="JUSTIFY" />
             </HBox>
             <VBox alignment="CENTER" prefHeight="64.0" prefWidth="474.0" spacing="5">
-                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="64.0" prefWidth="575.0" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ" textFill="#ff3300" underline="true">
-               <font>
-                  <Font name="System Bold" size="24.0" />
-               </font></Label>
-            <Label alignment="CENTER" layoutX="689.0" layoutY="12.0" prefHeight="65.0" prefWidth="157.0" text="ಚೇರ್ಕಬೆ" textFill="#ff3300" underline="true">
+                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="35.0" prefWidth="642.0" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ, ಚೇರ್ಕಬೆ, ಪಡ್ರೆ " textFill="#ff3300" underline="true">
                <font>
                   <Font name="System Bold" size="24.0" />
                </font></Label>
@@ -96,7 +89,7 @@
       
                   <!-- Row 4: Seva Type -->
                   <Label styleClass="kannada-label" text="ಸೇವಾ ಪ್ರಕಾರ :" GridPane.rowIndex="5" />
-                  <ComboBox fx:id="sevaComboBox" promptText="ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                  <ComboBox fx:id="sevaComboBox" editable="true" promptText="ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                   <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="44.0" prefWidth="230.0" spacing="20" GridPane.columnIndex="1" GridPane.rowIndex="6">
                   <children>
             
@@ -139,7 +132,7 @@
                      <Insets />
                   </GridPane.margin>
                </HBox>
-               <ComboBox fx:id="sevaComboBox2" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+               <ComboBox fx:id="donationComboBox" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="7" />
                <rowConstraints>
                   <RowConstraints />
                   <RowConstraints />
@@ -174,20 +167,20 @@
                      <children>
                         <HBox spacing="20">
                            <children>
-                                  <RadioButton graphicTextGap="5.0" prefHeight="18.0" prefWidth="63.0" text="ನಗದು" textAlignment="RIGHT" />
-                                  <RadioButton styleClass="radio-button" text="ಆನ್ಲೈನ್" />
+                                  <RadioButton fx:id="cashRadio" graphicTextGap="5.0" prefHeight="18.0" prefWidth="63.0" text="ನಗದು" textAlignment="RIGHT" />
+                                  <RadioButton fx:id="onlineRadio" styleClass="radio-button" text="ಆನ್ಲೈನ್" />
                            </children>
                         </HBox>
                      </children>
                   </HBox>
                   <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8" />
                   <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="57.0" styleClass="kannada-label" text="ರಾಶಿ :" GridPane.rowIndex="2" />
-                  <ComboBox fx:id="sevaComboBox11" prefHeight="34.0" promptText="ರಾಶಿಯನ್ನುಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <ComboBox fx:id="raashiComboBox" prefHeight="34.0" promptText="ರಾಶಿಯನ್ನುಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="46.0" styleClass="kannada-label" text="ನಕ್ಷತ್ರ :" GridPane.rowIndex="3" />
-                  <ComboBox fx:id="sevaComboBox111" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                   <Label styleClass="kannada-label" text="ವಿಳಾಸ :" GridPane.rowIndex="4" />
                   <TextArea prefHeight="200.0" prefWidth="200.0" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                  <ComboBox fx:id="sevaComboBox1" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                  <ComboBox fx:id="otherServicesComboBox" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                   <Label styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳು :" GridPane.rowIndex="5" />
          
                      <!-- Row 5: Payment Mode -->
