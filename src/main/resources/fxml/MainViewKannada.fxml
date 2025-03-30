@@ -85,7 +85,7 @@
       
                   <!-- Row 3: Seva Date -->
                   <Label styleClass="kannada-label" text="ಸೇವಾ ದಿನಾಂಕ:" GridPane.rowIndex="4" />
-                  <DatePicker fx:id="sevaDatePicker" styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                  <DatePicker fx:id="sevaDatePicker" promptText="ದಿನಾಂಕ " styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="4" />
       
                   <!-- Row 4: Seva Type -->
                   <Label styleClass="kannada-label" text="ಸೇವಾ ಪ್ರಕಾರ :" GridPane.rowIndex="5" />
@@ -111,7 +111,7 @@
                   <!-- Row 7: Total -->
                   <Label styleClass="kannada-label" text="ಒಟ್ಟು ಮೊತ್ತ:" GridPane.rowIndex="8" />
                   <Label fx:id="totalLabel" styleClass="total-label" text="₹೦.೦೦" GridPane.columnIndex="1" GridPane.rowIndex="8" />
-               <Label styleClass="kannada-label" text="ಇತರೆ ದೇಣಿಗೆಗಳು :" GridPane.rowIndex="7" />
+               <Label styleClass="kannada-label" text="ದೇಣಿಗೆಗಳು :" GridPane.rowIndex="7" />
                <HBox alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" GridPane.rowIndex="6">
                   <children>
                      <Label alignment="CENTER" graphicTextGap="0.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="10.0" minWidth="66.0" prefHeight="30.0" prefWidth="66.0" styleClass="kannada-label" text="ದೇಣಿಗೆ:" textAlignment="CENTER">

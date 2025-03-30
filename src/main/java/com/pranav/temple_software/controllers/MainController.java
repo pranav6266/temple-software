@@ -5,7 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,10 +35,13 @@ public class MainController {
 	private TextField devoteeNameField;
 	@FXML
 	private TextField contactField;
+	@FXML
+	private DatePicker sevaDatePicker;
 
 
 	@FXML
 	public void initialize() {
+		sevaDatePicker.setValue(LocalDate.now());
 		ObservableList<String> items = FXCollections.observableArrayList(
 				"ಆಯ್ಕೆ",
 				"1. ಬಲಿವಾಡು",
@@ -181,6 +184,44 @@ public class MainController {
 						}
 					});
 		}
+
+
+		// Disable past dates in calendar
+		sevaDatePicker.setDayCellFactory(picker -> new DateCell() {
+			@Override
+			public void updateItem(LocalDate date, boolean empty) {
+				super.updateItem(date, empty);
+				LocalDate today = LocalDate.now();
+				setDisable(date.isBefore(today));
+				if (date.isBefore(today)) {
+					setStyle("-fx-text-fill: #d3d3d3;"); // Gray out past dates
+				}
+			}
+		});
+
+		// Prevent manual entry of past dates
+		sevaDatePicker.valueProperty().addListener((obs, oldVal, newVal) -> {
+			if (newVal != null && newVal.isBefore(LocalDate.now())) {
+				sevaDatePicker.setValue(LocalDate.now());
+			}
+		});
+
+		// Force today's date if field is left empty or invalid
+		sevaDatePicker.getEditor().textProperty().addListener((obs, oldVal, newText) -> {
+			if (newText == null || newText.isEmpty()) {
+				sevaDatePicker.setValue(LocalDate.now());
+			}
+		});
+
+		// Final validation on focus loss
+		sevaDatePicker.focusedProperty().addListener((obs, oldVal, hasFocus) -> {
+			if (!hasFocus) {
+				LocalDate currentDate = sevaDatePicker.getValue();
+				if (currentDate == null || currentDate.isBefore(LocalDate.now())) {
+					sevaDatePicker.setValue(LocalDate.now());
+				}
+			}
+		});
 
 
 		setupNameValidation();
