@@ -6,6 +6,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
@@ -219,18 +220,36 @@ public class MainController {
 	}
 
 	private void setupTableView() {
-		// Serial number column (dynamic row number)
+		// Serial number column (center aligned)
 		slNoColumn.setCellFactory(col -> new TableCell<>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
 				super.updateItem(item, empty);
-				setText(empty ? null : String.valueOf(getIndex() + 1));
+				if (empty) {
+					setText(null);
+				} else {
+					setText(String.valueOf(getIndex() + 1));
+					setAlignment(Pos.CENTER); // Center alignment for serial numbers
+				}
 			}
 		});
 
-		// Seva name column
+		// Seva name column (left-center alignment)
+		sevaNameColumn.setCellFactory(col -> new TableCell<>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setText(null);
+				} else {
+					setText(item);
+					setAlignment(Pos.CENTER_LEFT); // Center-left alignment for text
+				}
+			}
+		});
+
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-		sevaTableView.setItems(selectedSevas);
+
 	}
 
 

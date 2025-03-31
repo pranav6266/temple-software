@@ -75,3 +75,16 @@
     -fx-spacing: 10px; /* Adjust spacing between rows */
     -fx-padding: 5px; /* Add padding for better alignment */
 }
+
+.table-cell {
+    -fx-alignment: center-left;
+}
+
+#sevaNameColumn .table-cell {
+    -fx-alignment: center-left;
+    -fx-padding: 0 0 0 10; /* Left padding for Kannada text */
+}
+
+#slNoColumn .table-cell {
+    -fx-alignment: center;
+}
