@@ -52,11 +52,13 @@ public class MainController {
 	private TableColumn<SevaEntry, String> sevaNameColumn;
 
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
+
+
 	public static class SevaEntry {
 		private final StringProperty name;
 		private final DoubleProperty amount;
 
-		public SevaEntry(String name, double amount) {
+		public SevaEntry( String name, double amount) {
 			this.name = new SimpleStringProperty(name);
 			this.amount = new SimpleDoubleProperty(amount);
 		}
@@ -102,6 +104,30 @@ public class MainController {
 		sevaTableView.setItems(selectedSevas);
 		setupTableView();
 
+
+
+		// Add a new TableColumn for actions
+		TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Action");
+		actionColumn.setCellFactory(col -> new TableCell<>() {
+			private final Button removeButton = new Button("Remove");
+
+			{
+				removeButton.setOnAction(event -> {
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+					selectedSevas.remove(entry);
+				});
+			}
+
+			@Override
+			protected void updateItem(Void item, boolean empty) {
+				super.updateItem(item, empty);
+				setGraphic(empty ? null : removeButton);
+			}
+		});
+
+		// Add the column to your TableView
+		sevaTableView.getColumns().add(actionColumn);
+
 		ObservableList<String> rashis = FXCollections.observableArrayList(
 				"ಆಯ್ಕೆ", "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
 				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
@@ -117,6 +143,7 @@ public class MainController {
 
 
 		ObservableList<String> donations = FXCollections.observableArrayList(
+				"ಆಯ್ಕೆ",
 				"ಸ್ಥಳ ಕಾಣಿಕ",
 				"ಪಾತ್ರೆ ಬಾಡಿಗೆ",
 				"ವಿದ್ಯುತ್",
@@ -124,6 +151,7 @@ public class MainController {
 		);
 
 		ObservableList<String> otherSevaReciepts = FXCollections.observableArrayList(
+				"ಆಯ್ಕೆ",
 				"ಶತ ರುದ್ರಾಭಿಷೇಕ",
 				"ಸಾಮೂಹಿಕ ಆಶ್ಲೇಷ ಬಲಿ",
 				"ಶ್ರೀಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ",
@@ -200,25 +228,6 @@ public class MainController {
 		}
 
 
-		// Disable past dates in calendar
-		sevaDatePicker.setDayCellFactory(picker -> new DateCell() {
-			@Override
-			public void updateItem(LocalDate date, boolean empty) {
-				super.updateItem(date, empty);
-				LocalDate today = LocalDate.now();
-				setDisable(date.isBefore(today));
-				if (date.isBefore(today)) {
-					setStyle("-fx-text-fill: #d3d3d3;"); // Gray out past dates
-				}
-			}
-		});
-
-		// Prevent manual entry of past dates
-		sevaDatePicker.valueProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal != null && newVal.isBefore(LocalDate.now())) {
-				sevaDatePicker.setValue(LocalDate.now());
-			}
-		});
 
 		// Force today's date if field is left empty or invalid
 		sevaDatePicker.getEditor().textProperty().addListener((obs, oldVal, newText) -> {
@@ -227,15 +236,6 @@ public class MainController {
 			}
 		});
 
-		// Final validation on focus loss
-		sevaDatePicker.focusedProperty().addListener((obs, oldVal, hasFocus) -> {
-			if (!hasFocus) {
-				LocalDate currentDate = sevaDatePicker.getValue();
-				if (currentDate == null || currentDate.isBefore(LocalDate.now())) {
-					sevaDatePicker.setValue(LocalDate.now());
-				}
-			}
-		});
 
 
 		setupNameValidation();
