@@ -11,15 +11,14 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
 import java.time.LocalDate;
 import java.util.*;
 
 public class MainController {
 	private Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
-	private List<CheckBox> sevaCheckboxes = new ArrayList<>();
-	@FXML
-	private ComboBox<String> sevaComboBox;
+
 	@FXML
 	private ComboBox<String> raashiComboBox;
 	@FXML
@@ -51,6 +50,8 @@ public class MainController {
 	@FXML
 	private TableColumn<SevaEntry, String> sevaNameColumn;
 	@FXML private Button addDonationButton;
+	@FXML private Button addDonationButton1;
+	@FXML Label totalLabel;
 
 
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
@@ -113,10 +114,21 @@ public class MainController {
 			double amount = Double.parseDouble(amountText);
 			if (amount <= 0) throw new NumberFormatException();
 
-			// Add to table with "Donation:" prefix
-			selectedSevas.add(new SevaEntry("ದೇಣಿಗೆ: " + donationType, amount));
+			String entryName = "ದೇಣಿಗೆ : " + donationType;
 
-			// Clear amount field for next entry
+			// Find existing donation entry
+			Optional<SevaEntry> existingEntry = selectedSevas.stream()
+					.filter(entry -> entry.getName().equals(entryName))
+					.findFirst();
+
+			if (existingEntry.isPresent()) {
+				// Update existing amount
+				existingEntry.get().amountProperty().set(amount);
+			} else {
+				// Add new entry
+				selectedSevas.add(new SevaEntry(entryName, amount));
+			}
+
 			donationField.clear();
 		} catch (NumberFormatException ex) {
 			showAlert("Invalid Amount", "Please enter a valid positive number");
@@ -132,12 +144,53 @@ public class MainController {
 	}
 
 
+	private void handleAddOtherSeva() {
+		String sevaType = otherServicesComboBox.getValue();
+
+		if (sevaType == null || sevaType.equals("ಆಯ್ಕೆ") || sevaType.isEmpty()) {
+			showAlert("Invalid Input", "Please select an other service type");
+			return;
+		}
+
+		// Check for existing service
+		String entryName = "ಇತರೆ ಸೇವೆಗಳು : " + sevaType;
+		boolean exists = selectedSevas.stream()
+				.anyMatch(entry -> entry.getName().equals(entryName));
+
+		if (exists) {
+			showAlert("Duplicate Service", "This service already exists in the list");
+			return;
+		}
+
+		selectedSevas.add(new SevaEntry(entryName, 0.00));
+	}
+
+
+
+	private void initializeTotalCalculation() {
+		// Create binding for total amount
+		DoubleBinding totalBinding = Bindings.createDoubleBinding(() ->
+						selectedSevas.stream()
+								.mapToDouble(SevaEntry::getAmount)
+								.sum(),
+				selectedSevas
+		);
+
+		// Update total label with currency format
+		totalLabel.textProperty().bind(Bindings.createStringBinding(() ->
+						String.format("₹%.2f", totalBinding.get()),
+				totalBinding
+		));
+	}
 	@FXML
 	public void initialize() {
 		sevaDatePicker.setValue(LocalDate.now());
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		sevaTableView.setItems(selectedSevas);
 		setupTableView();
+		initializeTotalCalculation();
+
+		addDonationButton1.setOnAction(e -> handleAddOtherSeva());
 
 		donationField.setDisable(true);
 		donationComboBox.setDisable(true);
