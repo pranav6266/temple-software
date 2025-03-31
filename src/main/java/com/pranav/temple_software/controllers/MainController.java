@@ -1,6 +1,8 @@
 package com.pranav.temple_software.controllers;
 
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -50,25 +52,48 @@ public class MainController {
 	private TableColumn<SevaEntry, String> sevaNameColumn;
 
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
-
-
-
 	public static class SevaEntry {
 		private final StringProperty name;
+		private final DoubleProperty amount;
 
-		public SevaEntry(String name) {
+		public SevaEntry(String name, double amount) {
 			this.name = new SimpleStringProperty(name);
+			this.amount = new SimpleDoubleProperty(amount);
 		}
 
-		public String getName() {
-			return name.get();
-		}
-
-		public StringProperty nameProperty() {
-			return name;
-		}
+		// Getters and property methods
+		public String getName() { return name.get(); }
+		public double getAmount() { return amount.get(); }
+		public StringProperty nameProperty() { return name; }
+		public DoubleProperty amountProperty() { return amount; }
 	}
 
+
+
+		public class Seva {
+			private final String id;
+			private final String name;
+			private final double amount;
+
+			public Seva(String id, String name, double amount) {
+				this.id = id;
+				this.name = name;
+				this.amount = amount;
+			}
+
+			// Getters
+			public String getId() {
+				return id;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+			public double getAmount() {
+				return amount;
+			}
+		}
 
 	@FXML
 	public void initialize() {
@@ -220,104 +245,60 @@ public class MainController {
 	}
 
 	private void setupTableView() {
-		// Serial number column (center aligned)
+		// Serial number column
 		slNoColumn.setCellFactory(col -> new TableCell<>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
 				super.updateItem(item, empty);
-				if (empty) {
-					setText(null);
-				} else {
-					setText(String.valueOf(getIndex() + 1));
-					setAlignment(Pos.CENTER); // Center alignment for serial numbers
-				}
+				setText(empty ? null : String.valueOf(getIndex() + 1));
+				setAlignment(Pos.CENTER);
 			}
 		});
 
-		// Seva name column (left-center alignment)
-		sevaNameColumn.setCellFactory(col -> new TableCell<>() {
-			@Override
-			protected void updateItem(String item, boolean empty) {
-				super.updateItem(item, empty);
-				if (empty) {
-					setText(null);
-				} else {
-					setText(item);
-					setAlignment(Pos.CENTER_LEFT); // Center-left alignment for text
-				}
-			}
-		});
-
+		// Seva name column
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 
+		// Amount column
+		TableColumn<SevaEntry, Number> amountColumn = (TableColumn<SevaEntry, Number>) sevaTableView.getColumns().get(2);
+		amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
+
+		// Format amount as currency
+		amountColumn.setCellFactory(tc -> new TableCell<>() {
+			@Override
+			protected void updateItem(Number amount, boolean empty) {
+				super.updateItem(amount, empty);
+				if (empty || amount == null) {
+					setText(null);
+				} else {
+					setText(String.format("₹%.2f", amount.doubleValue()));
+					setAlignment(Pos.CENTER_RIGHT);
+				}
+			}
+		});
 	}
 
 
 	private void setupSevaCheckboxes() {
-		String[] sevaItems = {
-				"1. ಬಲಿವಾಡು",
-				"2. ಪಂಚಾಮೃತಾಭಿಷೇಕ ",
-				"3. ರುದ್ರಾಭಿಷೇಕ ",
-				"4. ಏಕಾದಶ ರುದ್ರಾಭಿಷೇಕ",
-				"5. ಕ್ಷೀರಾಭಿಷೇಕ",
-				"6. ಅಷ್ಟೋತ್ತರ ಕುಂಕುಮಾರ್ಚನೆ",
-				"7. ಸಹಸ್ರನಾಮ ಕುಂಕುಮಾರ್ಚನೆ ",
-				"8. ಕಾರ್ತಿಕ ಪೂಜೆ",
-				"9. ತ್ರಿಮಧುರ",
-				"10. ಪುಷ್ಪಾಂಜಲಿ",
-				"11. ಹಣ್ಣುಕಾಯಿ",
-				"12. ಶಾಸ್ತಾರ ದೇವರಿಗೆ ಕಾಯಿ",
-				"13. ಪಂಚಕಜ್ಜಾಯ",
-				"14. ಅಪ್ಪಕಜ್ಜಾಯ (1 ಕುಡ್ತೆ )",
-				"15. ಮಂಗಳಾರತಿ",
-				"16. ಕರ್ಪೂರಾರತಿ",
-				"17. ತುಪ್ಪದ ನಂದಾದೀಪ",
-				"18. ಎಳ್ಳೆಣ್ಣೆ ನಂದಾದೀಪ",
-				"19. ಒಂದು ದಿನದ ಪೂಜೆ ",
-				"20. ಸರ್ವಸೇವೆ ",
-				"21. ಗಣಪತಿ ಹವನ",
-				"22. ದೂರ್ವಾಹೋಮ ",
-				"23. ಶನಿ ಪೂಜೆ",
-				"24. ಶನಿ ಜಪ",
-				"25. ರಾಹು ಜಪ",
-				"26. ತುಲಾಭಾರ ",
-				"27. ದೀಪಾರಾಧನೆ ",
-				"28. ನೈವೇದ್ಯ ಸಮರ್ಪಣೆ ",
-				"29. ಹಾಲು ಪಾಯಸ",
-				"30. ಪಿಂಡಿ ಪಾಯಸ",
-				"31. ಕಠಿಣ ಪಾಯಸ",
-				"32. 2 ಕಾಯಿ ಪಾಯಸ",
-				"33. 5 ಕಾಯಿ ಪಾಯಸ",
-				"34. ಹೆಸರುಬೇಳೆ ಪಾಯಸ",
-				"35. ನಾಗನಿಗೆ ಹಾಲು ಸಮರ್ಪಣೆ",
-				"36. ನಾಗ ಪೂಜೆ",
-				"37. ನಾಗ ತಂಬಿಲ",
-				"38. ಪವಮಾನ ಅಭಿಷೇಕ",
-				"39. ಶತ ರುದ್ರಾಭಿಷೇಕ",
-				"40. ಆಶ್ಲೇಷ ಬಲಿ",
-				"41. ವರಮಹಾಲಕ್ಷ್ಮೀ ಪೂಜೆ"
-		};
+		initializeSevaData();
 
-		for (String sevaName : sevaItems) {
-			CheckBox checkBox = new CheckBox(sevaName);
+
+		for (Seva seva : sevaMap.values()) {
+			CheckBox checkBox = new CheckBox(seva.getId() + ". " + seva.getName());
 			checkBox.getStyleClass().add("seva-checkbox");
-			sevaCheckboxContainer.getChildren().add(checkBox);
-			sevaCheckboxes.add(checkBox);
 
-			// Add listener with clean name extraction
-			checkBox.selectedProperty().addListener((observable, oldValue, isSelected) -> {
-				// Split "1. ಬಲಿವಾಡು" into name part
-				String[] parts = checkBox.getText().split("\\. ", 2);
-				String cleanSevaName = parts.length > 1 ? parts[1] : checkBox.getText();
-
+			checkBox.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
 				if (isSelected) {
-					selectedSevas.add(new SevaEntry(cleanSevaName));
+					selectedSevas.add(new SevaEntry(seva.getName(), seva.getAmount()));
 				} else {
-					selectedSevas.removeIf(entry -> entry.getName().equals(cleanSevaName));
+					selectedSevas.removeIf(entry ->
+							entry.getName().equals(seva.getName()) &&
+									entry.getAmount() == seva.getAmount()
+					);
 				}
 			});
-		}
 
+			sevaCheckboxContainer.getChildren().add(checkBox);
+		}
 
 	}
 
@@ -379,7 +360,65 @@ public class MainController {
 	//Till this, the code will restrict the input of the text fields
 
 
+	private final Map<String, Seva> sevaMap = new LinkedHashMap<>();
 
+	private void initializeSevaData() {
+		// First 19 sevas (using first image amounts)
+		double[] first19 = {
+				50.00, 30.00, 50.00, 1000.00, 20.00, 10.00, 200.00, 50.00, 30.00,
+				30.00, 25.00, 20.00, 100.00, 20.00, 20.00, 100.00, 50.00, 300.00
+		};
 
+		// Second 19 sevas (using second image amounts)
+		double[] second18 = {
+				200.00, 250.00, 350.00, 300.00, 250.00, 250.00, 100.00, 1000.00,
+				100.00, 50.00, 100.00, 125.00, 250.00, 400.00, 400.00, 30.00,
+				200.00, 300.00, 500.00
+		};
+
+		// First 19 sevas (items 1-19)
+		sevaMap.put("1", new Seva("1", "ಬಲಿವಾಡು", first19[0]));
+		sevaMap.put("2", new Seva("2", "ಪಂಚಾಮೃತಾಭಿಷೇಕ", first19[1]));
+		sevaMap.put("3", new Seva("3", "ರುದ್ರಾಭಿಷೇಕ", first19[2]));
+		sevaMap.put("4", new Seva("4", "ಏಕಾದಶ ರುದ್ರಾಭಿಷೇಕ", first19[3]));
+		sevaMap.put("5", new Seva("5", "ಕ್ಷೀರಾಭಿಷೇಕ", first19[4]));
+		sevaMap.put("6", new Seva("6", "ಅಷ್ಟೋತ್ತರ ಕುಂಕುಮಾರ್ಚನೆ", first19[5]));
+		sevaMap.put("7", new Seva("7", "ಸಹಸ್ರನಾಮ ಕುಂಕುಮಾರ್ಚನೆ", first19[6]));
+		sevaMap.put("8", new Seva("8", "ಕಾರ್ತಿಕ ಪೂಜೆ", first19[7]));
+		sevaMap.put("9", new Seva("9", "ತ್ರಿಮಧುರ", first19[8]));
+		sevaMap.put("10", new Seva("10", "ಪುಷ್ಪಾಂಜಲಿ", first19[9]));
+		sevaMap.put("11", new Seva("11", "ಹಣ್ಣುಕಾಯಿ", first19[10]));
+		sevaMap.put("12", new Seva("12", "ಶಾಸ್ತಾರ ದೇವರಿಗೆ ಕಾಯಿ", first19[11]));
+		sevaMap.put("13", new Seva("13", "ಪಂಚಕಜ್ಜಾಯ", first19[12]));
+		sevaMap.put("14", new Seva("14", "ಅಪ್ಪಕಜ್ಜಾಯ (1 ಕುಡ್ತೆ )", first19[13]));
+		sevaMap.put("15", new Seva("15", "ಮಂಗಳಾರತಿ", first19[14]));
+		sevaMap.put("16", new Seva("16", "ಕರ್ಪೂರಾರತಿ", first19[15]));
+		sevaMap.put("17", new Seva("17", "ತುಪ್ಪದ ನಂದಾದೀಪ", first19[16]));
+		sevaMap.put("18", new Seva("18", "ಎಳ್ಳೆಣ್ಣೆ ನಂದಾದೀಪ", first19[17]));
+
+		// Last seva from first image (19th)
+		sevaMap.put("19", new Seva("19", "ಒಂದು ದಿನದ ಪೂಜೆ", 300)); // Using last value from first image
+
+		// Next 19 sevas (items 20-38)
+		sevaMap.put("20", new Seva("20", "ಸರ್ವಸೇವೆ", second18[0]));
+		sevaMap.put("21", new Seva("21", "ಗಣಪತಿ ಹವನ", second18[1]));
+		sevaMap.put("22", new Seva("22", "ದೂರ್ವಾಹೋಮ", second18[2]));
+		sevaMap.put("23", new Seva("23", "ಶನಿ ಪೂಜೆ", second18[3]));
+		sevaMap.put("24", new Seva("24", "ಶನಿ ಜಪ", second18[4]));
+		sevaMap.put("25", new Seva("25", "ರಾಹು ಜಪ", second18[5]));
+		sevaMap.put("26", new Seva("26", "ತುಲಾಭಾರ", second18[6]));
+		sevaMap.put("27", new Seva("27", "ದೀಪಾರಾಧನೆ", second18[7]));
+		sevaMap.put("28", new Seva("28", "ನೈವೇದ್ಯ ಸಮರ್ಪಣೆ", second18[8]));
+		sevaMap.put("29", new Seva("29", "ಹಾಲು ಪಾಯಸ", second18[9]));
+		sevaMap.put("30", new Seva("30", "ಪಿಂಡಿ ಪಾಯಸ", second18[10]));
+		sevaMap.put("31", new Seva("31", "ಕಠಿಣ ಪಾಯಸ", second18[11]));
+		sevaMap.put("32", new Seva("32", "2 ಕಾಯಿ ಪಾಯಸ", second18[12]));
+		sevaMap.put("33", new Seva("33", "5 ಕಾಯಿ ಪಾಯಸ", second18[13]));
+		sevaMap.put("34", new Seva("34", "ಹೆಸರುಬೇಳೆ ಪಾಯಸ", second18[14]));
+		sevaMap.put("35", new Seva("35", "ನಾಗನಿಗೆ ಹಾಲು ಸಮರ್ಪಣೆ", second18[15]));
+		sevaMap.put("36", new Seva("36", "ನಾಗ ಪೂಜೆ", second18[16]));
+		sevaMap.put("37", new Seva("37", "ನಾಗ ತಂಬಿಲ", second18[17]));
+		sevaMap.put("38", new Seva("38", "ಪವಮಾನ ಅಭಿಷೇಕ", second18[18]));
+	}
 }
 
