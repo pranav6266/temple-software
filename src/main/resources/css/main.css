@@ -45,7 +45,7 @@
 
 /* Total Amount */
 .total-label {
-    -fx-font-size: 18px;
+    -fx-font-size: 25px;
     -fx-font-weight: bold;
     -fx-text-fill: #2ecc71;
 }

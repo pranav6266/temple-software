@@ -1,18 +1,20 @@
 package com.pranav.temple_software.controllers;
 
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MainController {
 	private Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
+	private List<CheckBox> sevaCheckboxes = new ArrayList<>();
 	@FXML
 	private ComboBox<String> sevaComboBox;
 	@FXML
@@ -37,56 +39,42 @@ public class MainController {
 	private TextField contactField;
 	@FXML
 	private DatePicker sevaDatePicker;
+	@FXML
+	private VBox sevaCheckboxContainer;
+	@FXML
+	private TableView<SevaEntry> sevaTableView;
+	@FXML
+	private TableColumn<SevaEntry, String> slNoColumn;
+	@FXML
+	private TableColumn<SevaEntry, String> sevaNameColumn;
+
+	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
+
+
+
+	public static class SevaEntry {
+		private final StringProperty name;
+
+		public SevaEntry(String name) {
+			this.name = new SimpleStringProperty(name);
+		}
+
+		public String getName() {
+			return name.get();
+		}
+
+		public StringProperty nameProperty() {
+			return name;
+		}
+	}
 
 
 	@FXML
 	public void initialize() {
 		sevaDatePicker.setValue(LocalDate.now());
-		ObservableList<String> items = FXCollections.observableArrayList(
-				"ಆಯ್ಕೆ",
-				"1. ಬಲಿವಾಡು",
-				"2. ಪಂಚಾಮೃತಾಭಿಷೇಕ ",
-				"3. ರುದ್ರಾಭಿಷೇಕ ",
-				"4. ಏಕಾದಶ ರುದ್ರಾಭಿಷೇಕ",
-				"5. ಕ್ಷೀರಾಭಿಷೇಕ",
-				"6. ಅಷ್ಟೋತ್ತರ ಕುಂಕುಮಾರ್ಚನೆ",
-				"7. ಸಹಸ್ರನಾಮ ಕುಂಕುಮಾರ್ಚನೆ ",
-				"8. ಕಾರ್ತಿಕ ಪೂಜೆ",
-				"9. ತ್ರಿಮಧುರ",
-				"10. ಪುಷ್ಪಾಂಜಲಿ",
-				"11. ಹಣ್ಣುಕಾಯಿ",
-				"12. ಶಾಸ್ತಾರ ದೇವರಿಗೆ ಕಾಯಿ",
-				"13. ಪಂಚಕಜ್ಜಾಯ",
-				"14. ಅಪ್ಪಕಜ್ಜಾಯ (1 ಕುಡ್ತೆ )",
-				"15. ಮಂಗಳಾರತಿ",
-				"16. ಕರ್ಪೂರಾರತಿ",
-				"17. ತುಪ್ಪದ ನಂದಾದೀಪ",
-				"18. ಎಳ್ಳೆಣ್ಣೆ ನಂದಾದೀಪ",
-				"19. ಒಂದು ದಿನದ ಪೂಜೆ ",
-				"20. ಸರ್ವಸೇವೆ ",
-				"21. ಗಣಪತಿ ಹವನ",
-				"22. ದೂರ್ವಾಹೋಮ ",
-				"23. ಶನಿ ಪೂಜೆ",
-				"24. ಶನಿ ಜಪ",
-				"25. ರಾಹು ಜಪ",
-				"26. ತುಲಾಭಾರ ",
-				"27. ದೀಪಾರಾಧನೆ ",
-				"28. ನೈವೇದ್ಯ ಸಮರ್ಪಣೆ ",
-				"29. ಹಾಲು ಪಾಯಸ",
-				"30. ಪಿಂಡಿ ಪಾಯಸ",
-				"31. ಕಠಿಣ ಪಾಯಸ",
-				"32. 2 ಕಾಯಿ ಪಾಯಸ",
-				"33. 5 ಕಾಯಿ ಪಾಯಸ",
-				"34. ಹೆಸರುಬೇಳೆ ಪಾಯಸ",
-				"35. ನಾಗನಿಗೆ ಹಾಲು ಸಮರ್ಪಣೆ",
-				"36. ನಾಗ ಪೂಜೆ",
-				"37. ನಾಗ ತಂಬಿಲ",
-				"38. ಪವಮಾನ ಅಭಿಷೇಕ",
-				"39. ಶತ ರುದ್ರಾಭಿಷೇಕ",
-				"40. ಆಶ್ಲೇಷ ಬಲಿ",
-				"41. ವರಮಹಾಲಕ್ಷ್ಮೀ ಪೂಜೆ"
-
-		);
+		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+		sevaTableView.setItems(selectedSevas);
+		setupTableView();
 
 		ObservableList<String> rashis = FXCollections.observableArrayList(
 				"ಆಯ್ಕೆ", "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
@@ -123,7 +111,7 @@ public class MainController {
 		);
 
 
-		sevaComboBox.setItems(items);
+		setupSevaCheckboxes();
 		raashiComboBox.setItems(rashis);
 		otherServicesComboBox.setItems(otherSevaReciepts);
 		donationComboBox.setItems(donations);
@@ -230,6 +218,89 @@ public class MainController {
 
 	}
 
+	private void setupTableView() {
+		// Serial number column (dynamic row number)
+		slNoColumn.setCellFactory(col -> new TableCell<>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				setText(empty ? null : String.valueOf(getIndex() + 1));
+			}
+		});
+
+		// Seva name column
+		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+		sevaTableView.setItems(selectedSevas);
+	}
+
+
+	private void setupSevaCheckboxes() {
+		String[] sevaItems = {
+				"1. ಬಲಿವಾಡು",
+				"2. ಪಂಚಾಮೃತಾಭಿಷೇಕ ",
+				"3. ರುದ್ರಾಭಿಷೇಕ ",
+				"4. ಏಕಾದಶ ರುದ್ರಾಭಿಷೇಕ",
+				"5. ಕ್ಷೀರಾಭಿಷೇಕ",
+				"6. ಅಷ್ಟೋತ್ತರ ಕುಂಕುಮಾರ್ಚನೆ",
+				"7. ಸಹಸ್ರನಾಮ ಕುಂಕುಮಾರ್ಚನೆ ",
+				"8. ಕಾರ್ತಿಕ ಪೂಜೆ",
+				"9. ತ್ರಿಮಧುರ",
+				"10. ಪುಷ್ಪಾಂಜಲಿ",
+				"11. ಹಣ್ಣುಕಾಯಿ",
+				"12. ಶಾಸ್ತಾರ ದೇವರಿಗೆ ಕಾಯಿ",
+				"13. ಪಂಚಕಜ್ಜಾಯ",
+				"14. ಅಪ್ಪಕಜ್ಜಾಯ (1 ಕುಡ್ತೆ )",
+				"15. ಮಂಗಳಾರತಿ",
+				"16. ಕರ್ಪೂರಾರತಿ",
+				"17. ತುಪ್ಪದ ನಂದಾದೀಪ",
+				"18. ಎಳ್ಳೆಣ್ಣೆ ನಂದಾದೀಪ",
+				"19. ಒಂದು ದಿನದ ಪೂಜೆ ",
+				"20. ಸರ್ವಸೇವೆ ",
+				"21. ಗಣಪತಿ ಹವನ",
+				"22. ದೂರ್ವಾಹೋಮ ",
+				"23. ಶನಿ ಪೂಜೆ",
+				"24. ಶನಿ ಜಪ",
+				"25. ರಾಹು ಜಪ",
+				"26. ತುಲಾಭಾರ ",
+				"27. ದೀಪಾರಾಧನೆ ",
+				"28. ನೈವೇದ್ಯ ಸಮರ್ಪಣೆ ",
+				"29. ಹಾಲು ಪಾಯಸ",
+				"30. ಪಿಂಡಿ ಪಾಯಸ",
+				"31. ಕಠಿಣ ಪಾಯಸ",
+				"32. 2 ಕಾಯಿ ಪಾಯಸ",
+				"33. 5 ಕಾಯಿ ಪಾಯಸ",
+				"34. ಹೆಸರುಬೇಳೆ ಪಾಯಸ",
+				"35. ನಾಗನಿಗೆ ಹಾಲು ಸಮರ್ಪಣೆ",
+				"36. ನಾಗ ಪೂಜೆ",
+				"37. ನಾಗ ತಂಬಿಲ",
+				"38. ಪವಮಾನ ಅಭಿಷೇಕ",
+				"39. ಶತ ರುದ್ರಾಭಿಷೇಕ",
+				"40. ಆಶ್ಲೇಷ ಬಲಿ",
+				"41. ವರಮಹಾಲಕ್ಷ್ಮೀ ಪೂಜೆ"
+		};
+
+		for (String sevaName : sevaItems) {
+			CheckBox checkBox = new CheckBox(sevaName);
+			checkBox.getStyleClass().add("seva-checkbox");
+			sevaCheckboxContainer.getChildren().add(checkBox);
+			sevaCheckboxes.add(checkBox);
+
+			// Add listener with clean name extraction
+			checkBox.selectedProperty().addListener((observable, oldValue, isSelected) -> {
+				// Split "1. ಬಲಿವಾಡು" into name part
+				String[] parts = checkBox.getText().split("\\. ", 2);
+				String cleanSevaName = parts.length > 1 ? parts[1] : checkBox.getText();
+
+				if (isSelected) {
+					selectedSevas.add(new SevaEntry(cleanSevaName));
+				} else {
+					selectedSevas.removeIf(entry -> entry.getName().equals(cleanSevaName));
+				}
+			});
+		}
+
+
+	}
 
 	private void initializeRashiNakshatraMap() {
 		// Populate the Rashi-Nakshatra mapping (adjust according to your data)
