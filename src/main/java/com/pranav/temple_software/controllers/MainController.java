@@ -50,6 +50,8 @@ public class MainController {
 	private TableColumn<SevaEntry, String> slNoColumn;
 	@FXML
 	private TableColumn<SevaEntry, String> sevaNameColumn;
+	@FXML private Button addDonationButton;
+
 
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
 
@@ -97,12 +99,59 @@ public class MainController {
 			}
 		}
 
+
+	private void handleAddDonation() {
+		String donationType = donationComboBox.getValue();
+		String amountText = donationField.getText();
+
+		if (donationType == null || donationType.equals("ಆಯ್ಕೆ") || amountText.isEmpty()) {
+			showAlert("Invalid Input", "Please select a donation type and enter amount");
+			return;
+		}
+
+		try {
+			double amount = Double.parseDouble(amountText);
+			if (amount <= 0) throw new NumberFormatException();
+
+			// Add to table with "Donation:" prefix
+			selectedSevas.add(new SevaEntry("ದೇಣಿಗೆ: " + donationType, amount));
+
+			// Clear amount field for next entry
+			donationField.clear();
+		} catch (NumberFormatException ex) {
+			showAlert("Invalid Amount", "Please enter a valid positive number");
+		}
+	}
+
+	private void showAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
+	}
+
+
 	@FXML
 	public void initialize() {
 		sevaDatePicker.setValue(LocalDate.now());
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		sevaTableView.setItems(selectedSevas);
 		setupTableView();
+
+		donationField.setDisable(true);
+		donationComboBox.setDisable(true);
+		addDonationButton.setDisable(true);
+
+		//Donation checkbox listener to put it inside the table view
+		donationCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+			donationField.setDisable(!newVal);
+			donationComboBox.setDisable(!newVal);
+			addDonationButton.setDisable(!newVal);
+		});
+
+		// Add Donation button handler
+		addDonationButton.setOnAction(e -> handleAddDonation());
 
 
 
@@ -275,6 +324,31 @@ public class MainController {
 				}
 			}
 		});
+
+		TableColumn<SevaEntry, Void> actionColumn = getSevaEntryVoidTableColumn();
+
+		sevaTableView.getColumns().add(actionColumn);
+	}
+
+	private TableColumn<SevaEntry, Void> getSevaEntryVoidTableColumn() {
+		TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Action");
+		actionColumn.setCellFactory(param -> new TableCell<>() {
+			private final Button removeButton = new Button("Remove");
+
+			{
+				removeButton.setOnAction(event -> {
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+					selectedSevas.remove(entry);
+				});
+			}
+
+			@Override
+			protected void updateItem(Void item, boolean empty) {
+				super.updateItem(item, empty);
+				setGraphic(empty ? null : removeButton);
+			}
+		});
+		return actionColumn;
 	}
 
 
