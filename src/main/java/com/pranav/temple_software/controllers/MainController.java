@@ -1,6 +1,8 @@
 package com.pranav.temple_software.controllers;
 
 
+import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,12 +16,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
+import javafx.stage.Stage;
+
 import java.time.LocalDate;
 import java.util.*;
+
+import static javafx.scene.layout.TilePane.setAlignment;
 
 public class MainController {
 	private Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
 
+	private ReceiptPrinter receiptPrinter = new ReceiptPrinter();
+	private Stage mainStage;
 	@FXML
 	private ComboBox<String> raashiComboBox;
 	@FXML
@@ -53,11 +61,59 @@ public class MainController {
 	@FXML private Button addDonationButton;
 	@FXML private Button addDonationButton1;
 	@FXML Label totalLabel;
-
+	@FXML
+	private Button printPreviewButton;
 
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
 
+	public void setMainStage(Stage stage) {
+		this.mainStage = stage;
+	}
 
+
+
+	private void handlePrintPreview() {
+		// 1. Gather Data
+		String devoteeName = devoteeNameField.getText();
+		String phone = contactField.getText();
+		LocalDate date = sevaDatePicker.getValue();
+		// Ensure selectedSevas list is up-to-date (it should be based on your existing code)
+		ObservableList<SevaEntry> currentSevas = FXCollections.observableArrayList(sevaTableView.getItems());
+
+		// Get total amount (parse from label or recalculate)
+		double total = 0.0;
+		try {
+			// Assuming totalLabel text is like "₹123.45"
+			String totalText = totalLabel.getText().replaceAll("[^\\d.]", "");
+			total = Double.parseDouble(totalText);
+		} catch (NumberFormatException | NullPointerException ex) {
+			// Fallback: Recalculate if label parsing fails
+			total = currentSevas.stream().mapToDouble(SevaEntry::getAmount).sum();
+			System.err.println("Could not parse total from label, recalculating.");
+		}
+
+
+		// Basic Validation (Add more as needed)
+		if (devoteeName == null || devoteeName.trim().isEmpty()) {
+			showAlert("Validation Error", "Please enter devotee name."); // Use your existing showAlert
+			return;
+		}
+		if (date == null) {
+			showAlert("Validation Error", "Please select a seva date.");
+			return;
+		}
+		if (currentSevas.isEmpty()) {
+			showAlert("Validation Error", "Please add at least one seva or donation.");
+			return;
+		}
+
+
+		// 2. Create ReceiptData object
+		ReceiptData receiptData = new ReceiptData(devoteeName, phone, date, currentSevas, total);
+
+		// 3. Call the preview method from ReceiptPrinter
+		receiptPrinter.showPrintPreview(receiptData, mainStage); // Pass mainStage as owner
+	}
 	public static class SevaEntry {
 		private final StringProperty name;
 		private final DoubleProperty amount;
@@ -190,6 +246,7 @@ public class MainController {
 		sevaTableView.setItems(selectedSevas);
 		setupTableView();
 		initializeTotalCalculation();
+		printPreviewButton.setOnAction(e -> handlePrintPreview());
 
 		addDonationButton1.setOnAction(e -> handleAddOtherSeva());
 
@@ -360,6 +417,7 @@ public class MainController {
 
 		// Seva name column
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+
 
 		// Amount column
 		TableColumn<SevaEntry, Number> amountColumn = (TableColumn<SevaEntry, Number>) sevaTableView.getColumns().get(2);

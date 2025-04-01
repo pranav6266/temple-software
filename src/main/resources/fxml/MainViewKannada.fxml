@@ -24,8 +24,8 @@
 
     <!-- Top Section with Header and Language Toggle -->
     <top>
-        <VBox spacing="10" style="-fx-padding: 15;">
-            <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="36.0" prefWidth="1659.0">
+        <VBox prefHeight="194.0" prefWidth="1800.0" spacing="10" style="-fx-padding: 15;">
+            <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="125.0" prefWidth="1659.0">
             <Button alignment="CENTER" mnemonicParsing="false" prefHeight="47.0" prefWidth="94.0" styleClass="action-button" text="ಇತಿಹಾಸ">
                <HBox.margin>
                   <Insets right="1100.0" />
@@ -45,24 +45,6 @@
             </VBox>
         </VBox>
     </top>
-
-    <!-- Bottom Section with Buttons -->
-    <bottom>
-        <HBox alignment="CENTER_RIGHT" maxWidth="-Infinity" prefHeight="157.0" prefWidth="1800.0" spacing="20" style="-fx-padding: 20;">
-         <HBox alignment="CENTER_LEFT" maxHeight="125.0" prefHeight="125.0" prefWidth="1018.0" spacing="20.0">
-            <children>
-               <Button styleClass="action-button" text="ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ" />
-               <Button contentDisplay="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="26.0" prefWidth="185.0" styleClass="action-button" text="ದೇಣಿಗೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ">
-                  <HBox.margin>
-                     <Insets left="50.0" />
-                  </HBox.margin>
-               </Button>
-            </children>
-         </HBox>
-            <Button styleClass="action-button" text="ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ" />
-            <Button styleClass="action-button" text="ರಸೀದಿ ಮುದ್ರಿಸಿ" />
-        </HBox>
-    </bottom>
    <left>
       <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="475.0" prefWidth="1802.0" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
@@ -195,12 +177,11 @@
                   </HBox>
                </children>
             </GridPane>
-            <TableView fx:id="sevaTableView" maxHeight="-Infinity" maxWidth="-Infinity"
-                       minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="494.0">
+            <TableView fx:id="sevaTableView" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="510.0">
               <columns>
                   <TableColumn fx:id="slNoColumn" prefWidth="50" styleClass="kannada-label" text="ಕ್ರ.ಸಂ" />
-                  <TableColumn fx:id="sevaNameColumn" prefWidth="245.5999755859375" styleClass="kannada-label" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ " />
-                <TableColumn prefWidth="118.39998168945311" styleClass="kannada-label" text="ಮೊತ್ತ " />
+                  <TableColumn fx:id="sevaNameColumn" prefWidth="287.0" styleClass="kannada-label" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ " />
+                <TableColumn prefWidth="95.0" styleClass="kannada-label" text="ಮೊತ್ತ " />
               </columns>
                <HBox.margin>
                   <Insets left="30.0" />
@@ -209,5 +190,12 @@
          </children>
       </HBox>
    </left>
+   <bottom>
+      <HBox alignment="CENTER_LEFT" maxHeight="220.0" maxWidth="-Infinity" prefHeight="220.0" prefWidth="300.0" spacing="20.0" BorderPane.alignment="CENTER">
+         <children>
+               <Button fx:id="printPreviewButton" alignment="CENTER" contentDisplay="RIGHT" prefHeight="46.0" prefWidth="522.0" styleClass="action-button" text="ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ" />
+         </children>
+      </HBox>
+   </bottom>
 
 </BorderPane>

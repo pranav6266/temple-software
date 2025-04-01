@@ -35,7 +35,7 @@ javafx {
 }
 
 dependencies {
-
+    implementation 'org.apache.pdfbox:pdfbox:3.0.2' // Use the latest stable version
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation 'org.xerial:sqlite-jdbc:3.45.3.0' // SQLite for DB
