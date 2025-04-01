@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.beans.binding.Bindings;
@@ -378,9 +379,6 @@ public class MainController {
 			}
 		});
 
-		TableColumn<SevaEntry, Void> actionColumn = getSevaEntryVoidTableColumn();
-
-		sevaTableView.getColumns().add(actionColumn);
 	}
 
 	private TableColumn<SevaEntry, Void> getSevaEntryVoidTableColumn() {

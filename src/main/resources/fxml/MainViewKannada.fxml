@@ -186,7 +186,7 @@
                         <Font name="System Bold" size="18.0" />
                      </font>
                   </Label>
-                     <Label fx:id="totalLabel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="56.0" prefWidth="94.0" styleClass="total-label" text="₹೦.೦೦" GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.rowSpan="2" />
+                     <Label fx:id="totalLabel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="56.0" prefWidth="115.0" styleClass="total-label" text="₹೦.೦೦" GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.rowSpan="2" />
                   <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                      <children>
                         <ComboBox fx:id="otherServicesComboBox" prefHeight="54.0" prefWidth="275.0" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" />
@@ -195,7 +195,8 @@
                   </HBox>
                </children>
             </GridPane>
-            <TableView fx:id="sevaTableView" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="494.0">
+            <TableView fx:id="sevaTableView" maxHeight="-Infinity" maxWidth="-Infinity"
+                       minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="494.0">
               <columns>
                   <TableColumn fx:id="slNoColumn" prefWidth="50" styleClass="kannada-label" text="ಕ್ರ.ಸಂ" />
                   <TableColumn fx:id="sevaNameColumn" prefWidth="245.5999755859375" styleClass="kannada-label" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ " />
