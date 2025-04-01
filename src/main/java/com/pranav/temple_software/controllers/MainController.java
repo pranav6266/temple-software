@@ -12,7 +12,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.beans.binding.Bindings;
@@ -21,8 +20,6 @@ import javafx.stage.Stage;
 
 import java.time.LocalDate;
 import java.util.*;
-
-import static javafx.scene.layout.TilePane.setAlignment;
 
 public class MainController {
 	private Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
@@ -96,22 +93,39 @@ public class MainController {
 
 
 		// Basic Validation (Add more as needed)
-		if (devoteeName == null || devoteeName.trim().isEmpty()) {
-			showAlert("Validation Error", "Please enter devotee name."); // Use your existing showAlert
-			return;
+		List<String> errors = new ArrayList<>();
+
+		if (devoteeNameField.getText() == null || devoteeNameField.getText().trim().isEmpty()) {
+			errors.add("Please enter devotee name");
 		}
-		if (date == null) {
-			showAlert("Validation Error", "Please select a seva date.");
-			return;
+
+		if (sevaDatePicker.getValue() == null) {
+			errors.add("Please select a seva date");
 		}
-		if (currentSevas.isEmpty()) {
-			showAlert("Validation Error", "Please add at least one seva or donation.");
+
+		if (selectedSevas.isEmpty()) {
+			errors.add("Please add at least one seva or donation");
+		}
+
+		// New radio button validation
+		if (!cashRadio.isSelected() && !onlineRadio.isSelected()) {
+			errors.add("Please select payment mode (Cash/Online)");
+		}
+
+		// Phone number validation (only if not empty)
+		String phoneNumber = contactField.getText();
+		if (phoneNumber != null && !phoneNumber.isEmpty() && phoneNumber.length() < 10) {
+			errors.add("Phone number must contain at least 10 digits");
+		}
+
+		if (!errors.isEmpty()) {
+			showAlert("Validation Error", String.join("\n", errors));
 			return;
 		}
 
 
 		// 2. Create ReceiptData object
-		ReceiptData receiptData = new ReceiptData(devoteeName, phone, date, currentSevas, total);
+		ReceiptData receiptData = new ReceiptData(devoteeName, phoneNumber, date, currentSevas, total);
 
 		// 3. Call the preview method from ReceiptPrinter
 		receiptPrinter.showPrintPreview(receiptData, mainStage); // Pass mainStage as owner
@@ -241,6 +255,16 @@ public class MainController {
 				totalBinding
 		));
 	}
+
+	private void validatePhoneNumber() {
+		String phone = contactField.getText();
+		if (phone != null && !phone.isEmpty() && phone.length() < 10) {
+			showAlert("Invalid Phone Number", "Phone number must contain at least 10 digits");
+		}
+	}
+
+
+
 	@FXML
 	public void initialize() {
 		sevaDatePicker.setValue(LocalDate.now());
@@ -257,6 +281,14 @@ public class MainController {
 		donationField.setDisable(true);
 		donationComboBox.setDisable(true);
 		addDonationButton.setDisable(true);
+
+
+		// Add phone number validation on focus loss
+		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+			if (!newVal) { // When focus is lost
+				validatePhoneNumber();
+			}
+		});
 
 		// Add listener to selectedSevas to sync CheckBox states
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
@@ -562,6 +594,7 @@ public class MainController {
 				}
 				if (newValue.length() > 10) {
 					contactField.setText(newValue.substring(0, 10));
+				} else if (newValue.length() < 10) {
 				}
 			}
 		});
