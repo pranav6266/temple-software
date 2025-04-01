@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -64,6 +65,7 @@ public class MainController {
 	@FXML
 	private Button printPreviewButton;
 
+	private final Map<String, CheckBox> sevaCheckboxMap = new HashMap<>();
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
 
 	public void setMainStage(Stage stage) {
@@ -246,6 +248,8 @@ public class MainController {
 		sevaTableView.setItems(selectedSevas);
 		setupTableView();
 		initializeTotalCalculation();
+
+
 		printPreviewButton.setOnAction(e -> handlePrintPreview());
 
 		addDonationButton1.setOnAction(e -> handleAddOtherSeva());
@@ -253,6 +257,27 @@ public class MainController {
 		donationField.setDisable(true);
 		donationComboBox.setDisable(true);
 		addDonationButton.setDisable(true);
+
+		// Add listener to selectedSevas to sync CheckBox states
+		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
+			while (change.next()) {
+				if (change.wasRemoved()) {
+					for (SevaEntry removedEntry : change.getRemoved()) {
+						// Find the Seva ID from the removed entry's name
+						sevaMap.entrySet().stream()
+								.filter(entry -> entry.getValue().getName().equals(removedEntry.getName()))
+								.findFirst()
+								.ifPresent(entry -> {
+									String sevaId = entry.getKey();
+									CheckBox checkBox = sevaCheckboxMap.get(sevaId);
+									if (checkBox != null) {
+										checkBox.setSelected(false);
+									}
+								});
+					}
+				}
+			}
+		});
 
 		//Donation checkbox listener to put it inside the table view
 		donationCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -463,12 +488,23 @@ public class MainController {
 
 	private void setupSevaCheckboxes() {
 		initializeSevaData();
-
+		sevaCheckboxMap.clear(); // Clear existing entries
 
 		for (Seva seva : sevaMap.values()) {
 			CheckBox checkBox = new CheckBox(seva.getId() + ". " + seva.getName());
 			checkBox.getStyleClass().add("seva-checkbox");
+			String sevaId = seva.getId(); // Unique identifier for the Seva
 
+			// Add CheckBox to the map
+			sevaCheckboxMap.put(sevaId, checkBox);
+
+			{// Initialize CheckBox state based on selectedSevas
+			boolean isSelected = selectedSevas.stream()
+					.anyMatch(entry -> entry.getName().equals(seva.getName()));
+			checkBox.setSelected(isSelected);
+			}
+
+			// Update selectedSevas when CheckBox is toggled
 			checkBox.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
 				if (isSelected) {
 					selectedSevas.add(new SevaEntry(seva.getName(), seva.getAmount()));
@@ -482,7 +518,6 @@ public class MainController {
 
 			sevaCheckboxContainer.getChildren().add(checkBox);
 		}
-
 	}
 
 	private void initializeRashiNakshatraMap() {
