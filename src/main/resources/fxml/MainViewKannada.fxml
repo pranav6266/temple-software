@@ -57,7 +57,7 @@
                   </columnConstraints>
       
                   <!-- Row 0: Receipt Number -->
-                  <Label styleClass="kannada-label" text="ರಸೀದಿ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1" />
+                  <Label styleClass="kannada-label" text="ರಶೀದಿ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1" />
                   <Label fx:id="receiptNumberLabel" styleClass="receipt-number" GridPane.columnIndex="1" GridPane.rowIndex="1" />
       
                   <!-- Row 1: Devotee Name -->

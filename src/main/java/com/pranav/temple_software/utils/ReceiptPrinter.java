@@ -19,13 +19,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType0Font; // Use for Unicode (Kannada) support
-
-import java.io.File;
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 public class ReceiptPrinter {
@@ -37,7 +30,6 @@ public class ReceiptPrinter {
 	private static final Font KANNADA_FONT_SMALL = Font.font("Noto Sans Kannada", FontWeight.NORMAL, 8); // Adjust font size
 	private static final Font KANNADA_FONT_BOLD = Font.font("Noto Sans Kannada", FontWeight.BOLD, 9); // Adjust font size
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
 
 	// --- Method to Create the Receipt Layout as a JavaFX Node ---
 	private Node createReceiptNode(ReceiptData data) {
@@ -64,9 +56,13 @@ public class ReceiptPrinter {
 		VBox detailsBox = new VBox(2);
 		detailsBox.setAlignment(Pos.CENTER_LEFT);
 
+		detailsBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ : " + data.getReceiptId()));
+
 		// 2. Devotee Info
 		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName()));
-		detailsBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ರಾಶಿ : " + data.getRaashi()));
+		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ :" + data.getNakshatra()));
+
 		// 3. Seva Date
 		detailsBox.getChildren().add(new Text("ಸೇವಾ ದಿನಾಂಕ: " + data.getSevaDate().format(DATE_FORMATTER)));
 

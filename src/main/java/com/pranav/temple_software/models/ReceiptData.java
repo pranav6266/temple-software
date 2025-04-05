@@ -12,10 +12,17 @@ public class ReceiptData {
 	private final LocalDate sevaDate;
 	private final ObservableList<SevaEntry> sevas;
 	private final double totalAmount;
+	private final String rashi;
+	private final String nakshatra;
+	private final int receiptId;
 
-	public ReceiptData(String devoteeName, String phoneNumber, LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount) {
+	public ReceiptData(int receiptId, String devoteeName, String phoneNumber, String raashi, String nakshatra,
+	                   LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount) {
+		this.receiptId = receiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
+		this.rashi = raashi;
+		this.nakshatra = nakshatra;
 		this.sevaDate = sevaDate;
 		this.sevas = sevas;
 		this.totalAmount = totalAmount;
@@ -25,7 +32,9 @@ public class ReceiptData {
 	public String getHeading() { return heading; }
 	public String getSubHeading() { return subHeading; }
 	public String getDevoteeName() { return devoteeName; }
-	public String getPhoneNumber() { return phoneNumber; }
+	public int getReceiptId() { return receiptId; }
+	public String getRaashi() { return rashi;}
+	public String getNakshatra() {return nakshatra;}
 	public LocalDate getSevaDate() { return sevaDate; }
 	public ObservableList<SevaEntry> getSevas() { return sevas; }
 	public double getTotalAmount() { return totalAmount; }

@@ -2,6 +2,7 @@ package com.pranav.temple_software.controllers;
 
 
 import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.utils.DatabaseManager;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -61,26 +62,55 @@ public class MainController {
 	@FXML Label totalLabel;
 	@FXML
 	private Button printPreviewButton;
+	@FXML private Label receiptNumberLabel;
 
 	private final Map<String, CheckBox> sevaCheckboxMap = new HashMap<>();
 	private ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
 
-	public void setMainStage(Stage stage) {
-		this.mainStage = stage;
+	public void setMainStage(Stage stage) {this.mainStage = stage;}
+
+	DatabaseManager dbmanager = new DatabaseManager();
+
+	/**
+	 * Formats the list of SevaEntry objects into a delimited string.
+	 * Example format: "SevaName1:Amount1;SevaName2:Amount2;..."
+	 * @param sevas The list of SevaEntry objects.
+	 * @return A delimited string representation.
+	 */
+	private String formatSevasForDatabase(ObservableList<SevaEntry> sevas) {
+		if (sevas == null || sevas.isEmpty()) {
+			return ""; // Return empty string if no sevas
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < sevas.size(); i++) {
+			SevaEntry entry = sevas.get(i);
+			// Sanitize name just in case, remove delimiters if they exist
+			String safeName = entry.getName().replace(":", "").replace(";", "");
+			sb.append(safeName).append(":").append(entry.getAmount());
+			if (i < sevas.size() - 1) {
+				sb.append(";"); // Add separator except for the last item
+			}
+		}
+		return sb.toString();
 	}
-
-
-
 	private void handlePrintPreview() {
 		// 1. Gather Data
 		String devoteeName = devoteeNameField.getText();
 		String phone = contactField.getText();
 		LocalDate date = sevaDatePicker.getValue();
+		String phoneNumber = contactField.getText();
 		// Ensure selectedSevas list is up-to-date (it should be based on your existing code)
 		ObservableList<SevaEntry> currentSevas = FXCollections.observableArrayList(sevaTableView.getItems());
+		double total = 0.0;
+		String sevasDetailsString = formatSevasForDatabase(selectedSevas);
+		String paymentMode = cashRadio.isSelected() ? "Cash" : (onlineRadio.isSelected() ? "Online" : "N/A");
+		int generatedReceiptId = dbmanager.saveReceipt(devoteeName, phoneNumber, date, sevasDetailsString, total, paymentMode);
+
+
+
+
 
 		// Get total amount (parse from label or recalculate)
-		double total = 0.0;
 		try {
 			// Assuming totalLabel text is like "₹123.45"
 			String totalText = totalLabel.getText().replaceAll("[^\\d.]", "");
@@ -113,7 +143,6 @@ public class MainController {
 		}
 
 		// Phone number validation (only if not empty)
-		String phoneNumber = contactField.getText();
 		if (phoneNumber != null && !phoneNumber.isEmpty() && phoneNumber.length() < 10) {
 			errors.add("Phone number must contain at least 10 digits");
 		}
@@ -124,12 +153,24 @@ public class MainController {
 		}
 
 
-		// 2. Create ReceiptData object
-		ReceiptData receiptData = new ReceiptData(devoteeName, phoneNumber, date, currentSevas, total);
+//Check the generated receipt id
+		if (generatedReceiptId == -1) { // Or however you indicate failure
+			// *** Show an alert to the user! ***
+			showAlert("Database Error", "Failed to save receipt. Please check the logs or contact support.\nError: " /* + Optional error details if available */);
+			return; // Stop processing if save failed
+		} else {
+			// Proceed with updating label and showing preview...
+			receiptNumberLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + generatedReceiptId);
+			ReceiptData receiptData = new ReceiptData(generatedReceiptId, devoteeName, phoneNumber, raashiComboBox.getValue(),
+			nakshatraComboBox.getValue(),date, currentSevas, total);
 
-		// 3. Call the preview method from ReceiptPrinter
-		receiptPrinter.showPrintPreview(receiptData, mainStage); // Pass mainStage as owner
+			// 3. Call the preview method from ReceiptPrinter
+			receiptPrinter.showPrintPreview(receiptData, mainStage); // Pass mainStage as owner
+		}
+
 	}
+
+
 	public static class SevaEntry {
 		private final StringProperty name;
 		private final DoubleProperty amount;
