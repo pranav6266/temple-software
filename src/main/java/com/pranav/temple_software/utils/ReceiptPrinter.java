@@ -1,8 +1,7 @@
 package com.pranav.temple_software.utils;
 
-import com.pranav.temple_software.controllers.MainController.SevaEntry;
+import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.models.ReceiptData;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.print.*;
@@ -20,6 +19,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.time.format.DateTimeFormatter;
+import java.util.function.Consumer;
 
 public class ReceiptPrinter {
 
@@ -60,8 +60,22 @@ public class ReceiptPrinter {
 
 		// 2. Devotee Info
 		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName()));
-		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ರಾಶಿ : " + data.getRaashi()));
-		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ :" + data.getNakshatra()));
+		// --- MODIFICATION START ---
+		// Helper function or inline check for null/empty display text
+		String raashiText = (data.getRaashi() == null || data.getRaashi().trim().isEmpty())
+				? "ನಿರ್ದಿಷ್ಟಪಡಿಸಿಲ್ಲ" // Kannada for "Not specified"
+				: data.getRaashi();
+		String nakshatraText = (data.getNakshatra() == null || data.getNakshatra().trim().isEmpty())
+				? "ನಿರ್ದಿಷ್ಟಪಡಿಸಿಲ್ಲ" // Kannada for "Not specified"
+				: data.getNakshatra();
+		// If you prefer an empty space instead of Kannada text, use:
+		// String raashiText = (data.getRaashi() == null || data.getRaashi().trim().isEmpty()) ? "" : data.getRaashi();
+		// String nakshatraText = (data.getNakshatra() == null || data.getNakshatra().trim().isEmpty()) ? "" : data.getNakshatra();
+
+
+		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ರಾಶಿ : " + raashiText));
+		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ :" + nakshatraText));
+		// --- MODIFICATION END ---
 
 		// 3. Seva Date
 		detailsBox.getChildren().add(new Text("ಸೇವಾ ದಿನಾಂಕ: " + data.getSevaDate().format(DATE_FORMATTER)));
@@ -129,7 +143,7 @@ public class ReceiptPrinter {
 
 
 	// --- Method for Print Preview ---
-	public void showPrintPreview(ReceiptData data, Stage ownerStage) {
+	public void showPrintPreview(ReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
@@ -153,13 +167,18 @@ public class ReceiptPrinter {
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20); // Add padding
 		scrollPane.setPrefViewportHeight(600); // Adjust height
 
-		Button printButton = new Button("ಮುದ್ರಿಸು"); // Print Button
+		Button printButton = new Button("ಮುದ್ರಿಸು");
 		printButton.setOnAction(e -> {
-//			// Reset scale before printing
+			// Reset scale before printing
 			receiptNode.setScaleX(1.0);
 			receiptNode.setScaleY(1.0);
-			printReceipt(receiptNode, ownerStage);
-			previewStage.close();
+			// Call the modified printReceipt and get the result
+			boolean success = printReceipt(receiptNode, ownerStage);
+			// Execute the callback with the result
+			if (onPrintComplete != null) {
+				onPrintComplete.accept(success);
+			}
+			previewStage.close(); // Close preview regardless of success
 		});
 
 //		Button savePdfButton = new Button("PDF ಉಳಿಸು"); // Save PDF Button
@@ -190,50 +209,49 @@ public class ReceiptPrinter {
 	}
 
 	// --- Method to Handle Actual Printing ---
-	public void printReceipt(Node nodeToPrint, Stage ownerStage) {
+// Inside ReceiptPrinter.java
+	public boolean printReceipt(Node nodeToPrint, Stage ownerStage) { // Changed return type
 		PrinterJob job = PrinterJob.createPrinterJob();
 
 		if (job == null) {
 			showAlert(ownerStage, "Printing Error", "Could not create printer job.");
-			return;
+			return false; // Indicate failure
 		}
 
-		// Show Print Dialog
 		boolean proceed = job.showPrintDialog(ownerStage);
+		boolean printSucceeded = false; // Flag for success
 
 		if (proceed) {
 			Printer printer = job.getPrinter();
-			// --- Attempt to set paper size (might depend on driver) ---
-			// You might need to experiment here. Standard sizes are often Letter/A4.
-			// Thermal printers might require specific driver settings to handle 50mm.
-			// Create a custom paper if needed, though support varies.
-			Paper customPaper = Paper.NA_LETTER;  // Example height
+			Paper customPaper = Paper.NA_LETTER;
 			PageLayout pageLayout = printer.createPageLayout(customPaper, PageOrientation.PORTRAIT, Printer.MarginType.HARDWARE_MINIMUM);
 
-			// If custom paper fails, try a default and rely on driver scaling
-			if (pageLayout == null || pageLayout.getPrintableWidth() < RECEIPT_WIDTH_POINTS * 0.8) { // Check if width seems too small
+			if (pageLayout == null || pageLayout.getPrintableWidth() < RECEIPT_WIDTH_POINTS * 0.8) {
 				pageLayout = printer.createPageLayout(Paper.NA_LETTER, PageOrientation.PORTRAIT, Printer.MarginType.DEFAULT);
-				// Scale node to fit - this might distort if aspect ratio isn't maintained
 				double scaleX = pageLayout.getPrintableWidth() / nodeToPrint.getBoundsInParent().getWidth();
-				// Consider scaling height proportionally if needed, or let it break across pages/cut
 				nodeToPrint.setScaleX(scaleX);
-				nodeToPrint.setScaleY(scaleX); // Maintain aspect ratio
+				nodeToPrint.setScaleY(scaleX);
 			}
-
 
 			boolean printed = job.printPage(pageLayout, nodeToPrint);
 			if (printed) {
-				job.endJob();
+				printSucceeded = job.endJob(); // endJob returns true on success
 				// Reset scale if it was changed
 				nodeToPrint.setScaleX(1.0);
 				nodeToPrint.setScaleY(1.0);
+				if (!printSucceeded) {
+					showAlert(ownerStage, "Printing Failed", "Failed to finalize the print job.");
+				}
 			} else {
 				showAlert(ownerStage, "Printing Failed", "Failed to print the page.");
-				job.cancelJob(); // Attempt to cancel if printing fails
+				job.cancelJob();
 			}
+		} else {
+			// User cancelled the print dialog
+			job.cancelJob(); // Good practice to cancel if dialog is closed
 		}
+		return printSucceeded; // Return the final status
 	}
-
 	// --- Method to Save as PDF ---
 //	public void saveReceiptAsPdf(ReceiptData data, Stage ownerStage) throws IOException {
 //		javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();

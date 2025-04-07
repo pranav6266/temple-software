@@ -4,5 +4,11 @@ module com.pranav.temple_software {
 	requires java.sql;
 //	requires org.xerial.sqlitejdbc;
 	requires org.apache.pdfbox;
+	requires com.h2database;
 	exports com.pranav.temple_software.controllers;
+	exports com.pranav.temple_software.listeners;
+	exports com.pranav.temple_software.models;
+	exports com.pranav.temple_software.repositories;
+	exports com.pranav.temple_software.services;
+	exports com.pranav.temple_software.utils;
 }

@@ -35,36 +35,4 @@ public class DatabaseManager {
 		}
 	}
 
-	public int saveReceipt(String name, String phone, LocalDate date, String sevasDetails, double total, String paymentMode) {
-		String sql = "INSERT INTO Receipts (devotee_name, " +
-		"phone_number, seva_date, sevas_details," +
-		" total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?)";
-		int generatedId = -1;
-
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-			pstmt.setString(1, name);
-			pstmt.setString(2, phone);
-			pstmt.setDate(3, java.sql.Date.valueOf(date));
-			pstmt.setString(4, sevasDetails); // Pass the formatted string
-			pstmt.setDouble(5, total);
-			pstmt.setString(6, paymentMode);
-
-			int affectedRows = pstmt.executeUpdate();
-
-			if (affectedRows > 0) {
-				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-					if (generatedKeys.next()) {
-						generatedId = generatedKeys.getInt(1);
-					}
-				}
-			}
-		} catch (SQLException e) {
-			System.err.println("Error inserting receipt: " + e.getMessage());
-			return -1;
-		}
-		return generatedId;
-	}
-	// Add methods to format SevaEntry list to String (e.g., JSON) if needed
 }

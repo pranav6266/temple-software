@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.pranav.temple_software.controllers.HistoryController">
+    <TableView fx:id="historyTable">
+        <columns>
+            <TableColumn text="ರಶೀದಿ ಸಂಖ್ಯೆ" prefWidth="100">
+                <cellValueFactory><PropertyValueFactory property="receiptId"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="ಭಕ್ತರ ಹೆಸರು" prefWidth="200">
+                <cellValueFactory><PropertyValueFactory property="devoteeName"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="ದಿನಾಂಕ" prefWidth="150">
+                <cellValueFactory><PropertyValueFactory property="formattedDate"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="ಒಟ್ಟು ಮೊತ್ತ" prefWidth="150">
+                <cellValueFactory><PropertyValueFactory property="totalAmount"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+</VBox>

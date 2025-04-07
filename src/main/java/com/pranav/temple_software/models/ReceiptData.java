@@ -1,8 +1,8 @@
 package com.pranav.temple_software.models;
 
-import com.pranav.temple_software.controllers.MainController.SevaEntry;
 import javafx.collections.ObservableList;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class ReceiptData {
 	private final String heading = "ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ ";
@@ -28,10 +28,12 @@ public class ReceiptData {
 		this.totalAmount = totalAmount;
 	}
 
+
 	// --- Getters for all fields ---
 	public String getHeading() { return heading; }
 	public String getSubHeading() { return subHeading; }
 	public String getDevoteeName() { return devoteeName; }
+	public String getPhoneNumber(){ return phoneNumber;}
 	public int getReceiptId() { return receiptId; }
 	public String getRaashi() { return rashi;}
 	public String getNakshatra() {return nakshatra;}
@@ -39,4 +41,5 @@ public class ReceiptData {
 	public ObservableList<SevaEntry> getSevas() { return sevas; }
 	public double getTotalAmount() { return totalAmount; }
 	public String getFinalLine() { return "ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ಇರಲಿ !"; }
+	public String getFormattedDate() {return sevaDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));}
 }
