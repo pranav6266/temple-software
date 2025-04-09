@@ -106,7 +106,7 @@ public class ReceiptServices {
 		);
 
 		// 5. Update UI Label with the POTENTIAL ID
-		controller.receiptNumberLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + this.pendingReceiptId);
+		controller.receiptNumberLabel.setText(String.valueOf(this.pendingReceiptId));
 
 
 		// 6. Define the callback function for AFTER printing attempt

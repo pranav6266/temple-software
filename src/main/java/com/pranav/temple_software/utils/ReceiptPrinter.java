@@ -125,7 +125,8 @@ public class ReceiptPrinter {
 		receiptLayout.getChildren().add(totalLabel);
 
 
-		receiptLayout.getChildren().add(new Region() {{ VBox.setVgrow(this, Priority.ALWAYS);setMinHeight(15);}}); // Add space
+		receiptLayout.getChildren().add(new Region() {{ VBox.setVgrow(this, Priority.ALWAYS);
+			setMinHeight(15);}}); // Add space
 
 
 		// 6. Final Line
@@ -226,7 +227,7 @@ public class ReceiptPrinter {
 			Paper customPaper = Paper.NA_LETTER;
 			PageLayout pageLayout = printer.createPageLayout(customPaper, PageOrientation.PORTRAIT, Printer.MarginType.HARDWARE_MINIMUM);
 
-			if (pageLayout == null || pageLayout.getPrintableWidth() < RECEIPT_WIDTH_POINTS * 0.8) {
+			if (pageLayout.getPrintableWidth() < RECEIPT_WIDTH_POINTS * 0.8) {
 				pageLayout = printer.createPageLayout(Paper.NA_LETTER, PageOrientation.PORTRAIT, Printer.MarginType.DEFAULT);
 				double scaleX = pageLayout.getPrintableWidth() / nodeToPrint.getBoundsInParent().getWidth();
 				nodeToPrint.setScaleX(scaleX);

@@ -6,9 +6,10 @@
 
 
 .lang-toggle {
-    -fx-font-size: 14px;
+    -fx-font-size: 20px;
     -fx-background-color: #e9ecef;
-    -fx-border-radius: 15px;
+    -fx-font-weight: bold;
+    -fx-border-radius: 20px;
     -fx-padding: 5 15;
 }
 
@@ -52,7 +53,7 @@
 
 /* Action Buttons */
 .action-button {
-    -fx-font-size: 14px;
+    -fx-font-size: 20px;
     -fx-background-color: #3498db;
     -fx-text-fill: white;
     -fx-padding: 10 20;
@@ -87,4 +88,29 @@
 
 #slNoColumn .table-cell {
     -fx-alignment: center;
+}
+
+/* Center align all cells in the history table */
+#historyTable .table-cell {
+    -fx-alignment: CENTER;
+    -fx-font-size: 20px;
+}
+
+/* Increase row height */
+#historyTable .table-row-cell {
+    -fx-cell-size: 50px; /* Adjust the value as needed */
+}
+
+/* Target the column header of your TableView with ID "historyTable" */
+#historyTable .column-header {
+    /*-fx-background-color: #4CAF50;  Header background color */
+    -fx-pref-height: 40px; /* Header row height */
+}
+
+/* Target the text/label inside the column header */
+#historyTable .column-header .label {
+    -fx-text-fill: #ff3300; /* Text color */
+    -fx-font-size: 25px; /* Font size */
+    -fx-font-weight: bold; /* Bold text */
+    -fx-alignment: CENTER; /* Center-align header text */
 }
