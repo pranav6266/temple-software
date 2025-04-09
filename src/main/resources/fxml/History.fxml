@@ -38,7 +38,7 @@
             <TableColumn fx:id="otherSevaColumn" editable="false" minWidth="0.0" prefWidth="277.0" text="ಇತರೆ ಸೇವೆಯ ಮೊತ್ತ " />
             <TableColumn fx:id="donationColumn" editable="false" minWidth="0.0" prefWidth="189.0" text="ದೇಣಿಗೆ ಮೊತ್ತ " />
             <TableColumn fx:id="totalAmountCoulum" editable="false" minWidth="0.0" prefWidth="190.0" text="ಒಟ್ಟು ಮೊತ್ತ " />
-            <TableColumn editable="false" minWidth="0.0" prefWidth="165.0" text="ವಿವರ " />
+            <TableColumn fx:id="detailsColumn" editable="false" minWidth="0.0" prefWidth="165.0" text="ವಿವರ " />
         </columns>
          <styleClass>
             <String fx:value="column-header" />
