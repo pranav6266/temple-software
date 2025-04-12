@@ -86,6 +86,21 @@ public class MainController {
 	}
 
 	@FXML
+	public void handleSevaManagerButton() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/SevaManager/SevaManagerView.fxml"));
+			Stage sevaStage = new Stage();
+			sevaStage.setTitle("ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
+			sevaStage.setScene(new Scene(loader.load()));
+			sevaStage.initModality(Modality.WINDOW_MODAL);
+			sevaStage.initOwner(mainStage);
+			sevaStage.show();
+		} catch (IOException e) {
+			showAlert("Error", "Failed to load history view");
+		}
+	}
+
+	@FXML
 	public void clearForm() {
 		// Clear all fields EXCEPT bound labels
 		devoteeNameField.clear();

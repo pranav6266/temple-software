@@ -27,23 +27,25 @@
     <!-- Top Section with Header and Language Toggle -->
     <top>
         <VBox prefHeight="194.0" prefWidth="1800.0" spacing="10" style="-fx-padding: 15;">
-            <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="125.0" prefWidth="1659.0">
-            <MenuButton mnemonicParsing="false"  prefHeight="71.0" prefWidth="201.0" styleClass="action-button" text="ಮೆನು ">
-              <items>
-                <MenuItem mnemonicParsing="false" text="ಇತಿಹಾಸ" onAction="#handleHistoryButton" />
-                <MenuItem mnemonicParsing="false" text="ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
-              </items>
-               <HBox.margin>
-                  <Insets right="1200.0" />
-               </HBox.margin>
-            </MenuButton>
-                <Button fx:id="langController" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" prefHeight="62.0" prefWidth="184.0" styleClass="lang-toggle" text="EN/ಕನ್ನಡ" textAlignment="JUSTIFY" />
-            </HBox>
             <VBox alignment="CENTER" prefHeight="64.0" prefWidth="474.0" spacing="5">
                 <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="58.0" prefWidth="1048.0" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ, ಚೇರ್ಕಬೆ, ಪಡ್ರೆ " textFill="#ff3300" underline="true">
                <font>
                   <Font name="System Bold" size="40.0" />
                </font></Label>
+               <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="125.0" prefWidth="1659.0">
+               <MenuButton mnemonicParsing="false" onAction="#handleHistoryButton" prefHeight="71.0" prefWidth="201.0" styleClass="action-button" text="ಮೆನು ">
+                 <items>
+                   <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" styleClass="kannada-label" text="ಇತಿಹಾಸ" />
+                   <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" styleClass="kannada-label" text="ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
+                     <MenuItem mnemonicParsing="false" styleClass="kannada-label" text="ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
+                     <MenuItem mnemonicParsing="false" styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ " />
+                 </items>
+                  <HBox.margin>
+                     <Insets right="1200.0" />
+                  </HBox.margin>
+               </MenuButton>
+                   <Button fx:id="langController" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" prefHeight="62.0" prefWidth="184.0" styleClass="lang-toggle" text="EN/ಕನ್ನಡ" textAlignment="JUSTIFY" />
+               </HBox>
                 <Label alignment="CENTER" prefHeight="36.0" prefWidth="271.0" text="ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ">
                <font>
                   <Font name="System Bold" size="25.0" />
