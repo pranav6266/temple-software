@@ -94,7 +94,8 @@ public class MainController {
 			sevaStage.setScene(new Scene(loader.load()));
 			sevaStage.initModality(Modality.WINDOW_MODAL);
 			sevaStage.initOwner(mainStage);
-			sevaStage.setMaximized(true);
+			sevaStage.setMaxHeight(800);
+			sevaStage.setMaxWidth(950);
 			sevaStage.show();
 		} catch (IOException e) {
 			showAlert(Alert.AlertType.INFORMATION, "Error", "Failed to load history view");
