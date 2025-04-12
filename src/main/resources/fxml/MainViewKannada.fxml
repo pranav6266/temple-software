@@ -6,6 +6,8 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -26,11 +28,15 @@
     <top>
         <VBox prefHeight="194.0" prefWidth="1800.0" spacing="10" style="-fx-padding: 15;">
             <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="125.0" prefWidth="1659.0">
-            <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleHistoryButton" prefHeight="47.0" prefWidth="94.0" styleClass="action-button" text="ಇತಿಹಾಸ">
+            <MenuButton mnemonicParsing="false"  prefHeight="71.0" prefWidth="201.0" styleClass="action-button" text="ಮೆನು ">
+              <items>
+                <MenuItem mnemonicParsing="false" text="ಇತಿಹಾಸ" onAction="#handleHistoryButton" />
+                <MenuItem mnemonicParsing="false" text="ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
+              </items>
                <HBox.margin>
-                  <Insets right="1100.0" />
+                  <Insets right="1200.0" />
                </HBox.margin>
-            </Button>
+            </MenuButton>
                 <Button fx:id="langController" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" prefHeight="62.0" prefWidth="184.0" styleClass="lang-toggle" text="EN/ಕನ್ನಡ" textAlignment="JUSTIFY" />
             </HBox>
             <VBox alignment="CENTER" prefHeight="64.0" prefWidth="474.0" spacing="5">

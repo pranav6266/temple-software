@@ -72,7 +72,7 @@ public class MainController {
 	@FXML
 	public void handleHistoryButton() {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/History.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/History.fxml"));
 			Stage historyStage = new Stage();
 			historyStage.setTitle("ರಶೀದಿ ಇತಿಹಾಸ");
 			historyStage.setScene(new Scene(loader.load()));
