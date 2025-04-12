@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 <?import java.lang.String?>
-<VBox prefHeight="857.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.HistoryController">
+<VBox prefHeight="857.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
     <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="992.0" prefWidth="1920.0">
         <HBox alignment="CENTER_RIGHT" layoutX="39.0" layoutY="50.0" prefHeight="100.0" prefWidth="1469.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0">
             <Label alignment="CENTER" prefHeight="51.0" prefWidth="1864.0" text="ರಶೀದಿ ಇತಿಹಾಸ" textFill="#ff3300" HBox.hgrow="NEVER">
@@ -29,7 +29,7 @@
             </effect>
             </Label>
         </HBox>
-      <TableView fx:id="historyTable" layoutX="68.0" layoutY="561.0" prefHeight="781.0" prefWidth="1820.0" stylesheets="@../css/main.css" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="161.0">
+      <TableView fx:id="historyTable" layoutX="68.0" layoutY="561.0" prefHeight="781.0" prefWidth="1820.0" stylesheets="@../../../css/main.css" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="161.0">
         <columns>
           <TableColumn fx:id="receiptIdColumn" editable="false" prefWidth="171.0" text="ರಶೀದಿ ಸಂಖ್ಯೆ " />
           <TableColumn fx:id="devoteeNameColumn" editable="false" minWidth="0.0" prefWidth="405.0" text="ಭಕ್ತರ ಹೆಸರು " />

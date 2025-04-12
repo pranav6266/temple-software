@@ -1,4 +1,4 @@
-package com.pranav.temple_software.controllers;
+package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.ReceiptData;
 import com.pranav.temple_software.models.SevaEntry; // Import SevaEntry

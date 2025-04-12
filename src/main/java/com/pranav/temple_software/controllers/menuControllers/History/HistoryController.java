@@ -1,5 +1,5 @@
 // HistoryController.java
-package com.pranav.temple_software.controllers;
+package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.ReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
@@ -14,7 +14,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.util.List;
@@ -103,7 +102,7 @@ public class HistoryController {
 	private void showReceiptDetails(ReceiptData receiptData) {
 		try {
 			// Load the FXML file for the details view (You'll need to create this)
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ReceiptDetailsView.fxml")); // Adjust path if needed
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/ReceiptDetailsView.fxml")); // Adjust path if needed
 			Stage detailsStage = new Stage();
 			detailsStage.setTitle("ರಶೀದಿ ವಿವರಗಳು"); // "Receipt Details"
 			detailsStage.initModality(Modality.WINDOW_MODAL); // Block interaction with the main window

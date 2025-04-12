@@ -11,4 +11,6 @@ module com.pranav.temple_software {
 	exports com.pranav.temple_software.repositories;
 	exports com.pranav.temple_software.services;
 	exports com.pranav.temple_software.utils;
+	exports com.pranav.temple_software.controllers.menuControllers.SevaManager;
+	exports com.pranav.temple_software.controllers.menuControllers.History;
 }
