@@ -1,17 +1,196 @@
+// File: Temple_Software/src/main/java/com/pranav/temple_software/controllers/menuControllers/SevaManager/SevaManagerController.java
 package com.pranav.temple_software.controllers.menuControllers.SevaManager;
 
+import com.pranav.temple_software.models.Seva;
+import com.pranav.temple_software.repositories.SevaRepository; // Import SevaRepository
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML; // Import FXML
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox; // For layout within grid cells
+
+import java.util.Collection; // Import Collection
+import java.util.Optional;
 
 public class SevaManagerController {
-	public GridPane sevaGridPane;
 
+	@FXML public GridPane sevaGridPane; //
+
+	// *** ADDED FXML Fields for new Controls ***
+	@FXML private TextField sevaIdField;
+	@FXML private TextField sevaNameField;
+	@FXML private TextField sevaAmountField;
+	@FXML private Button addSevaButton; // Although action is handled by onAction, useful to have reference
+
+	// *** ADDED SevaRepository Instance ***
+	// IMPORTANT: This controller needs the SAME instance as MainController.
+	// This simple initialization creates a NEW instance, which is usually WRONG.
+	// Implement proper sharing (Dependency Injection, Singleton, or passing instance).
+	private final SevaRepository sevaRepository = SevaRepository.getInstance();
+	private int nextSevaId = 0;
+
+	// *** ADDED initialize method ***
+	@FXML
+	public void initialize() {
+		// Add validation listeners (optional but recommended)
+		setupInputValidation();
+		updateDefaultSevaId();
+		// Load initial data
+		refreshGridPane();
+		sevaIdField.setEditable(false);
+	}
+
+	private void updateDefaultSevaId() {
+		if (this.sevaRepository == null) return; // Guard clause
+		try {
+			int maxId = sevaRepository.getMaxSevaId();
+			this.nextSevaId = maxId + 1;
+			sevaIdField.setText(String.valueOf(this.nextSevaId));
+		} catch (Exception e) {
+			System.err.println("Error updating default Seva ID: " + e.getMessage());
+			showAlert(Alert.AlertType.ERROR, "Error", "Could not determine the next Seva ID.");
+			// Optionally disable adding new sevas if ID cannot be determined
+			// addSevaButton.setDisable(true);
+			sevaIdField.setText(""); // Clear field on error
+			this.nextSevaId = -1; // Indicate error state
+		}
+	}
+
+	// *** ADDED input validation (basic example) ***
+	private void setupInputValidation() {
+		// Allow only numbers (and optionally a decimal point) in Amount field
+		sevaAmountField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue != null && !newValue.matches("\\d*(\\.\\d*)?")) {
+				sevaAmountField.setText(oldValue != null ? oldValue : "");
+			}
+		});
+	}
+
+
+	@FXML
 	public void handleAddSeva(ActionEvent actionEvent) {
+		if (this.sevaRepository == null || this.nextSevaId <= 0) { // Check if repo/nextId is valid
+			showAlert(Alert.AlertType.ERROR, "Error", "Cannot add Seva. Repository or next ID not initialized correctly.");
+			return;
+		}
+
+		// Get ID directly from our calculated next ID, ignore text field value if it was editable
+		String id = String.valueOf(this.nextSevaId); // Use the calculated next ID
+		// String idFromField = sevaIdField.getText(); // No longer needed if field is read-only
+
+		String name = sevaNameField.getText();
+		String amountStr = sevaAmountField.getText();
+
+		// Basic Validation
+		if (name.isEmpty() || amountStr.isEmpty()) {
+			showAlert(Alert.AlertType.WARNING, "Input Error", "Please fill in Seva Name and Amount.");
+			return;
+		}
+
+		if (this.sevaRepository.getAllSevas().stream().anyMatch(s -> s.getId().equals(id))) {
+			showAlert(Alert.AlertType.ERROR, "Concurrency Error", "Seva ID '" + id + "' was unexpectedly found. Please refresh and try again.");
+			updateDefaultSevaId(); // Recalculate ID
+			return;
+		}
+
+
+		try {
+			double amount = Double.parseDouble(amountStr);
+			if (amount < 0) {
+				showAlert(Alert.AlertType.WARNING, "Input Error", "Amount cannot be negative.");
+				return;
+			}
+
+			Seva newSeva = new Seva(id, name, amount);
+			boolean success = this.sevaRepository.addSevaToDB(newSeva);
+
+			if (success) {
+				showAlert(Alert.AlertType.INFORMATION, "Success", "Seva added successfully!");
+				clearInputFields(); // Keep name/amount clear
+				refreshGridPane(); // Update the display
+				updateDefaultSevaId(); // IMPORTANT: Update the ID for the *next* Seva
+			} else {
+				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to add Seva to the database. Check logs.");
+			}
+
+		} catch (NumberFormatException e) {
+			showAlert(Alert.AlertType.WARNING, "Input Error", "Please enter a valid number for the Amount.");
+		}
 	}
 
-	public void handleDeleteSeva(ActionEvent actionEvent) {
+	// *** NO CHANGE needed for handleDeleteSeva method signature ***
+	// The actual deletion logic will be handled by the button created in refreshGridPane
+	@FXML public void handleDeleteSeva(ActionEvent actionEvent) { /* Keep signature, logic moves */ }
+
+
+
+	@FXML public void handleSave(ActionEvent actionEvent) { //
+		System.out.println("Refresh button clicked.");
+		updateDefaultSevaId(); // Ensure default ID is up-to-date on refresh
+		refreshGridPane();
 	}
 
-	public void handleSave(ActionEvent actionEvent) {
+	// *** ADDED Helper method to refresh the grid ***
+	private void refreshGridPane() {
+		if (this.sevaRepository == null) {
+			System.err.println("refreshGridPane called but sevaRepository is null.");
+			return;
+		}
+		sevaGridPane.getChildren().clear(); // Clear previous content
+
+		// Optional: Add header row
+		sevaGridPane.add(new Label("ID"), 0, 0);
+		sevaGridPane.add(new Label("Name"), 1, 0);
+		sevaGridPane.add(new Label("Amount (₹)"), 2, 0);
+		sevaGridPane.add(new Label("Action"), 3, 0);
+
+		Collection<Seva> sevas = sevaRepository.getAllSevas();
+		int rowIndex = 1; // Start from row 1 because of header
+
+		for (Seva seva : sevas) {
+			Label idLabel = new Label(seva.getId()); //
+			Label nameLabel = new Label(seva.getName()); //
+			Label amountLabel = new Label(String.format("%.2f", seva.getAmount())); //
+
+			Button deleteButton = new Button("Delete");
+			deleteButton.setOnAction(event -> {
+				boolean deleted = this.sevaRepository.deleteSevaFromDB(seva.getId());
+				if (deleted) {
+					refreshGridPane(); // Refresh grid
+					updateDefaultSevaId(); // Update default ID after deletion
+				} else {
+					showAlert(Alert.AlertType.ERROR,"Delete Failed", "Could not delete Seva '" + seva.getName() + "'.");
+				}
+			});
+
+			sevaGridPane.add(idLabel, 0, rowIndex);
+			sevaGridPane.add(nameLabel, 1, rowIndex);
+			sevaGridPane.add(amountLabel, 2, rowIndex);
+			// Place button in an HBox for better alignment if needed
+			HBox actionBox = new HBox(deleteButton);
+			actionBox.setPadding(new Insets(0, 5, 0, 5));
+			sevaGridPane.add(actionBox, 3, rowIndex);
+
+			rowIndex++;
+		}
+		// Optional: Add styling or constraints to grid columns here
+	}
+
+
+	// *** ADDED Helper method to clear input fields ***
+	private void clearInputFields() {
+		sevaNameField.clear();
+		sevaAmountField.clear();
+	}
+
+
+	// *** ADDED Helper method for alerts ***
+	private void showAlert(Alert.AlertType alertType, String title, String message) {
+		Alert alert = new Alert(alertType);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 }

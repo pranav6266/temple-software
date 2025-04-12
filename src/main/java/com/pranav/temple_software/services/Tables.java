@@ -109,8 +109,13 @@ public class Tables {
 					"ಅನ್ನದಾನ"
 			);
 
-			SevaListener sevaListener = new SevaListener(controller);
-			sevaListener.setupSevaCheckboxes();
+			// *** Ensure SevaListener instance exists in controller before calling this ***
+			// controller.sevaListener should be initialized in MainController constructor or early init
+			if(controller.sevaListener != null) { //
+				controller.sevaListener.setupSevaCheckboxes(); // Call setup AFTER listener is ready
+			} else {
+				System.err.println("Error in Tables.setupTableView: SevaListener is null!");
+			}
 			controller.raashiComboBox.setItems(rashis);
 			controller.otherServicesComboBox.setItems(otherSevaReciepts);
 			controller.donationComboBox.setItems(donations);

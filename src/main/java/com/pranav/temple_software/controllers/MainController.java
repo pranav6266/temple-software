@@ -81,7 +81,7 @@ public class MainController {
 			historyStage.setMaximized(true);
 			historyStage.show();
 		} catch (IOException e) {
-			showAlert("Error", "Failed to load history view");
+			showAlert(Alert.AlertType.INFORMATION, "Error", "Failed to load history view");
 		}
 	}
 
@@ -94,9 +94,10 @@ public class MainController {
 			sevaStage.setScene(new Scene(loader.load()));
 			sevaStage.initModality(Modality.WINDOW_MODAL);
 			sevaStage.initOwner(mainStage);
+			sevaStage.setMaximized(true);
 			sevaStage.show();
 		} catch (IOException e) {
-			showAlert("Error", "Failed to load history view");
+			showAlert(Alert.AlertType.INFORMATION, "Error", "Failed to load history view");
 		}
 	}
 
@@ -126,21 +127,20 @@ public class MainController {
 	}
 
 	public ReceiptRepository receiptRepository = new ReceiptRepository();
-	public SevaRepository sevaRepository = new SevaRepository();
+	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
 	ReceiptServices receiptServices = new ReceiptServices(this);
 	OtherSevas otherSevas = new OtherSevas(this);
 	public Donation donation = new Donation(this);
 	Tables table = new Tables(this);
-	public SevaListener sevaListener = new SevaListener(this);
+	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 
-
-	public void showAlert(String title, String message) {
-		Alert alert = new Alert(Alert.AlertType.WARNING);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
+	public void showAlert(Alert.AlertType information, String title, String message) { //
+		Alert alert = new Alert(Alert.AlertType.WARNING); //
+		alert.setTitle(title); //
+		alert.setHeaderText(null); //
+		alert.setContentText(message); //
+		alert.showAndWait(); //
 	}
 
 
@@ -166,6 +166,23 @@ public class MainController {
 		validationServices.setupPhoneValidation();
 		validationServices.setupAmountValidation();
 
+	}
+
+	@FXML
+	public void handleRefreshSevasButton() {
+		System.out.println("Refreshing Seva list...");
+		// Option 1: Force reload from DB (if desired)
+		// sevaRepository.loadSevasFromDB();
+
+		// Option 2: Just rebuild checkboxes from current repository data
+		if (sevaListener != null) {
+			// Clear existing checkboxes before regenerating
+			if (sevaCheckboxContainer != null) { //
+				sevaCheckboxContainer.getChildren().clear(); //
+			}
+			sevaListener.setupSevaCheckboxes(); // Regenerate checkboxes
+		}
+		showAlert(Alert.AlertType.INFORMATION,"Sevas Refreshed", "The Seva list has been updated.");
 	}
 }
 

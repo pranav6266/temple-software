@@ -1,6 +1,7 @@
 package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
+import javafx.scene.control.Alert;
 
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ public class Donation {
 		String amountText = controller.donationField.getText();
 
 		if (donationType == null || donationType.equals("ಆಯ್ಕೆ") || amountText.isEmpty()) {
-			controller.showAlert("Invalid Input", "Please select a donation type and enter amount");
+			controller.showAlert(Alert.AlertType.INFORMATION, "Invalid Input", "Please select a donation type and enter amount");
 			return;
 		}
 
@@ -57,7 +58,7 @@ public class Donation {
 
 			controller.donationField.clear();
 		} catch (NumberFormatException ex) {
-			controller.showAlert("Invalid Amount", "Please enter a valid positive number");
+			controller.showAlert(Alert.AlertType.INFORMATION, "Invalid Amount", "Please enter a valid positive number");
 		}
 	}
 

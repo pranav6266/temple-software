@@ -7,6 +7,8 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import com.pranav.temple_software.controllers.MainController;
+import javafx.scene.control.Alert;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +55,7 @@ public class ReceiptServices {
 		// 1. Get the NEXT POTENTIAL Receipt ID *before* gathering other data
 		this.pendingReceiptId = controller.receiptRepository.getNextReceiptId();
 		if (this.pendingReceiptId <= 0) {
-			controller.showAlert("Database Error", "Could not determine the next receipt ID. Please check database connection or logs.");
+			controller.showAlert(Alert.AlertType.INFORMATION, "Database Error", "Could not determine the next receipt ID. Please check database connection or logs.");
 			return;
 		}
 
@@ -90,7 +92,7 @@ public class ReceiptServices {
 
 
 		if (!errors.isEmpty()) {
-			controller.showAlert("Validation Error", String.join("\n", errors));
+			controller.showAlert(Alert.AlertType.INFORMATION, "Validation Error", String.join("\n", errors));
 			this.pendingReceiptId = -1; // Reset pending ID if validation fails
 			return;
 		}
@@ -116,7 +118,7 @@ public class ReceiptServices {
 					// 7. If PRINT was successful, attempt to save with SPECIFIC ID
 					if (this.pendingReceiptData == null || this.pendingReceiptId <= 0) {
 						// Should not happen if validation passed, but check defensively
-						Platform.runLater(() -> controller.showAlert("Internal Error", "Pending receipt data is missing. Cannot save."));
+						Platform.runLater(() -> controller.showAlert(Alert.AlertType.INFORMATION, "Internal Error", "Pending receipt data is missing. Cannot save."));
 						return;
 					}
 
@@ -138,24 +140,24 @@ public class ReceiptServices {
 							// Update label ONLY if the saved ID differs from the previewed one
 							if (finalSavedId != this.pendingReceiptId) {
 								controller.receiptNumberLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + finalSavedId + " (ID Changed)");
-								controller.showAlert("Save Successful (ID Changed)", "Receipt printed and saved successfully.");
+								controller.showAlert(Alert.AlertType.INFORMATION, "Save Successful (ID Changed)", "Receipt printed and saved successfully.");
 							} else {
 								controller.receiptNumberLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + finalSavedId);
-								controller.showAlert("Success", "Receipt printed and saved successfully with ID: " + finalSavedId);
+								controller.showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt printed and saved successfully with ID: " + finalSavedId);
 							}
 							controller.clearForm(); // Clear form ONLY on full success
 						});
 					} else {
 						// 9. If PRINT succeeded but SAVE ultimately failed
 						Platform.runLater(() -> {
-							controller.showAlert("Database Error", "Receipt was printed, but failed to save to the database even after fallback. Please record details manually.\nAttempted ID: " + this.pendingReceiptId + "\nName: " + this.pendingReceiptData.getDevoteeName());
+							controller.showAlert(Alert.AlertType.INFORMATION, "Database Error", "Receipt was printed, but failed to save to the database even after fallback. Please record details manually.\nAttempted ID: " + this.pendingReceiptId + "\nName: " + this.pendingReceiptData.getDevoteeName());
 							controller.receiptNumberLabel.setText("Save Failed!"); // Indicate save failure
 						});
 					}
 				} else {
 					// 10. If PRINT failed or was cancelled
 					Platform.runLater(() -> {
-						controller.showAlert("Print Failed/Cancelled", "The print job was cancelled or failed. Receipt not saved.");
+						controller.showAlert(Alert.AlertType.INFORMATION, "Print Failed/Cancelled", "The print job was cancelled or failed. Receipt not saved.");
 						// Optional: Clear the label if desired, or leave the potential ID
 						// controller.receiptNumberLabel.setText("");
 					});
