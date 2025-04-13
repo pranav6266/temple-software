@@ -204,6 +204,21 @@ public class SevaRepository {
 	}
 
 
+	public boolean updateDisplayOrder(String sevaId, int newOrder) {
+		String sql = "UPDATE Sevas SET display_order = ? WHERE seva_id = ?";
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setInt(1, newOrder);
+			pstmt.setString(2, sevaId);
+			int affectedRows = pstmt.executeUpdate();
+			return affectedRows > 0;
+		} catch (SQLException e) {
+			System.err.println("Error updating display order for Seva " + sevaId + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+
 
 	// *** ADDED Method to get all loaded sevas (for UI population) ***
 	public List<Seva> getAllSevas() {

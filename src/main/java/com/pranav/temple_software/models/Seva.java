@@ -6,6 +6,12 @@ public class Seva {
 	private final double amount;
 	private int displayOrder; // *** ADDED FIELD ***
 
+
+	@Override
+	public String toString() {
+		return getName() + " - ₹" + String.format("%.2f", getAmount());
+	}
+
 	// Constructor might remain the same if order is set later, or updated
 	public Seva(String id, String name, double amount) {
 		this.id = id;
