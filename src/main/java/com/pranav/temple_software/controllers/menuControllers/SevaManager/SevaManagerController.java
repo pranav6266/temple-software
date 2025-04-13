@@ -131,7 +131,6 @@ public class SevaManagerController {
 		refreshGridPane();
 	}
 
-	// *** ADDED Helper method to refresh the grid ***
 	private void refreshGridPane() {
 		if (this.sevaRepository == null) {
 			System.err.println("refreshGridPane called but sevaRepository is null.");
@@ -139,42 +138,50 @@ public class SevaManagerController {
 		}
 		sevaGridPane.getChildren().clear(); // Clear previous content
 
-		// Optional: Add header row
-		sevaGridPane.add(new Label("ID"), 0, 0);
+		// Add header row (displaying "Sl No." instead of "ID")
+		sevaGridPane.add(new Label("Sl No."), 0, 0); // Changed header
 		sevaGridPane.add(new Label("Name"), 1, 0);
 		sevaGridPane.add(new Label("Amount (₹)"), 2, 0);
 		sevaGridPane.add(new Label("Action"), 3, 0);
 
-		Collection<Seva> sevas = sevaRepository.getAllSevas();
-		int rowIndex = 1; // Start from row 1 because of header
+		// Get sevas (assuming they are loaded sorted by ID from repository)
+		// If you later add display_order, the repository method should return them sorted by that column.
+		Collection<Seva> sevas = this.sevaRepository.getAllSevas(); // Make sure this list is consistently sorted
+
+		// Use loop index for display number
+		int displayIndex = 1; // Start sequential numbering from 1
 
 		for (Seva seva : sevas) {
-			Label idLabel = new Label(seva.getId()); //
-			Label nameLabel = new Label(seva.getName()); //
-			Label amountLabel = new Label(String.format("%.2f", seva.getAmount())); //
+			// *** CHANGE: Use displayIndex for the label text ***
+			Label slNoLabel = new Label(String.valueOf(displayIndex));
+
+			// Other labels remain the same
+			Label nameLabel = new Label(seva.getName());
+			Label amountLabel = new Label(String.format("%.2f", seva.getAmount()));
 
 			Button deleteButton = new Button("Delete");
+			// *** IMPORTANT: Use the REAL seva.getId() for the action ***
+			final String currentSevaId = seva.getId(); // Store real ID for the lambda
 			deleteButton.setOnAction(event -> {
-				boolean deleted = this.sevaRepository.deleteSevaFromDB(seva.getId());
+				boolean deleted = this.sevaRepository.deleteSevaFromDB(currentSevaId); // Use real ID
 				if (deleted) {
-					refreshGridPane(); // Refresh grid
-					updateDefaultSevaId(); // Update default ID after deletion
+					refreshGridPane(); // Refresh grid (will re-calculate display numbers)
+					updateDefaultSevaId(); // Update default ID for adding next seva
 				} else {
 					showAlert(Alert.AlertType.ERROR,"Delete Failed", "Could not delete Seva '" + seva.getName() + "'.");
 				}
 			});
 
-			sevaGridPane.add(idLabel, 0, rowIndex);
-			sevaGridPane.add(nameLabel, 1, rowIndex);
-			sevaGridPane.add(amountLabel, 2, rowIndex);
-			// Place button in an HBox for better alignment if needed
+			sevaGridPane.add(slNoLabel, 0, displayIndex); // Row index is now displayIndex
+			sevaGridPane.add(nameLabel, 1, displayIndex);
+			sevaGridPane.add(amountLabel, 2, displayIndex);
 			HBox actionBox = new HBox(deleteButton);
 			actionBox.setPadding(new Insets(0, 5, 0, 5));
-			sevaGridPane.add(actionBox, 3, rowIndex);
+			sevaGridPane.add(actionBox, 3, displayIndex);
 
-			rowIndex++;
+			displayIndex++; // Increment for the next row
 		}
-		// Optional: Add styling or constraints to grid columns here
+		// ... optional styling ...
 	}
 
 

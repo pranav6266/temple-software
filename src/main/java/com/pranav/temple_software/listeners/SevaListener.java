@@ -43,57 +43,57 @@ public class SevaListener {
 	}
 
 
-	// *** Modified setupSevaCheckboxes to use the repository ***
-	public void setupSevaCheckboxes() { //
-		// sevaRepository.initializeSevaData(); // REMOVE - Data is loaded from DB now
-		controller.sevaCheckboxMap.clear(); // Clear existing entries //
-		controller.sevaCheckboxContainer.getChildren().clear(); // Also clear the container explicitly
+	public void setupSevaCheckboxes() {
+		controller.sevaCheckboxMap.clear();
+		controller.sevaCheckboxContainer.getChildren().clear();
 
-		// *** Get Sevas from the repository ***
+		// Get sevas (assuming sorted consistently, e.g., by ID from repository)
 		Collection<Seva> sevas = sevaRepository.getAllSevas();
 
 		if (sevas.isEmpty()) {
 			System.out.println("No sevas found in repository to display.");
-			// Optionally add a label to sevaCheckboxContainer indicating no sevas
 			return;
 		}
 
+		// Use loop index for display number
+		int displayIndex = 1; // Start sequential numbering from 1
 
-		for (Seva seva : sevas) { // Iterate over sevas from DB
-			CheckBox checkBox = new CheckBox(seva.getId() + ". " + seva.getName()); // //
-			checkBox.getStyleClass().add("seva-checkbox"); //
-			String sevaId = seva.getId(); // Unique identifier for the Seva // //
+		for (Seva seva : sevas) {
+			// *** CHANGE: Use displayIndex for the checkbox text prefix ***
+			CheckBox checkBox = new CheckBox(displayIndex + ". " + seva.getName());
+			checkBox.getStyleClass().add("seva-checkbox");
 
-			// Add CheckBox to the map
-			controller.sevaCheckboxMap.put(sevaId, checkBox); //
+			// *** IMPORTANT: Use the REAL seva.getId() as the key in the map ***
+			final String currentSevaId = seva.getId();
+			controller.sevaCheckboxMap.put(currentSevaId, checkBox); // Use real ID as key
 
-			// Initialize CheckBox state based on selectedSevas
-			boolean isSelected = controller.selectedSevas.stream() //
-					.anyMatch(entry -> entry.getName().equals(seva.getName())); // //
-			checkBox.setSelected(isSelected); //
+			// Initialize CheckBox state based on selectedSevas (logic remains the same)
+			boolean isSelected = controller.selectedSevas.stream()
+					.anyMatch(entry -> entry.getName().equals(seva.getName()));
+			checkBox.setSelected(isSelected);
 
 
-			// Update selectedSevas when CheckBox is toggled
-			checkBox.selectedProperty().addListener((obs, wasSelected, isSelectedNow) -> { // Renamed variable
-				if (isSelectedNow) { //
-					// Check if it's already added (safety check)
-					if (controller.selectedSevas.stream().noneMatch(e -> e.getName().equals(seva.getName()))) { //
-						controller.selectedSevas.add(new SevaEntry(seva.getName(), seva.getAmount())); // //
+			// Update selectedSevas when CheckBox is toggled (logic remains the same)
+			checkBox.selectedProperty().addListener((obs, wasSelected, isSelectedNow) -> {
+				if (isSelectedNow) {
+					if (controller.selectedSevas.stream().noneMatch(e -> e.getName().equals(seva.getName()))) {
+						controller.selectedSevas.add(new SevaEntry(seva.getName(), seva.getAmount()));
 					}
-				} else { //
-					controller.selectedSevas.removeIf(entry -> //
-							entry.getName().equals(seva.getName()) && // //
-									entry.getAmount() == seva.getAmount() // //
+				} else {
+					controller.selectedSevas.removeIf(entry ->
+							entry.getName().equals(seva.getName()) &&
+									entry.getAmount() == seva.getAmount()
 					);
 				}
 			});
 
-			controller.sevaCheckboxContainer.getChildren().add(checkBox); //
+			controller.sevaCheckboxContainer.getChildren().add(checkBox);
+			displayIndex++; // Increment for the next checkbox
 		}
-		// Raashi map setup can remain if needed elsewhere, but not directly related to loading sevas
-		 raashiNakshatraMap(); //
+		raashiNakshatraMap();
 		System.out.println("Seva checkboxes setup complete with " + sevas.size() + " sevas.");
 	}
+
 
 
 
