@@ -2,9 +2,11 @@
 package com.pranav.temple_software.controllers;
 
 
+import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.ReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
@@ -22,6 +24,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MainController {
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
@@ -86,6 +89,31 @@ public class MainController {
 		}
 	}
 
+    @FXML
+    public void handleDonationManagerButton(){
+	    try {
+		    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
+		    Stage donationStage = new Stage();
+		    donationStage.setTitle("ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
+		    Scene scene = new Scene(loader.load());
+		    donationStage.setScene(scene);
+		    DonationManagerController donationManagerController = loader.getController();
+		    if (donationManagerController != null) {
+			    donationManagerController.setMainController(this); // Pass this instance
+		    } else {
+			    System.err.println("Error: Could not get DonationManagerView instance.");
+			    return;
+		    }
+			donationStage.initModality(Modality.WINDOW_MODAL);
+		    donationStage.initOwner(mainStage);
+		    donationStage.setMaxHeight(800);
+		    donationStage.setMaxWidth(950);
+		    donationStage.show();
+	    } catch (Exception e) { // Catch broader exceptions
+		    e.printStackTrace();
+		    showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
+	    }
+    }
 
 	@FXML
 	public void handleSevaManagerButton() {
@@ -183,6 +211,8 @@ public class MainController {
 		validationServices.setupPhoneValidation();
 		validationServices.setupAmountValidation();
 		refreshSevaCheckboxes();
+		refreshDonationComboBox();
+
 	}
 
 
@@ -206,6 +236,20 @@ public class MainController {
 			if(sevaListener == null) System.err.println("sevaListener is null");
 			if(sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
 		}
+
+
+	}
+
+
+
+	// ... inside MainController class:
+	public void refreshDonationComboBox() {
+		List<SevaEntry> donationEntries = DonationRepository.getInstance().getAllDonations();
+		ObservableList<String> donationNames = FXCollections.observableArrayList(
+				donationEntries.stream().map(SevaEntry::getName).collect(Collectors.toList())
+		);
+		donationNames.add(0, "ಆಯ್ಕೆ");  // Optional default prompt
+		donationComboBox.setItems(donationNames);
 	}
 }
 

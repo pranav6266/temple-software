@@ -1,7 +1,6 @@
 package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.SevaEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -95,6 +94,8 @@ public class Tables {
 					"ಜನರೇಟರ್", "ಕಟ್ಟಿಗೆ", "ತೆಂಗಿನಕಾಯಿ", "ಅರ್ಚಕರ ದಕ್ಷಿಣೆ", "ಅಡಿಗೆಯವರಿಗೆ", "ಕೂಲಿ", "ಊಟೋಪಚಾರದ ಬಗ್ಗೆ", "ಇತರ ಖರ್ಚಿನ ಬಾಬ್ತು"
 			);
 
+
+
 			ObservableList<String> otherSevaReciepts = FXCollections.observableArrayList(
 					"ಆಯ್ಕೆ",
 					"ಶತ ರುದ್ರಾಭಿಷೇಕ",
@@ -119,6 +120,7 @@ public class Tables {
 			controller.raashiComboBox.setItems(rashis);
 			controller.otherServicesComboBox.setItems(otherSevaReciepts);
 			controller.donationComboBox.setItems(donations);
+
 
 		}
 	}

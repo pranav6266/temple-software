@@ -12,6 +12,7 @@ public class DatabaseManager {
 	public DatabaseManager() {
 		createReceiptTableIfNotExists(); // Renamed for clarity
 		createSevaTableIfNotExists(); // *** ADDED CALL ***
+		createDonationsTableIfNotExists();
 	}
 
 	private void createReceiptTableIfNotExists() {
@@ -70,6 +71,68 @@ public class DatabaseManager {
 		// Ensure H2 driver is loaded (optional, JDBC 4+ auto-loads)
 		// try { Class.forName("org.h2.Driver"); } catch (ClassNotFoundException e) { System.err.println("H2 Driver not found!"); }
 		return DriverManager.getConnection(DB_URL, USER, PASS); //
+	}
+
+	private void createDonationsTableIfNotExists() {
+		String sql = "CREATE TABLE IF NOT EXISTS Donations (" +
+				"donation_id VARCHAR(10) PRIMARY KEY, " +
+				"donation_name VARCHAR(255) NOT NULL, " +
+				"display_order INT)";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("Donations table checked/created successfully.");
+			addInitialDonationsIfEmpty(conn);
+			ensureDisplayOrderExistsForDonations(conn);
+		} catch (SQLException e) {
+			System.err.println("Error creating Donations table: " + e.getMessage());
+		}
+	}
+
+
+	private void addInitialDonationsIfEmpty(Connection conn) {
+		String checkSql = "SELECT COUNT(*) FROM Donations";
+		try (Statement checkStmt = conn.createStatement();
+		     ResultSet rs = checkStmt.executeQuery(checkSql)) {
+			if (rs.next() && rs.getInt(1) == 0) {
+				System.out.println("Donations table is empty. Adding initial donations...");
+				String insertSql = "INSERT INTO Donations (donation_id, donation_name, display_order) VALUES (?, ?, ?)";
+				try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+					int initialOrder;
+					initialOrder = 1;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಸ್ಥಳ ಕಾಣಿಕ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಪಾತ್ರೆ ಬಾಡಿಗೆ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ವಿದ್ಯುತ್");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಜನರೇಟರ್");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಕಟ್ಟಿಗೆ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ತೆಂಗಿನಕಾಯಿ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಅರ್ಚಕರ ದಕ್ಷಿಣೆ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಅಡಿಗೆಯವರಿಗೆ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಕೂಲಿ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಊಟೋಪಚಾರದ ಬಗ್ಗೆ");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();initialOrder++;
+					insertStmt.setString(1, String.valueOf(initialOrder));insertStmt.setString(2, 	"ಇತರ ಖರ್ಚಿನ ಬಾಬ್ತು");insertStmt.setInt(3, initialOrder);insertStmt.addBatch();
+					int[] results = insertStmt.executeBatch();
+					System.out.println("Initial donations added successfully.");
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("Error during initial donation data insertion: " + e.getMessage());
+		}
+	}
+
+
+	private void ensureDisplayOrderExistsForDonations(Connection conn) {
+		String sql = "UPDATE Donations SET display_order = CAST(donation_id AS INT) WHERE display_order IS NULL";
+		try (Statement stmt = conn.createStatement()) {
+			int updatedRows = stmt.executeUpdate(sql);
+			if (updatedRows > 0) {
+				System.out.println("Populated display_order for " + updatedRows + " existing Donations.");
+			}
+		} catch (SQLException e) {
+			System.err.println("Error ensuring display_order exists for Donations: " + e.getMessage());
+		} catch (NumberFormatException e) {
+			System.err.println("Error ensuring display_order for Donations: Cannot cast donation_id to INT.");
+		}
 	}
 
 

@@ -28,6 +28,7 @@ public class SevaManagerController {
 
 	@FXML public GridPane sevaGridPane; //
 	public Button openAddSevaButton;
+	public Button deleteSeva;
 //	public ListView<Seva> sevaListView;
 
 	// *** ADDED FXML Fields for new Controls ***
@@ -370,6 +371,11 @@ public class SevaManagerController {
 		}
 	}
 
+	@FXML
+	public void handleCancelButton(ActionEvent actionEvent) {
+		((Stage) cancelButton.getScene().getWindow()).close(); // Close the current stage/window
+	}
+
 	private void handleSaveTempChanges() {
 		// Loop through tempSevaList and update the displayOrder field
 		for (int i = 0; i < tempSevaList.size(); i++) {
@@ -455,4 +461,6 @@ public class SevaManagerController {
 	}
 
 
+	public void openDeleteSevaPopup(ActionEvent actionEvent) {
+	}
 }
