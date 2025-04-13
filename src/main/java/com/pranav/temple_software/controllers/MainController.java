@@ -2,6 +2,7 @@
 package com.pranav.temple_software.controllers;
 
 
+import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.ReceiptRepository;
@@ -81,9 +82,10 @@ public class MainController {
 			historyStage.setMaximized(true);
 			historyStage.show();
 		} catch (IOException e) {
-			showAlert(Alert.AlertType.INFORMATION, "Error", "Failed to load history view");
+			showAlert("Error", "Failed to load history view");
 		}
 	}
+
 
 	@FXML
 	public void handleSevaManagerButton() {
@@ -91,14 +93,28 @@ public class MainController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/SevaManager/SevaManagerView.fxml"));
 			Stage sevaStage = new Stage();
 			sevaStage.setTitle("ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
-			sevaStage.setScene(new Scene(loader.load()));
+			Scene scene = new Scene(loader.load());
+			sevaStage.setScene(scene);
+
+			SevaManagerController sevaManagerController = loader.getController();
+			if (sevaManagerController != null) {
+				// *** PASS both the repository (if needed) AND the MainController instance ***
+				// If using Singleton for repo, you only need to pass mainController
+				// sevaManagerController.setSevaRepository(this.sevaRepository); // Uncomment if using DI for repo
+				sevaManagerController.setMainController(this); // Pass this instance
+			} else {
+				System.err.println("Error: Could not get SevaManagerController instance.");
+				return;
+			}
+
 			sevaStage.initModality(Modality.WINDOW_MODAL);
 			sevaStage.initOwner(mainStage);
 			sevaStage.setMaxHeight(800);
 			sevaStage.setMaxWidth(950);
 			sevaStage.show();
-		} catch (IOException e) {
-			showAlert(Alert.AlertType.INFORMATION, "Error", "Failed to load history view");
+		} catch (Exception e) { // Catch broader exceptions
+			e.printStackTrace();
+			showAlert("Error", "Failed to load Seva Manager view: " + e.getMessage());
 		}
 	}
 
@@ -136,7 +152,7 @@ public class MainController {
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 
-	public void showAlert(Alert.AlertType information, String title, String message) { //
+	public void showAlert(String title, String message) { //
 		Alert alert = new Alert(Alert.AlertType.WARNING); //
 		alert.setTitle(title); //
 		alert.setHeaderText(null); //
@@ -166,24 +182,30 @@ public class MainController {
 		validationServices.setupNameValidation();
 		validationServices.setupPhoneValidation();
 		validationServices.setupAmountValidation();
-
+		refreshSevaCheckboxes();
 	}
 
-	@FXML
-	public void handleRefreshSevasButton() {
-		System.out.println("Refreshing Seva list...");
-		// Option 1: Force reload from DB (if desired)
-		// sevaRepository.loadSevasFromDB();
 
-		// Option 2: Just rebuild checkboxes from current repository data
-		if (sevaListener != null) {
-			// Clear existing checkboxes before regenerating
-			if (sevaCheckboxContainer != null) { //
-				sevaCheckboxContainer.getChildren().clear(); //
+	public void refreshSevaCheckboxes() {
+		System.out.println("DEBUG: MainController refreshSevaCheckboxes() called.");
+		if (sevaListener != null && sevaCheckboxContainer != null) {
+			// Optional: Add error handling or checks if needed
+			try {
+				// Clear container before regenerating checkboxes
+				sevaCheckboxContainer.getChildren().clear();
+				// Ask the listener to rebuild checkboxes based on current repo data
+				sevaListener.setupSevaCheckboxes();
+				System.out.println("DEBUG: Seva checkboxes refreshed.");
+			} catch (Exception e) {
+				System.err.println("Error during refreshSevaCheckboxes: " + e.getMessage());
+				e.printStackTrace(); // Log detailed error
+				showAlert("Refresh Error", "Could not refresh Seva list in main view.");
 			}
-			sevaListener.setupSevaCheckboxes(); // Regenerate checkboxes
+		} else {
+			System.err.println("Cannot refresh checkboxes: SevaListener or Container is null.");
+			if(sevaListener == null) System.err.println("sevaListener is null");
+			if(sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
 		}
-		showAlert(Alert.AlertType.INFORMATION,"Sevas Refreshed", "The Seva list has been updated.");
 	}
 }
 

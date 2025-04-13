@@ -5,7 +5,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TextFormatter;
 
 import java.time.LocalDate;
@@ -43,7 +42,7 @@ MainController controller;
 	private void validatePhoneNumber() {
 		String phone = controller.contactField.getText();
 		if (phone != null && !phone.isEmpty() && phone.length() < 10) {
-			controller.showAlert(Alert.AlertType.INFORMATION, "Invalid Phone Number", "Phone number must contain at least 10 digits");
+			controller.showAlert("Invalid Phone Number", "Phone number must contain at least 10 digits");
 		}
 	}
 
