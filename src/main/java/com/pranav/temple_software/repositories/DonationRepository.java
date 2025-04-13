@@ -58,6 +58,20 @@ public class DonationRepository {
 		}
 	}
 
+	public String getDonationIdByName(String name) {
+		String sql = "SELECT donation_id FROM Donations WHERE donation_name = ?";
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, name);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString("donation_id");
+			}
+		} catch (SQLException e) {
+			System.err.println("Error fetching donation ID for name: " + name + " - " + e.getMessage());
+		}
+		return null;
+	}
 
 	public boolean addDonationToDB(String donationId, String donationName, double amount) {
 		// Use the next display order (could be the maxDonationId+1)

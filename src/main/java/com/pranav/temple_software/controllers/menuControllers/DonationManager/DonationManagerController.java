@@ -22,6 +22,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DonationManagerController {
 
 	@FXML public GridPane DonationGridPane;
@@ -31,9 +34,10 @@ public class DonationManagerController {
 	@FXML public Button cancelButton;
 
 	private final DonationRepository donationRepository = DonationRepository.getInstance();
+	public Button openDeleteButton;
 	private int nextDonationId = 0;
 	private ObservableList<SevaEntry> tempDonationList;
-
+	private final List<SevaEntry> donationsMarkedForDeletion = new ArrayList<>();
 	private MainController mainControllerInstance;
 
 
@@ -270,10 +274,78 @@ public class DonationManagerController {
 		((Stage) cancelButton.getScene().getWindow()).close(); // Close the current stage/window
 	}
 
-	public void handleSaveButton(ActionEvent actionEvent) {
-		mainControllerInstance.refreshDonationComboBox();
-	}
+
 
 	public void openDeleteDonationPopup(ActionEvent actionEvent) {
+		Stage popupStage = new Stage();
+		popupStage.initModality(Modality.APPLICATION_MODAL);
+		popupStage.setTitle("Delete Donations");
+
+		VBox checkboxContainer = new VBox(10);
+		checkboxContainer.setPadding(new Insets(10));
+		List<CheckBox> donationCheckBoxes = new ArrayList<>();
+
+		for (SevaEntry donation : tempDonationList) {
+			CheckBox cb = new CheckBox(donation.getName() + " - ₹" + String.format("%.2f", donation.getAmount()));
+			donationCheckBoxes.add(cb);
+			checkboxContainer.getChildren().add(cb);
+		}
+
+		ScrollPane scrollPane = new ScrollPane(checkboxContainer);
+		scrollPane.setPrefWidth(200);
+		scrollPane.setPrefHeight(700);
+		scrollPane.setFitToWidth(true);
+
+		Button saveBtn = new Button("Save");
+		Button cancelBtn = new Button("Cancel");
+		HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
+		buttonBox.setAlignment(Pos.CENTER);
+
+		VBox popupLayout = new VBox(15, scrollPane, buttonBox);
+		popupLayout.setPadding(new Insets(15));
+
+		Scene scene = new Scene(popupLayout);
+		popupStage.setScene(scene);
+
+		saveBtn.setOnAction(e -> {
+			List<SevaEntry> toRemove = new ArrayList<>();
+			for (int i = 0; i < donationCheckBoxes.size(); i++) {
+				if (donationCheckBoxes.get(i).isSelected()) {
+					SevaEntry selected = tempDonationList.get(i);
+					toRemove.add(selected);
+					donationsMarkedForDeletion.add(selected);
+				}
+			}
+			tempDonationList.removeAll(toRemove);
+			refreshGridPane();
+			popupStage.close();
+		});
+
+		cancelBtn.setOnAction(e -> popupStage.close());
+
+		popupStage.showAndWait();
+	}
+
+
+	public void handleFinalDonationDeleteSave(ActionEvent actionEvent) {
+		for (SevaEntry donation : donationsMarkedForDeletion) {
+			String name = donation.getName();
+			// You might need a way to map name to ID; assuming method exists:
+			String donationId = donationRepository.getDonationIdByName(name);
+			if (donationId != null) {
+				boolean deleted = donationRepository.deleteDonationFromDB(donationId);
+				if (!deleted) {
+					showAlert("Delete Failed", "Could not delete Donation '" + name + "'");
+				}
+			}
+		}
+		donationsMarkedForDeletion.clear();
+		donationRepository.loadDonationsFromDB();
+		tempDonationList = FXCollections.observableArrayList(donationRepository.getAllDonations());
+		refreshGridPane();
+		if (mainControllerInstance != null) {
+			mainControllerInstance.refreshDonationComboBox();
+		}
+		showAlert("Success", "Selected donations permanently deleted.");
 	}
 }

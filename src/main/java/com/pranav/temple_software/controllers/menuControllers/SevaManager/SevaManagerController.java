@@ -23,6 +23,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class SevaManagerController {
 
@@ -33,8 +36,6 @@ public class SevaManagerController {
 
 	// *** ADDED FXML Fields for new Controls ***
 	@FXML private TextField sevaIdField;
-	@FXML private TextField sevaNameField;
-	@FXML private TextField sevaAmountField;
 	@FXML private Button addSevaButton; // Although action is handled by onAction, useful to have reference
 	@FXML
 	private Button saveButton;     // Added fx:id="saveButton"
@@ -47,7 +48,7 @@ public class SevaManagerController {
 	private final SevaRepository sevaRepository = SevaRepository.getInstance();
 	private int nextSevaId = 0;
 	private ObservableList<Seva> tempSevaList;
-
+	private List<Seva> sevasMarkedForDeletion = new ArrayList<>();
 
 	private MainController mainControllerInstance;
 
@@ -402,55 +403,22 @@ public class SevaManagerController {
 		refreshGridPane();
 	}
 
-	private void handleCancelTempChanges() {
-		tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
-//		sevaListView.setItems(tempSevaList);
-		showAlert("Cancelled", "Any changes have been discarded.");
-	}
-
-
-
-
-	// *** ADDED Helper method to clear input fields ***
-	private void clearInputFields() {
-		sevaNameField.clear();
-		sevaAmountField.clear();
-	}
-
-
-	private void handleDeleteAction(String sevaId, String sevaName) {
-		// Optional: Confirmation Dialog
-		boolean deleted = this.sevaRepository.deleteSevaFromDB(sevaId);
-		if (deleted) {
-			refreshGridPane();
-			updateDefaultSevaId(); // Update ID for next add
-		} else {
-			showAlert("Delete Failed", "Could not delete Seva '" + sevaName + "'.");
+	@FXML
+	private void handleDeleteSevaMainSave(ActionEvent event) {
+		// Loop over sevas marked for deletion and remove them permanently
+		for (Seva seva : sevasMarkedForDeletion) {
+			boolean deleted = sevaRepository.deleteSevaFromDB(seva.getId());
+			if (!deleted) {
+				showAlert("Delete Failed", "Could not delete Seva '" + seva.getName() + "'.");
+			}
 		}
+		// Once deletion is done, clear the temporary deletion list
+		sevasMarkedForDeletion.clear();
+		// Refresh the gridpane (reflecting the repository state, if needed) and also the checkboxes in the main view
+		refreshGridPane();
+		mainControllerInstance.refreshSevaCheckboxes();
+		showAlert("Success", "Selected Sevas have been permanently deleted.");
 	}
-
-	private void handleMoveUp(String sevaId) {
-		boolean moved = sevaRepository.moveSevaUp(sevaId); // Call repo method
-		if (moved) {
-			refreshGridPane(); // Refresh UI if DB update was successful
-		} else {
-			// Optional: Show feedback if move failed (e.g., already at top, or DB error)
-			System.err.println("Move up failed for Seva ID: " + sevaId);
-			// showAlert(Alert.AlertType.WARNING, "Move Failed", "Could not move Seva up.");
-		}
-	}
-
-
-	private void handleMoveDown(String sevaId) {
-		boolean moved = sevaRepository.moveSevaDown(sevaId); // Call repo method
-		if (moved) {
-			refreshGridPane(); // Refresh UI if DB update was successful
-		} else {
-			System.err.println("Move down failed for Seva ID: " + sevaId);
-			// showAlert(Alert.AlertType.WARNING, "Move Failed", "Could not move Seva down.");
-		}
-	}
-
 	// *** ADDED Helper method for alerts ***
 	private void showAlert(String title, String message) {
 		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
@@ -461,6 +429,60 @@ public class SevaManagerController {
 	}
 
 
-	public void openDeleteSevaPopup(ActionEvent actionEvent) {
+	@FXML
+	public void openDeleteSevaPopup(ActionEvent event) {
+		Stage popupStage = new Stage();
+		popupStage.initModality(Modality.APPLICATION_MODAL);
+		popupStage.setTitle("Delete Sevas");
+
+		// VBox that holds all checkboxes
+		VBox checkboxContainer = new VBox(10);
+		checkboxContainer.setPadding(new Insets(10));
+		List<CheckBox> sevaCheckBoxes = new ArrayList<>();
+
+		for (Seva seva : tempSevaList) {
+			CheckBox cb = new CheckBox(seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()));
+			sevaCheckBoxes.add(cb);
+			checkboxContainer.getChildren().add(cb);
+		}
+
+		// Wrap VBox inside a ScrollPane
+		ScrollPane scrollPane = new ScrollPane(checkboxContainer);
+		scrollPane.setPrefWidth(200);
+		scrollPane.setPrefHeight(700);
+		scrollPane.setFitToWidth(true); // Ensures checkboxes expand to fit width
+
+		// Save and Cancel buttons
+		Button saveBtn = new Button("Save");
+		Button cancelBtn = new Button("Cancel");
+
+		HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
+		buttonBox.setAlignment(Pos.CENTER);
+
+		VBox popupLayout = new VBox(15, scrollPane, buttonBox);
+		popupLayout.setPadding(new Insets(15));
+
+		// Popup scene and stage
+		Scene scene = new Scene(popupLayout);
+		popupStage.setScene(scene);
+
+		// Save logic: remove selected sevas from tempSevaList only
+		saveBtn.setOnAction(e -> {
+			List<Seva> toRemove = new ArrayList<>();
+			for (int i = 0; i < sevaCheckBoxes.size(); i++) {
+				if (sevaCheckBoxes.get(i).isSelected()) {
+					Seva selected = tempSevaList.get(i);
+					toRemove.add(selected);
+					sevasMarkedForDeletion.add(selected);
+				}
+			}
+			tempSevaList.removeAll(toRemove);
+			refreshGridPane(); // visually reflect deletion in manager only
+			popupStage.close();
+		});
+
+		cancelBtn.setOnAction(e -> popupStage.close());
+
+		popupStage.showAndWait();
 	}
 }
