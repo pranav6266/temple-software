@@ -170,138 +170,128 @@ public class SevaManagerController {
 	}
 
 	private void openRearrangePopup() {
-		// Create a new stage configured as modal
 		Stage popupStage = new Stage();
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Rearrange Sevas");
 
-		// Create a temporary list from the repository data
-		ObservableList<Seva> tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
+		// Local temporary list used for drag and display
+		ObservableList<Seva> tempList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
 
-		// Create a ListView with the temporary list
-		ListView<Seva> listView = new ListView<>(tempSevaList);
+		ListView<Seva> listView = new ListView<>(tempList);
 		listView.setPrefSize(400, 300);
 
-		// Set up the cell factory with drag and drop support
-		listView.setCellFactory(new Callback<ListView<Seva>, ListCell<Seva>>() {
-			@Override
-			public ListCell<Seva> call(ListView<Seva> lv) {
-				ListCell<Seva> cell = new ListCell<Seva>() {
-					@Override
-					protected void updateItem(Seva seva, boolean empty) {
-						super.updateItem(seva, empty);
-						if (empty || seva == null) {
-							setText(null);
-						} else {
-							setText(seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()));
+		listView.setCellFactory(lv -> {
+			ListCell<Seva> cell = new ListCell<>() {
+				@Override
+				protected void updateItem(Seva seva, boolean empty) {
+					super.updateItem(seva, empty);
+					if (empty || seva == null) {
+						setText(null);
+					} else {
+						int index = getIndex() + 1; // Dynamic Sl. No.
+						setText(index + ". " + seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()));
+					}
+				}
+			};
+
+			// Drag detected
+			cell.setOnDragDetected(event -> {
+				if (cell.getItem() == null) return;
+				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
+				ClipboardContent content = new ClipboardContent();
+				content.putString(cell.getItem().getId());
+				db.setContent(content);
+				event.consume();
+			});
+
+			// Drag over target cell
+			cell.setOnDragOver(event -> {
+				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+					event.acceptTransferModes(TransferMode.MOVE);
+				}
+				event.consume();
+			});
+
+			// Visual feedback
+			cell.setOnDragEntered(event -> {
+				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+					cell.setOpacity(0.3);
+				}
+			});
+
+			cell.setOnDragExited(event -> {
+				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+					cell.setOpacity(1);
+				}
+			});
+
+			// Drop logic
+			cell.setOnDragDropped(event -> {
+				if (cell.getItem() == null) return;
+
+				Dragboard db = event.getDragboard();
+				boolean success = false;
+
+				if (db.hasString()) {
+					String draggedId = db.getString();
+					Seva draggedSeva = null;
+					int fromIndex = -1;
+
+					for (int i = 0; i < tempList.size(); i++) {
+						if (tempList.get(i).getId().equals(draggedId)) {
+							draggedSeva = tempList.get(i);
+							fromIndex = i;
+							break;
 						}
 					}
-				};
 
-				// Start the drag-and-drop gesture when a drag is detected.
-				cell.setOnDragDetected((event) -> {
-					if (cell.getItem() == null)
-						return;
-					Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
-					ClipboardContent content = new ClipboardContent();
-					// You can use the Seva's ID to identify it
-					content.putString(cell.getItem().getId());
-					db.setContent(content);
-					event.consume();
-				});
+					int toIndex = cell.getIndex();
+					if (draggedSeva != null && fromIndex != toIndex) {
+						tempList.remove(draggedSeva);
+						tempList.add(toIndex, draggedSeva);
+						listView.setItems(null); // refresh listView to update Sl. No.
+						listView.setItems(tempList);
+						success = true;
+					}
+				}
 
-				// When dragged over another cell, accept the move.
-				cell.setOnDragOver(event -> {
-					if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-						event.acceptTransferModes(TransferMode.MOVE);
-					}
-					event.consume();
-				});
+				event.setDropCompleted(success);
+				event.consume();
+			});
 
-				// Optional visual feedback
-				cell.setOnDragEntered(event -> {
-					if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-						cell.setOpacity(0.3);
-					}
-				});
-				cell.setOnDragExited(event -> {
-					if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-						cell.setOpacity(1);
-					}
-				});
-
-				// Handle drop: update the temporary list order.
-				cell.setOnDragDropped((DragEvent event) -> {
-					if (cell.getItem() == null)
-						return;
-					Dragboard db = event.getDragboard();
-					boolean success = false;
-					if (db.hasString()) {
-						String draggedSevaId = db.getString();
-						Seva draggedSeva = null;
-						int draggedIndex = -1;
-						// Look for the dragged seva in the temporary list.
-						for (int i = 0; i < tempSevaList.size(); i++) {
-							if (tempSevaList.get(i).getId().equals(draggedSevaId)) {
-								draggedSeva = tempSevaList.get(i);
-								draggedIndex = i;
-								break;
-							}
-						}
-						int dropIndex = cell.getIndex();
-						if (draggedSeva != null && draggedIndex != dropIndex) {
-							tempSevaList.remove(draggedSeva);
-							tempSevaList.add(dropIndex, draggedSeva);
-							success = true;
-						}
-					}
-					event.setDropCompleted(success);
-					event.consume();
-				});
-				cell.setOnDragDone(DragEvent::consume);
-				return cell;
-			}
+			cell.setOnDragDone(DragEvent::consume);
+			return cell;
 		});
 
-		// Create Save and Cancel buttons for the popup
+		// Save and cancel
 		Button saveBtn = new Button("Save");
 		Button cancelBtn = new Button("Cancel");
 		HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
 		buttonBox.setAlignment(Pos.CENTER);
 
-		// Organize the popup layout in a VBox
-		VBox popupLayout = new VBox(10, listView, buttonBox);
-		popupLayout.setPadding(new Insets(10));
-		popupLayout.setAlignment(Pos.CENTER);
+		VBox layout = new VBox(10, listView, buttonBox);
+		layout.setPadding(new Insets(15));
 
-		// Create the scene and set it in the popup stage
-		Scene popupScene = new Scene(popupLayout);
-		popupStage.setScene(popupScene);
+		Scene scene = new Scene(layout);
+		popupStage.setScene(scene);
 
-		// Save: commit the new ordering (update display orders, update the main UI)
 		saveBtn.setOnAction(ev -> {
-			for (int i = 0; i < tempSevaList.size(); i++) {
-				Seva seva = tempSevaList.get(i);
-				int newDisplayOrder = i + 1;  // Ordering starts at 1
-				seva.setDisplayOrder(newDisplayOrder);
-				// Update the repository (assumes you have an updateDisplayOrder method)
-				sevaRepository.updateDisplayOrder(seva.getId(), newDisplayOrder);
+			for (int i = 0; i < tempList.size(); i++) {
+				Seva seva = tempList.get(i);
+				seva.setDisplayOrder(i + 1);
+				sevaRepository.updateDisplayOrder(seva.getId(), i + 1);
 			}
-			// Optionally reload the repository to keep in‑memory state updated.
+
 			sevaRepository.loadSevasFromDB();
-			// Update the main UI checkboxes (if your main UI uses the ordering).
-			if (mainControllerInstance != null) {
-				mainControllerInstance.refreshSevaCheckboxes();
-			}
+			tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
+			refreshGridPane(); // refresh SevaManager grid only
 			popupStage.close();
 		});
 
-		// Cancel: discard changes and close the popup
 		cancelBtn.setOnAction(ev -> popupStage.close());
-
-		// Show the popup as a modal window
 		popupStage.showAndWait();
 	}
+
 
 	private void updateDefaultSevaId() {
 		if (sevaRepository != null) {

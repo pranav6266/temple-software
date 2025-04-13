@@ -121,108 +121,125 @@ public class DonationManagerController {
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Rearrange Donations");
 
+		// Use a local temporary list to hold current donation entries
 		ObservableList<SevaEntry> tempList = FXCollections.observableArrayList(donationRepository.getAllDonations());
+
 		ListView<SevaEntry> listView = new ListView<>(tempList);
 		listView.setPrefSize(400, 300);
 
-		listView.setCellFactory(new Callback<ListView<SevaEntry>, ListCell<SevaEntry>>() {
-			@Override
-			public ListCell<SevaEntry> call(ListView<SevaEntry> lv) {
-				ListCell<SevaEntry> cell = new ListCell<SevaEntry>() {
-					@Override
-					protected void updateItem(SevaEntry donation, boolean empty) {
-						super.updateItem(donation, empty);
-						if (empty || donation == null) {
-							setText(null);
-						} else {
-							// Remove the amount display here
-							setText(donation.getName()); // Only show name
+		// Set a custom cell factory to display dynamic serial numbers
+		listView.setCellFactory(lv -> {
+			ListCell<SevaEntry> cell = new ListCell<SevaEntry>() {
+				@Override
+				protected void updateItem(SevaEntry donation, boolean empty) {
+					super.updateItem(donation, empty);
+					if (empty || donation == null) {
+						setText(null);
+					} else {
+						int index = getIndex() + 1; // Serial number
+						setText(index + ". " + donation.getName() + " - Order: " + donation.getAmount());
+					}
+				}
+			};
+
+			// Start drag operation on detected drag
+			cell.setOnDragDetected(event -> {
+				if (cell.getItem() == null) return;
+				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
+				ClipboardContent content = new ClipboardContent();
+				content.putString(cell.getItem().getName()); // using donation name as identifier
+				db.setContent(content);
+				event.consume();
+			});
+
+			// Accept drag over this cell
+			cell.setOnDragOver(event -> {
+				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+					event.acceptTransferModes(TransferMode.MOVE);
+				}
+				event.consume();
+			});
+
+			// Visual feedback on drag entered
+			cell.setOnDragEntered(event -> {
+				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+					cell.setOpacity(0.3);
+				}
+			});
+			cell.setOnDragExited(event -> {
+				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
+					cell.setOpacity(1);
+				}
+			});
+
+			// Handle dropping: update temporary list order
+			cell.setOnDragDropped(event -> {
+				if (cell.getItem() == null) return;
+				Dragboard db = event.getDragboard();
+				boolean success = false;
+				if (db.hasString()) {
+					String draggedDonationName = db.getString();
+					SevaEntry draggedDonation = null;
+					int draggedIndex = -1;
+
+					for (int i = 0; i < tempList.size(); i++) {
+						if (tempList.get(i).getName().equals(draggedDonationName)) {
+							draggedDonation = tempList.get(i);
+							draggedIndex = i;
+							break;
 						}
 					}
-				};
-				cell.setOnDragDetected(event -> {
-					if (cell.getItem() == null) return;
-					Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
-					ClipboardContent content = new ClipboardContent();
-					content.putString(cell.getItem().getName());
-					db.setContent(content);
-					event.consume();
-				});
-				cell.setOnDragOver(event -> {
-					if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-						event.acceptTransferModes(TransferMode.MOVE);
+					int dropIndex = cell.getIndex();
+					if (draggedDonation != null && draggedIndex != dropIndex) {
+						tempList.remove(draggedDonation);
+						tempList.add(dropIndex, draggedDonation);
+						// Refresh the ListView to update serial numbers
+						listView.setItems(null);
+						listView.setItems(tempList);
+						success = true;
 					}
-					event.consume();
-				});
-				cell.setOnDragEntered(event -> {
-					if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-						cell.setOpacity(0.3);
-					}
-				});
-				cell.setOnDragExited(event -> {
-					if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-						cell.setOpacity(1);
-					}
-				});
-				cell.setOnDragDropped(event -> {
-					if (cell.getItem() == null) return;
-					Dragboard db = event.getDragboard();
-					boolean success = false;
-					if (db.hasString()) {
-						String draggedDonationName = db.getString();
-						SevaEntry draggedDonation = null;
-						int draggedIndex = -1;
-						for (int i = 0; i < tempList.size(); i++) {
-							if (tempList.get(i).getName().equals(draggedDonationName)) {
-								draggedDonation = tempList.get(i);
-								draggedIndex = i;
-								break;
-							}
-						}
-						int dropIndex = cell.getIndex();
-						if (draggedDonation != null && draggedIndex != dropIndex) {
-							tempList.remove(draggedDonation);
-							tempList.add(dropIndex, draggedDonation);
-							success = true;
-						}
-					}
-					event.setDropCompleted(success);
-					event.consume();
-				});
-				cell.setOnDragDone(DragEvent::consume);
-				return cell;
-			}
+				}
+				event.setDropCompleted(success);
+				event.consume();
+			});
+			cell.setOnDragDone(DragEvent::consume);
+			return cell;
 		});
 
+		// Create Save and Cancel buttons for the popup
 		Button saveBtn = new Button("Save");
 		Button cancelBtn = new Button("Cancel");
 		HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
 		buttonBox.setAlignment(Pos.CENTER);
 
-		VBox popupLayout = new VBox(10, listView, buttonBox);
-		popupLayout.setPadding(new Insets(10));
-		popupLayout.setAlignment(Pos.CENTER);
+		VBox layout = new VBox(10, listView, buttonBox);
+		layout.setPadding(new Insets(15));
+		Scene scene = new Scene(layout);
+		popupStage.setScene(scene);
 
-		Scene popupScene = new Scene(popupLayout);
-		popupStage.setScene(popupScene);
-
+		// Save button action: update display order in DB and refresh grid
 		saveBtn.setOnAction(ev -> {
 			for (int i = 0; i < tempList.size(); i++) {
-				// Here you would update the new display order in the database.
-				// For example, perform:
-				// String donationId = ... ; int newOrder = i + 1;
-				// donationRepository.updateDisplayOrder(donationId, newOrder);
-				// (Note: Since we’re not storing donationId with SevaEntry here,
-				// you may need to extend your Donation model.)
+				SevaEntry donation = tempList.get(i);
+				int newDisplayOrder = i + 1;
+				// Update the donation's display order
+				// First, retrieve the donation id using its name (assuming unique names)
+				String donationId = donationRepository.getDonationIdByName(donation.getName());
+				if (donationId != null) {
+					donationRepository.updateDisplayOrder(donationId, newDisplayOrder);
+				}
 			}
+			// Reload repository and update the temporary list used in grid pane
 			donationRepository.loadDonationsFromDB();
-			// Optionally call mainController refresh if needed.
+			tempDonationList = FXCollections.observableArrayList(donationRepository.getAllDonations());
+			refreshGridPane();
 			popupStage.close();
 		});
 
 		cancelBtn.setOnAction(ev -> popupStage.close());
 		popupStage.showAndWait();
 	}
+
 
 	private void updateDefaultDonationId() {
 		int maxId = donationRepository.getMaxDonationId();
