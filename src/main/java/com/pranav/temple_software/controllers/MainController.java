@@ -3,10 +3,12 @@ package com.pranav.temple_software.controllers;
 
 
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
+import com.pranav.temple_software.controllers.menuControllers.OtherSevaManager.OtherSevaManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
+import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.ReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
@@ -147,6 +149,37 @@ public class MainController {
 	}
 
 	@FXML
+	public void handleOtherSevaManagerButton() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/OtherSevaManager/OtherSevaManagerView.fxml"));
+			Stage otherSevaStage = new Stage();
+			otherSevaStage.setTitle("ಇತರೆ ಸೇವೆಗಳ ನಿರ್ವಹಣೆ");
+			Scene scene = new Scene(loader.load());
+			otherSevaStage.setScene(scene);
+
+			OtherSevaManagerController otherSevaManagerController = loader.getController();
+			if (otherSevaManagerController != null) {
+				// *** PASS both the repository (if needed) AND the MainController instance ***
+				// If using Singleton for repo, you only need to pass mainController
+				// sevaManagerController.setSevaRepository(this.sevaRepository); // Uncomment if using DI for repo
+				otherSevaManagerController.setMainController(this); // Pass this instance
+			} else {
+				System.err.println("Error: Could not get SevaManagerController instance.");
+				return;
+			}
+			otherSevaStage.initOwner(mainStage);
+			otherSevaStage.initModality(Modality.WINDOW_MODAL);
+			otherSevaStage.setMaxWidth(950);
+			otherSevaStage.setMaxHeight(800);
+			otherSevaStage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Unable to load Other Seva Manager: " + e.getMessage());
+		}
+	}
+
+
+	@FXML
 	public void clearForm() {
 		// Clear all fields EXCEPT bound labels
 		devoteeNameField.clear();
@@ -251,6 +284,23 @@ public class MainController {
 		donationNames.add(0, "ಆಯ್ಕೆ");  // Optional default prompt
 		donationComboBox.setItems(donationNames);
 	}
+
+	public void refreshOtherSevaComboBox() {
+		// Reload the repository if needed
+		OtherSevaRepository.getInstance().loadOtherSevasFromDB();
+		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getInstance().getAllOtherSevas();
+		ObservableList<String> otherSevaNames = FXCollections.observableArrayList(
+				otherSevaEntries.stream().map(SevaEntry::getName).collect(Collectors.toList())
+		);
+		// Optionally add a default prompt (e.g., "ಆಯ್ಕೆ")
+		if (!otherSevaNames.isEmpty() && !otherSevaNames.get(0).equals("ಆಯ್ಕೆ")) {
+			otherSevaNames.add(0, "ಆಯ್ಕೆ");
+		}
+		otherServicesComboBox.setItems(otherSevaNames);
+	}
+
+
+
 }
 
 

@@ -38,7 +38,7 @@
                    <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" styleClass="kannada-label" text="ಇತಿಹಾಸ" />
                    <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" styleClass="kannada-label" text="ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
                      <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" styleClass="kannada-label" text="ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
-                     <MenuItem mnemonicParsing="false" styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ " />
+                     <MenuItem mnemonicParsing="false" onAction="#handleOtherSevaManagerButton" styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ " />
                  </items>
                   <HBox.margin>
                      <Insets right="1200.0" />

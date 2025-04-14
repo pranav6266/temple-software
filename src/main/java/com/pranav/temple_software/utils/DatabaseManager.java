@@ -2,6 +2,7 @@
 package com.pranav.temple_software.utils;
 
 import java.sql.*;
+import java.util.List;
 // Remove unused imports if any: import java.time.LocalDate; import java.util.List;
 
 public class DatabaseManager {
@@ -13,6 +14,7 @@ public class DatabaseManager {
 		createReceiptTableIfNotExists(); // Renamed for clarity
 		createSevaTableIfNotExists(); // *** ADDED CALL ***
 		createDonationsTableIfNotExists();
+		createOtherSevaTableIfNotExists();
 	}
 
 	private void createReceiptTableIfNotExists() {
@@ -51,7 +53,105 @@ public class DatabaseManager {
 		}
 	}
 
+	private void createOtherSevaTableIfNotExists(){
+		String sql = "CREATE TABLE IF NOT EXISTS OtherSevas (" +
+				"other_seva_id VARCHAR(10) PRIMARY KEY, " +
+				"other_seva_name VARCHAR(100) NOT NULL, " +
+				"other_seva_amount DECIMAL(10,2) DEFAULT 0, " +
+				"display_order INT NOT NULL)";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("Other Sevas table checked/created successfully.");
+			addInitialOtherSevasIfEmpty(conn);
+		} catch (SQLException e) {
+			System.err.println("Error creating Other Sevas table: " + e.getMessage());
+		}
+	}
 
+
+
+
+	private void addInitialOtherSevasIfEmpty(Connection conn) {
+		String checkSql = "SELECT COUNT(*) FROM OtherSevas";
+		try (Statement checkStmt = conn.createStatement();
+		     ResultSet rs = checkStmt.executeQuery(checkSql)) {
+			if (rs.next() && rs.getInt(1) == 0) {
+				System.out.println("OtherSevas table is empty. Adding initial other sevas...");
+				// Assuming you have modified your table so that OtherSevas has:
+				// other_seva_id, other_seva_name, other_seva_amount, display_order
+				String insertSql = "INSERT INTO OtherSevas (other_seva_id, other_seva_name, other_seva_amount, display_order) VALUES (?, ?, ?, ?)";
+				try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+					int order = 1;
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಶತ ರುದ್ರಾಭಿಷೇಕ");
+					pstmt.setDouble(3, 1000.00);  // Example amount
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಸಾಮೂಹಿಕ ಆಶ್ಲೇಷ ಬಲಿ");
+					pstmt.setDouble(3, 500.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಶ್ರೀಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ");
+					pstmt.setDouble(3, 1500.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ವರಮಹಾಲಕ್ಷ್ಮೀ ಪೂಜೆ");
+					pstmt.setDouble(3, 800.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಪ್ರತಿಷ್ಠಾ ದಿನ (ಕಳಭ)");
+					pstmt.setDouble(3, 1200.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಸಮಾಜ ಸೇವಾ ಕಾರ್ಯಗಳು");
+					pstmt.setDouble(3, 600.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ನಿತ್ಯ-ನೈಮಿತ್ತಿಕ ಕಾರ್ಯಗಳು");
+					pstmt.setDouble(3, 500.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಜೀರ್ಣೋದ್ಧಾರ ಕಾರ್ಯಗಳು");
+					pstmt.setDouble(3, 700.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಅಭಿವೃದ್ಧಿ ಕಾರ್ಯಗಳು");
+					pstmt.setDouble(3, 900.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					pstmt.setString(1, String.valueOf(order));
+					pstmt.setString(2, "ಅನ್ನದಾನ");
+					pstmt.setDouble(3, 300.00);
+					pstmt.setInt(4, order++);
+					pstmt.addBatch();
+
+					int[] results = pstmt.executeBatch();
+					System.out.println("Initial Other Sevas added successfully.");
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("Error during initial Other Seva data insertion: " + e.getMessage());
+		}
+	}
 	private void ensureDisplayOrderExists(Connection conn) {
 		String sql = "UPDATE Sevas SET display_order = CAST(seva_id AS INT) WHERE display_order IS NULL";
 		int updatedRows = 0;
