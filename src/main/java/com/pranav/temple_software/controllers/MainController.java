@@ -286,18 +286,26 @@ public class MainController {
 	}
 
 	public void refreshOtherSevaComboBox() {
-		// Reload the repository if needed
+		// Reload from DB if necessary
 		OtherSevaRepository.getInstance().loadOtherSevasFromDB();
-		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getInstance().getAllOtherSevas();
+
+		// Get all Other Sevas (name + amount)
+		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
+
+		// Format combo box entries to show: Name - ₹Amount
 		ObservableList<String> otherSevaNames = FXCollections.observableArrayList(
-				otherSevaEntries.stream().map(SevaEntry::getName).collect(Collectors.toList())
+				otherSevaEntries.stream()
+						.map(SevaEntry::getName)
+						.collect(Collectors.toList())
 		);
-		// Optionally add a default prompt (e.g., "ಆಯ್ಕೆ")
-		if (!otherSevaNames.isEmpty() && !otherSevaNames.get(0).equals("ಆಯ್ಕೆ")) {
-			otherSevaNames.add(0, "ಆಯ್ಕೆ");
-		}
+
+		// Optional: add a default placeholder
+		otherSevaNames.add(0, "ಆಯ್ಕೆ");
+
+		// Set items in the combo box
 		otherServicesComboBox.setItems(otherSevaNames);
 	}
+
 
 
 

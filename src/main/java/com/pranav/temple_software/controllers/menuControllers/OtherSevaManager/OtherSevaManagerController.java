@@ -18,12 +18,16 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OtherSevaManagerController {
 
@@ -37,6 +41,9 @@ public class OtherSevaManagerController {
 	private final ObservableList<SevaEntry> tempSevaList = FXCollections.observableArrayList();
 	private final OtherSevaRepository repository = OtherSevaRepository.getInstance();
 	private MainController mainControllerInstance;
+	private final Map<String, Double> originalAmounts = new HashMap<>();
+	private final Map<String, Integer> originalOrders = new HashMap<>();
+	private final List<String> originalNames = new ArrayList<>();
 
 	public void setMainController(MainController controller) {
 		this.mainControllerInstance = controller;
@@ -44,6 +51,13 @@ public class OtherSevaManagerController {
 	@FXML
 	public void initialize() {
 		tempSevaList.setAll(OtherSevaRepository.getAllOtherSevas());
+		// Store original values
+		for (int i = 0; i < tempSevaList.size(); i++) {
+			SevaEntry seva = tempSevaList.get(i);
+			originalAmounts.put(seva.getName(), seva.getAmount());
+			originalOrders.put(seva.getName(), i + 1);
+			originalNames.add(seva.getName());
+		}
 		refreshGridPane();
 	}
 
@@ -69,21 +83,79 @@ public class OtherSevaManagerController {
 			otherSevaGridPane.add(amount, 2, i + 1);
 		}
 	}
-
 	@FXML
 	private void handleSave() {
-		System.out.println("Saving other sevas...");
-		// First, refresh your grid view in the Manager if needed.
+		StringBuilder summary = new StringBuilder();
+
+		for (int i = 0; i < tempSevaList.size(); i++) {
+			SevaEntry seva = tempSevaList.get(i);
+			String id = repository.getOtherSevaIdByName(seva.getName());
+
+			// New seva added
+			if (!originalNames.contains(seva.getName())) {
+				String newId = String.valueOf(repository.getMaxOtherSevaId() + 1);
+				repository.addOtherSevaToDB(newId, seva.getName(),(int) seva.getAmount());
+				OtherSevaRepository.updateDisplayOrder(newId, i + 1);
+				summary.append("✅ Added: ").append(seva.getName())
+						.append(" - ₹").append(seva.getAmount()).append("\n");
+			} else {
+				// Modified amount
+				double originalAmount = originalAmounts.get(seva.getName());
+				if (seva.getAmount() != originalAmount) {
+					repository.updateAmount(id, seva.getAmount());
+					summary.append("✏️ Amount changed: ").append(seva.getName())
+							.append(" ₹").append(originalAmount)
+							.append(" → ₹").append(seva.getAmount()).append("\n");
+				}
+
+				// Modified order
+				int originalOrder = originalOrders.get(seva.getName());
+				if ((i + 1) != originalOrder) {
+					repository.updateDisplayOrder(id, i + 1);
+					summary.append("🔀 Order changed: ").append(seva.getName())
+							.append(" #").append(originalOrder)
+							.append(" → #").append(i + 1).append("\n");
+				}
+			}
+		}
+
+		// Detect deleted sevas
+		for (String name : originalNames) {
+			boolean exists = tempSevaList.stream().anyMatch(seva -> seva.getName().equals(name));
+			if (!exists) {
+				String id = repository.getOtherSevaIdByName(name);
+				repository.deleteOtherSevaFromDB(id);
+				summary.append("🗑️ Deleted: ").append(name).append("\n");
+			}
+		}
+
+		// Final updates
+		repository.loadOtherSevasFromDB();
+		tempSevaList.setAll(OtherSevaRepository.getAllOtherSevas());
 		refreshGridPane();
 
-		// Now update the main view UI.
 		if (mainControllerInstance != null) {
 			mainControllerInstance.refreshOtherSevaComboBox();
 		}
 
-		// Close the popup.
-		Stage stage = (Stage) saveButton.getScene().getWindow();
-		stage.close();
+		if (!summary.isEmpty()) {
+			showInfo("Changes Saved", summary.toString());
+		} else {
+			showInfo("No Changes", "Nothing was modified.");
+		}
+
+		((Stage) saveButton.getScene().getWindow()).close();
+	}
+
+
+
+
+	private void showInfo(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 
 
@@ -190,9 +262,9 @@ public class OtherSevaManagerController {
 
 
 	@FXML
-	private void handleRearrange() {
+	private void handleEdit() {
 		Stage popupStage = new Stage();
-		popupStage.setTitle("Rearrange Other Sevas");
+		popupStage.setTitle("Edit Other Sevas");
 
 		// Load a temporary copy of the list from the repository
 		ObservableList<SevaEntry> tempList = FXCollections.observableArrayList(repository.getAllOtherSevas());
@@ -205,10 +277,32 @@ public class OtherSevaManagerController {
 				@Override
 				protected void updateItem(SevaEntry seva, boolean empty) {
 					super.updateItem(seva, empty);
+
 					if (empty || seva == null) {
-						setText(null);
+						setGraphic(null);
 					} else {
-						setText((getIndex() + 1) + ". " + seva.getName());
+						int index = getIndex() + 1;
+
+						Label slLabel = new Label(index + ". ");
+						Label nameLabel = new Label(seva.getName());
+						TextField amountField = new TextField(String.format("%.2f", seva.getAmount()));
+						amountField.setPrefWidth(100);
+						amountField.setAlignment(Pos.CENTER_RIGHT);
+						Label rupeeLabel = new Label("₹");
+						// Optional: strip ₹ and update seva
+						amountField.textProperty().addListener((obs, oldVal, newVal) -> {
+							String clean = newVal.replace("₹", "").trim();
+							try {
+								seva.setAmount(Double.parseDouble(clean));
+							} catch (NumberFormatException ignored) {}
+						});
+
+						HBox spacer = new HBox(); // takes up remaining space
+						HBox.setHgrow(spacer, Priority.ALWAYS);
+
+						HBox hbox = new HBox(10, slLabel, nameLabel, spacer,rupeeLabel, amountField);
+						hbox.setAlignment(Pos.CENTER_LEFT);
+						setGraphic(hbox);
 					}
 				}
 			};
@@ -280,12 +374,14 @@ public class OtherSevaManagerController {
 				SevaEntry seva = tempList.get(i);
 				String id = repository.getOtherSevaIdByName(seva.getName());
 				if (id != null) {
-					repository.updateDisplayOrder(id, i + 1);
+					OtherSevaRepository.updateDisplayOrder(id, i + 1);
+					OtherSevaRepository.updateAmount(id, seva.getAmount());
 				}
 			}
 			repository.loadOtherSevasFromDB();
-			tempSevaList.setAll(repository.getAllOtherSevas());
+			tempSevaList.setAll(OtherSevaRepository.getAllOtherSevas());
 			refreshGridPane();
+			mainControllerInstance.refreshOtherSevaComboBox();
 			popupStage.close();
 		});
 

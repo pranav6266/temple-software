@@ -7,7 +7,7 @@ import javafx.beans.property.StringProperty;
 
 public class SevaEntry {
 	private final StringProperty name;
-	private final DoubleProperty amount;
+	private DoubleProperty amount;
 
 	public SevaEntry( String name, double amount) {
 		this.name = new SimpleStringProperty(name);
@@ -19,4 +19,5 @@ public class SevaEntry {
 	public double getAmount() { return amount.get(); }
 	public StringProperty nameProperty() { return name; }
 	public DoubleProperty amountProperty() { return amount; }
+	public void setAmount(double amount){this.amount = new SimpleDoubleProperty(amount);}
 }

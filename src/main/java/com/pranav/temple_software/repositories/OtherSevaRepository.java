@@ -1,6 +1,7 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.utils.DatabaseManager;
 
 import java.sql.*;
 import java.util.*;
@@ -13,7 +14,6 @@ public class OtherSevaRepository {
 	private static final List<SevaEntry> otherSevaList = new ArrayList<>();
 
 	private static final OtherSevaRepository instance = new OtherSevaRepository();
-
 
 
 	private OtherSevaRepository() {
@@ -43,7 +43,6 @@ public class OtherSevaRepository {
 	}
 
 
-
 	public static List<SevaEntry> getAllOtherSevas() {
 		return Collections.unmodifiableList(otherSevaList);
 	}
@@ -58,7 +57,7 @@ public class OtherSevaRepository {
 		return 0;
 	}
 
-	public boolean addOtherSevaToDB(String id, String name, int amount) {
+	public void addOtherSevaToDB(String id, String name, int amount) {
 		// Now includes amount column in the insertion.
 		String sql = "INSERT INTO OtherSevas (other_seva_id, other_seva_name, other_seva_amount, display_order) VALUES (?, ?, ?, ?)";
 		try (Connection conn = getConnection();
@@ -67,36 +66,32 @@ public class OtherSevaRepository {
 			pstmt.setString(2, name);
 			pstmt.setInt(3, amount);
 			pstmt.setInt(4, getMaxOtherSevaId() + 1);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			System.err.println("Failed to insert OtherSeva: " + e.getMessage());
 		}
-		return false;
 	}
 
 
-
-	public boolean deleteOtherSevaFromDB(String id) {
+	public void deleteOtherSevaFromDB(String id) {
 		String sql = "DELETE FROM OtherSevas WHERE other_seva_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, id);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			System.err.println("Failed to delete OtherSeva: " + e.getMessage());
 		}
-		return false;
 	}
 
-	public static boolean updateDisplayOrder(String id, int order) {
+	public static void updateDisplayOrder(String id, int order) {
 		String sql = "UPDATE OtherSevas SET display_order = ? WHERE other_seva_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, order);
 			pstmt.setString(2, id);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			System.err.println("Failed to update display order: " + e.getMessage());
 		}
-		return false;
 	}
 
 	public String getOtherSevaIdByName(String name) {
@@ -111,5 +106,19 @@ public class OtherSevaRepository {
 			System.err.println("Error fetching other_seva_id: " + e.getMessage());
 		}
 		return null;
+	}
+
+	public static boolean updateAmount(String otherSevaId, double newAmount) {
+		String sql = "UPDATE OtherSevas SET other_seva_amount = ? WHERE other_seva_id = ?";
+		try (Connection conn = DatabaseManager.getConnection();
+		     PreparedStatement stmt = conn.prepareStatement(sql)) {
+			stmt.setDouble(1, newAmount);
+			stmt.setString(2, otherSevaId);
+			int affectedRows = stmt.executeUpdate();
+			return affectedRows > 0;
+		} catch (SQLException e) {
+			System.err.println("Error updating amount for seva ID " + otherSevaId + ": " + e.getMessage());
+			return false;
+		}
 	}
 }

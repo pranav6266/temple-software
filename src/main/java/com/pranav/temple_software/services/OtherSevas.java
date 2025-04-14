@@ -1,6 +1,10 @@
 package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.OtherSevaRepository;
+
+import java.util.List;
+import java.util.Optional;
 
 public class OtherSevas {
 	MainController controller ;
@@ -10,23 +14,23 @@ public class OtherSevas {
 	}
 
 	public void handleAddOtherSeva() {
-		String sevaType = controller.otherServicesComboBox.getValue();
+		String selected = controller.otherServicesComboBox.getValue();
+		if (selected == null || selected.equals("ಆಯ್ಕೆ")) return;
 
-		if (sevaType == null || sevaType.equals("ಆಯ್ಕೆ") || sevaType.isEmpty()) {
-			controller.showAlert("Invalid Input", "Please select an other service type");
-			return;
-		}
+		// Extract name from "Name - ₹Amount" format if needed
+		String nameOnly = selected.contains(" - ₹") ? selected.split(" - ₹")[0].trim() : selected;
 
-		// Check for existing service
-		String entryName = "ಇತರೆ ಸೇವೆಗಳು : " + sevaType;
-		boolean exists = controller.selectedSevas.stream()
-				.anyMatch(entry -> entry.getName().equals(entryName));
+		// Always fetch the latest data from repository
+		List<SevaEntry> currentOtherSevas = OtherSevaRepository.getAllOtherSevas();
+		Optional<SevaEntry> matched = currentOtherSevas.stream()
+				.filter(entry -> entry.getName().equals(nameOnly))
+				.findFirst();
 
-		if (exists) {
-			controller.showAlert("Duplicate Service", "This service already exists in the list");
-			return;
-		}
-
-		controller.selectedSevas.add(new SevaEntry(entryName, 0.00));
+		matched.ifPresent(seva -> {
+			SevaEntry newEntry = new SevaEntry(seva.getName(), seva.getAmount());
+			controller.selectedSevas.add(newEntry); // Adds to TableView
+			controller.sevaTableView.refresh(); // Make sure table updates
+		});
 	}
+
 }
