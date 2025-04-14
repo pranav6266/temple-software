@@ -14,8 +14,8 @@
 
     <bottom>
         <HBox alignment="CENTER" spacing="10" style="-fx-padding: 20;" stylesheets="@../../../css/main.css">
-            <Button fx:id="saveButton" onAction="#handleDeleteSevaMainSave" prefHeight="50.0" prefWidth="379.0" style="-fx-background-color: green;" styleClass="action-button" text="Save" />
-            <Button fx:id="rearrangeButton" styleClass="action-button" text="Rearrange" />
+            <Button fx:id="saveButton" onAction="#handleSave" prefHeight="50.0" prefWidth="379.0" style="-fx-background-color: green;" styleClass="action-button" text="Save" />
+            <Button fx:id="editButton" styleClass="action-button" text="Edit" onAction="#openEditPopup" />
             <Button fx:id="openAddSevaButton" onAction="#openAddSevaPopup" styleClass="action-button" text="Add Seva" />
          <Button fx:id="deleteSeva" onAction="#openDeleteSevaPopup" layoutX="507.0" layoutY="30.0" styleClass="action-button" text="Delete Seva" />
             <Button fx:id="cancelButton" onAction="#handleCancelButton" style="-fx-background-color: red;" styleClass="action-button" text="Cancel" />

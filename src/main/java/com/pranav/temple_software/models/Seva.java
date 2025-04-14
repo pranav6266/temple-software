@@ -3,7 +3,7 @@ package com.pranav.temple_software.models;
 public class Seva {
 	private final String id;
 	private final String name;
-	private final double amount;
+	private double amount;
 	private int displayOrder; // *** ADDED FIELD ***
 
 
@@ -42,6 +42,10 @@ public class Seva {
 	// *** ADDED Getter and Setter for displayOrder ***
 	public int getDisplayOrder() { return displayOrder; }
 	public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
+
+	public void setAmount(double val) {
+		this.amount = val;
+	}
 
 	// Optional: Override toString, equals, hashCode if needed
 }

@@ -167,7 +167,7 @@ public class DatabaseManager {
 		}
 	}
 	// *** Method reused from ReceiptRepository (Consider centralizing) ***
-	private Connection getConnection() throws SQLException { //
+	public static Connection getConnection() throws SQLException { //
 		// Ensure H2 driver is loaded (optional, JDBC 4+ auto-loads)
 		// try { Class.forName("org.h2.Driver"); } catch (ClassNotFoundException e) { System.err.println("H2 Driver not found!"); }
 		return DriverManager.getConnection(DB_URL, USER, PASS); //

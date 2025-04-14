@@ -18,13 +18,15 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox; // For layout within grid cells
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class SevaManagerController {
@@ -32,11 +34,11 @@ public class SevaManagerController {
 	@FXML public GridPane sevaGridPane; //
 	public Button openAddSevaButton;
 	public Button deleteSeva;
-//	public ListView<Seva> sevaListView;
+	public Button editButton;
+
 
 	// *** ADDED FXML Fields for new Controls ***
 	@FXML private TextField sevaIdField;
-	@FXML private Button addSevaButton; // Although action is handled by onAction, useful to have reference
 	@FXML
 	private Button saveButton;     // Added fx:id="saveButton"
 	@FXML
@@ -49,6 +51,12 @@ public class SevaManagerController {
 	private int nextSevaId = 0;
 	private ObservableList<Seva> tempSevaList;
 	private List<Seva> sevasMarkedForDeletion = new ArrayList<>();
+	private final List<Seva> addedSevas = new ArrayList<>();
+	private final List<Seva> deletedSevas = new ArrayList<>();
+	private final Map<String, Double> originalAmounts = new HashMap<>();
+	private final Map<String, Integer> originalOrder = new HashMap<>();
+
+
 
 	private MainController mainControllerInstance;
 
@@ -60,14 +68,14 @@ public class SevaManagerController {
 	@FXML
 	public void initialize() {
 		tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
+		for (int i = 0; i < tempSevaList.size(); i++) {
+			Seva seva = tempSevaList.get(i);
+			originalAmounts.put(seva.getId(), seva.getAmount());
+			originalOrder.put(seva.getId(), i + 1); // display order
+		}
 		updateDefaultSevaId();
 		// Now refresh the grid pane to display the entries read-only.
 		refreshGridPane();
-
-		// Set up the rearrange button to open a popup for reordering.
-		rearrangeButton.setOnAction(e -> openRearrangePopup());
-
-
 	}
 
 
@@ -149,18 +157,15 @@ public class SevaManagerController {
 			// Create a new Seva object
 			Seva newSeva = new Seva(id, name, amount);
 
-			boolean success = sevaRepository.addSevaToDB(newSeva);
-			if (success) {
-				showAlert("Success", "Seva added successfully!");
-				// Refresh the grid in the main view – using your existing refreshGridPane() method.
-				tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
-				refreshGridPane();
-				// Update default id for future additions:
-				updateDefaultSevaId();
-				popupStage.close();
-			} else {
-				showAlert("Database Error", "Failed to add Seva to the database. Check logs.");
-			}
+			tempSevaList.add(newSeva);
+			addedSevas.add(newSeva);
+			showAlert("Success", "Seva added successfully!");
+			// Refresh the grid in the main view – using your existing refreshGridPane() method.
+			tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
+			refreshGridPane();
+			// Update default id for future additions:
+			updateDefaultSevaId();
+			popupStage.close();
 		});
 
 		// Handle cancel button:
@@ -169,7 +174,8 @@ public class SevaManagerController {
 		popupStage.showAndWait();
 	}
 
-	private void openRearrangePopup() {
+	@FXML
+	private void openEditPopup() {
 		Stage popupStage = new Stage();
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Rearrange Sevas");
@@ -185,11 +191,32 @@ public class SevaManagerController {
 				@Override
 				protected void updateItem(Seva seva, boolean empty) {
 					super.updateItem(seva, empty);
+
 					if (empty || seva == null) {
-						setText(null);
+						setGraphic(null);
 					} else {
-						int index = getIndex() + 1; // Dynamic Sl. No.
-						setText(index + ". " + seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()));
+						int index = getIndex() + 1;
+
+						Label slLabel = new Label(index + ". ");
+						Label nameLabel = new Label(seva.getName());
+						TextField amountField = new TextField(String.format("%.2f", seva.getAmount()));
+						amountField.setPrefWidth(100);
+						amountField.setAlignment(Pos.CENTER_RIGHT);
+						Label rupeeLabel = new Label("₹");
+						// Optional: strip ₹ and update seva
+						amountField.textProperty().addListener((obs, oldVal, newVal) -> {
+							String clean = newVal.replace("₹", "").trim();
+							try {
+								seva.setAmount(Double.parseDouble(clean));
+							} catch (NumberFormatException ignored) {}
+						});
+
+						HBox spacer = new HBox(); // takes up remaining space
+						HBox.setHgrow(spacer, Priority.ALWAYS);
+
+						HBox hbox = new HBox(10, slLabel, nameLabel, spacer,rupeeLabel, amountField);
+						hbox.setAlignment(Pos.CENTER_LEFT);
+						setGraphic(hbox);
 					}
 				}
 			};
@@ -276,15 +303,22 @@ public class SevaManagerController {
 		popupStage.setScene(scene);
 
 		saveBtn.setOnAction(ev -> {
+			Seva seva = null;
 			for (int i = 0; i < tempList.size(); i++) {
-				Seva seva = tempList.get(i);
+				seva = tempList.get(i);
 				seva.setDisplayOrder(i + 1);
 				sevaRepository.updateDisplayOrder(seva.getId(), i + 1);
+				sevaRepository.updateAmount(seva.getId(), seva.getAmount());
 			}
 
 			sevaRepository.loadSevasFromDB();
 			tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
-			refreshGridPane(); // refresh SevaManager grid only
+			assert seva != null;
+			System.out.println("Updated amount: " + seva.getName() + " - " + seva.getAmount());
+			refreshGridPane();
+			if (mainControllerInstance != null) {
+				mainControllerInstance.refreshSevaCheckboxes();
+			}
 			popupStage.close();
 		});
 
@@ -306,24 +340,79 @@ public class SevaManagerController {
 	}
 
 
-	@FXML public void handleSave(ActionEvent actionEvent) { //
-		System.out.println("Refresh button clicked.");
-		updateDefaultSevaId(); // Ensure default ID is up-to-date on refresh
-		refreshGridPane();
-		mainControllerInstance.refreshSevaCheckboxes();
-	}
+	@FXML
+	public void handleSave(ActionEvent actionEvent) {
+		StringBuilder summary = new StringBuilder();
 
-	private void triggerMainViewRefresh() {
+		// 1. Save added sevas
+		for (Seva seva : addedSevas) {
+			boolean added = sevaRepository.addSevaToDB(seva);
+			if (added) {
+				summary.append("✅ Added: ").append(seva.getName()).append(" (₹").append(seva.getAmount()).append(")\n");
+			}
+		}
+
+		// 2. Save deleted sevas
+		for (Seva seva : deletedSevas) {
+			boolean deleted = sevaRepository.deleteSevaFromDB(seva.getId());
+			if (deleted) {
+				summary.append("🗑️ Deleted: ").append(seva.getName()).append("\n");
+			}
+		}
+
+		// 3. Check for amount and order changes
+		for (int i = 0; i < tempSevaList.size(); i++) {
+			Seva seva = tempSevaList.get(i);
+			String sevaId = seva.getId();
+			double currentAmount = seva.getAmount();
+			int currentOrder = i + 1;
+
+			if (originalAmounts.containsKey(sevaId) && currentAmount != originalAmounts.get(sevaId)) {
+				sevaRepository.updateAmount(sevaId, currentAmount);
+				summary.append("✏️ Amount changed: ").append(seva.getName())
+						.append(" ₹").append(originalAmounts.get(sevaId))
+						.append(" → ₹").append(currentAmount).append("\n");
+			}
+
+			if (originalOrder.containsKey(sevaId) && currentOrder != originalOrder.get(sevaId)) {
+				sevaRepository.updateDisplayOrder(sevaId, currentOrder);
+				summary.append("🔀 Order changed: ").append(seva.getName())
+						.append(" #").append(originalOrder.get(sevaId))
+						.append(" → #").append(currentOrder).append("\n");
+			}
+		}
+
+		// 4. Reload and update views
+		sevaRepository.loadSevasFromDB();
+		tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
+		refreshGridPane();
 		if (mainControllerInstance != null) {
-			System.out.println("DEBUG: Triggering MainView refresh from SevaManager...");
-			// Use Platform.runLater if repository operations were complex/off-thread,
-			// but likely okay directly if called from button handlers.
-			// Platform.runLater(() -> mainControllerInstance.refreshSevaCheckboxes());
-			mainControllerInstance.refreshSevaCheckboxes(); // Call the new public method
+			mainControllerInstance.refreshSevaCheckboxes();
+		}
+
+		// 5. Show summary
+		if (!summary.isEmpty()) {
+			showAlert("Changes Saved", summary.toString());
 		} else {
-			System.err.println("Error: mainControllerInstance is null in SevaManagerController. Cannot refresh MainView.");
+			showAlert("No Changes", "Nothing was changed.");
+			((Stage) saveButton.getScene().getWindow()).close();
+		}
+
+		// 6. Clear trackers
+		addedSevas.clear();
+		deletedSevas.clear();
+		originalAmounts.clear();
+		originalOrder.clear();
+
+		// Update new base state for next Save
+		for (int i = 0; i < tempSevaList.size(); i++) {
+			Seva seva = tempSevaList.get(i);
+			originalAmounts.put(seva.getId(), seva.getAmount());
+			originalOrder.put(seva.getId(), i + 1);
 		}
 	}
+
+
 	private void refreshGridPane() {
 		// Clear the grid pane.
 		sevaGridPane.getChildren().clear();
@@ -367,48 +456,7 @@ public class SevaManagerController {
 		((Stage) cancelButton.getScene().getWindow()).close(); // Close the current stage/window
 	}
 
-	private void handleSaveTempChanges() {
-		// Loop through tempSevaList and update the displayOrder field
-		for (int i = 0; i < tempSevaList.size(); i++) {
-			Seva seva = tempSevaList.get(i);
-			int newDisplayOrder = i + 1; // New order based on its position
-			seva.setDisplayOrder(newDisplayOrder);
-			// Update the DB for this seva or use a repository method to commit the order change
-			sevaRepository.updateDisplayOrder(seva.getId(), newDisplayOrder);
-		}
 
-		// Optionally reload the in-memory repository list from the DB if needed
-		sevaRepository.loadSevasFromDB();
-
-		// Now update the main UI checkboxes – only when Save is clicked
-		if (mainControllerInstance != null) {
-			mainControllerInstance.refreshSevaCheckboxes();
-		}
-
-		// Optionally, show a confirmation message
-		showAlert("Success", "Seva ordering has been updated successfully.");
-
-		// Recreate the temporary list to reflect the committed state
-		tempSevaList = FXCollections.observableArrayList(sevaRepository.getAllSevas());
-		refreshGridPane();
-	}
-
-	@FXML
-	private void handleDeleteSevaMainSave(ActionEvent event) {
-		// Loop over sevas marked for deletion and remove them permanently
-		for (Seva seva : sevasMarkedForDeletion) {
-			boolean deleted = sevaRepository.deleteSevaFromDB(seva.getId());
-			if (!deleted) {
-				showAlert("Delete Failed", "Could not delete Seva '" + seva.getName() + "'.");
-			}
-		}
-		// Once deletion is done, clear the temporary deletion list
-		sevasMarkedForDeletion.clear();
-		// Refresh the gridpane (reflecting the repository state, if needed) and also the checkboxes in the main view
-		refreshGridPane();
-		mainControllerInstance.refreshSevaCheckboxes();
-		showAlert("Success", "Selected Sevas have been permanently deleted.");
-	}
 	// *** ADDED Helper method for alerts ***
 	private void showAlert(String title, String message) {
 		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
@@ -458,12 +506,13 @@ public class SevaManagerController {
 
 		// Save logic: remove selected sevas from tempSevaList only
 		saveBtn.setOnAction(e -> {
-			List<Seva> toRemove = new ArrayList<>();
+		List<Seva> toRemove = new ArrayList<>();
 			for (int i = 0; i < sevaCheckBoxes.size(); i++) {
 				if (sevaCheckBoxes.get(i).isSelected()) {
 					Seva selected = tempSevaList.get(i);
 					toRemove.add(selected);
 					sevasMarkedForDeletion.add(selected);
+					deletedSevas.add(selected);
 				}
 			}
 			tempSevaList.removeAll(toRemove);

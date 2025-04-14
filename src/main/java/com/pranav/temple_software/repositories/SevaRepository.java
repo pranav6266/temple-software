@@ -2,10 +2,10 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.Seva; //
+import com.pranav.temple_software.utils.DatabaseManager;
 
 import java.sql.*;
 import java.util.*;
-import java.util.stream.IntStream;
 // Removed unused import: import java.util.List;
 
 
@@ -186,24 +186,6 @@ public class SevaRepository {
 	}
 
 
-	private void updateSevaDisplayOrderInDB(Connection conn, String sevaId, int newOrder) throws SQLException {
-		// Note: This method now throws SQLException to be handled by the calling transaction block
-		String sql = "UPDATE Sevas SET display_order = ? WHERE seva_id = ?";
-		// Use the passed-in connection, do not close it here
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setInt(1, newOrder);
-			pstmt.setString(2, sevaId);
-			int affectedRows = pstmt.executeUpdate();
-			if (affectedRows == 0) {
-				// If the row wasn't found, we should probably fail the transaction
-				throw new SQLException("Seva ID " + sevaId + " not found during display_order update within transaction.");
-			}
-			// No commit/close here - handled by caller
-		}
-		// Catch block removed - exception propagates to caller for transaction handling
-	}
-
-
 	public boolean updateDisplayOrder(String sevaId, int newOrder) {
 		String sql = "UPDATE Sevas SET display_order = ? WHERE seva_id = ?";
 		try (Connection conn = getConnection();
@@ -228,151 +210,19 @@ public class SevaRepository {
 		return Collections.unmodifiableList(new ArrayList<>(sevaList)); // Return immutable copy
 	}
 
-	private OptionalInt findSevaIndexById(String sevaId) {
-		return IntStream.range(0, sevaList.size())
-				.filter(i -> sevaList.get(i).getId().equals(sevaId))
-				.findFirst();
-	}
-
-	public boolean moveSevaUp(String sevaId) {
-		OptionalInt optionalIndex = findSevaIndexById(sevaId);
-		if (optionalIndex.isEmpty()) {
-			System.err.println("Move Up Error: Seva ID not found in list: " + sevaId);
-			return false;
-		}
-		int currentIndex = optionalIndex.getAsInt();
-
-		if (currentIndex == 0) {
-			// Already the first item, cannot move up
-			// System.out.println("Cannot move up the first item.");
-			return false;
-		}
-
-		// Get the Seva to move up and the one currently above it
-		Seva currentSeva = sevaList.get(currentIndex);
-		Seva aboveSeva = sevaList.get(currentIndex - 1);
-
-		// Get their current display orders
-		int currentOrder = currentSeva.getDisplayOrder();
-		int aboveOrder = aboveSeva.getDisplayOrder();
-
-		// Swap orders in the database within a transaction
-		Connection conn = null; // Declare connection outside try for finally block
-		boolean success = false;
-		try {
-			conn = getConnection();
-			conn.setAutoCommit(false); // Start transaction
-
-			// Update the one above to have the current one's order
-			updateSevaDisplayOrderInDB(conn, aboveSeva.getId(), currentOrder);
-			// Update the current one to have the one above's order
-			updateSevaDisplayOrderInDB(conn, currentSeva.getId(), aboveOrder);
-
-			conn.commit(); // Commit transaction
-			success = true;
-			System.out.println("Successfully moved up Seva ID: " + sevaId);
-
+	public boolean updateAmount(String sevaId, double newAmount) {
+		String sql = "UPDATE Sevas SET amount = ? WHERE seva_id = ?";
+		try (Connection conn = DatabaseManager.getConnection();
+		     PreparedStatement stmt = conn.prepareStatement(sql)) {
+			stmt.setDouble(1, newAmount);
+			stmt.setString(2, sevaId);
+			int affectedRows = stmt.executeUpdate();
+			return affectedRows > 0;
 		} catch (SQLException e) {
-			System.err.println("Error during move Seva Up transaction for ID " + sevaId + ": " + e.getMessage());
-			if (conn != null) {
-				try {
-					System.err.println("Rolling back transaction...");
-					conn.rollback();
-				} catch (SQLException ex) {
-					System.err.println("Error rolling back transaction: " + ex.getMessage());
-				}
-			}
-			success = false;
-		} finally {
-			if (conn != null) {
-				try {
-					conn.setAutoCommit(true); // Reset auto-commit
-					conn.close(); // Close connection
-				} catch (SQLException ex) {
-					System.err.println("Error closing connection/resetting auto-commit: " + ex.getMessage());
-				}
-			}
-		}
-
-		// If DB update was successful, update in-memory list order and re-sort
-		if (success) {
-			currentSeva.setDisplayOrder(aboveOrder);
-			aboveSeva.setDisplayOrder(currentOrder);
-			// Re-sort the list based on the updated displayOrder values
-			sevaList.sort(Comparator.comparingInt(Seva::getDisplayOrder));
-		}
-
-		return success;
-	}
-
-	public boolean moveSevaDown(String sevaId) {
-		OptionalInt optionalIndex = findSevaIndexById(sevaId);
-		if (optionalIndex.isEmpty()) {
-			System.err.println("Move Down Error: Seva ID not found in list: " + sevaId);
+			System.err.println("Error updating amount for seva ID " + sevaId + ": " + e.getMessage());
 			return false;
 		}
-		int currentIndex = optionalIndex.getAsInt();
-
-		if (currentIndex >= sevaList.size() - 1) {
-			// Already the last item, cannot move down
-			// System.out.println("Cannot move down the last item.");
-			return false;
-		}
-
-		// Get the Seva to move down and the one currently below it
-		Seva currentSeva = sevaList.get(currentIndex);
-		Seva belowSeva = sevaList.get(currentIndex + 1);
-
-		// Get their current display orders
-		int currentOrder = currentSeva.getDisplayOrder();
-		int belowOrder = belowSeva.getDisplayOrder();
-
-		// Swap orders in the database within a transaction
-		Connection conn = null;
-		boolean success = false;
-		try {
-			conn = getConnection();
-			conn.setAutoCommit(false); // Start transaction
-
-			// Update the one below to have the current one's order
-			updateSevaDisplayOrderInDB(conn, belowSeva.getId(), currentOrder);
-			// Update the current one to have the one below's order
-			updateSevaDisplayOrderInDB(conn, currentSeva.getId(), belowOrder);
-
-			conn.commit(); // Commit transaction
-			success = true;
-			System.out.println("Successfully moved down Seva ID: " + sevaId);
-
-		} catch (SQLException e) {
-			System.err.println("Error during move Seva Down transaction for ID " + sevaId + ": " + e.getMessage());
-			if (conn != null) {
-				try {
-					System.err.println("Rolling back transaction...");
-					conn.rollback();
-				} catch (SQLException ex) {
-					System.err.println("Error rolling back transaction: " + ex.getMessage());
-				}
-			}
-			success = false;
-		} finally {
-			if (conn != null) {
-				try {
-					conn.setAutoCommit(true); // Reset auto-commit
-					conn.close(); // Close connection
-				} catch (SQLException ex) {
-					System.err.println("Error closing connection/resetting auto-commit: " + ex.getMessage());
-				}
-			}
-		}
-
-		// If DB update was successful, update in-memory list order and re-sort
-		if (success) {
-			currentSeva.setDisplayOrder(belowOrder);
-			belowSeva.setDisplayOrder(currentOrder);
-			// Re-sort the list based on the updated displayOrder values
-			sevaList.sort(Comparator.comparingInt(Seva::getDisplayOrder));
-		}
-
-		return success;
 	}
+
+
 }
