@@ -20,10 +20,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class DonationManagerController {
 
@@ -35,18 +33,22 @@ public class DonationManagerController {
 
 	private final DonationRepository donationRepository = DonationRepository.getInstance();
 	public Button openDeleteButton;
-	private int nextDonationId = 0;
 	private ObservableList<SevaEntry> tempDonationList;
 	private final List<SevaEntry> donationsMarkedForDeletion = new ArrayList<>();
 	private MainController mainControllerInstance;
-
+	private Map<String, Integer> initialDonationState = new HashMap<>();
 
 	@FXML
 	public void initialize() {
 		tempDonationList = FXCollections.observableArrayList(donationRepository.getAllDonations());
 		updateDefaultDonationId();
 		refreshGridPane();
-		rearrangeButton.setOnAction(e -> openRearrangePopup());
+		initialDonationState.clear();
+		for (int i = 0; i < tempDonationList.size(); i++) {
+			SevaEntry donation = tempDonationList.get(i);
+			initialDonationState.put(donation.getName(), i + 1);
+		}
+
 	}
 	public void setMainController(MainController controller) {
 		this.mainControllerInstance = controller;
@@ -116,6 +118,7 @@ public class DonationManagerController {
 		mainControllerInstance.refreshSevaCheckboxes();
 	}
 
+	@FXML
 	private void openRearrangePopup() {
 		Stage popupStage = new Stage();
 		popupStage.initModality(Modality.APPLICATION_MODAL);
@@ -137,7 +140,7 @@ public class DonationManagerController {
 						setText(null);
 					} else {
 						int index = getIndex() + 1; // Serial number
-						setText(index + ". " + donation.getName() + " - Order: " + donation.getAmount());
+						setText(index + ". " + donation.getName());
 					}
 				}
 			};
@@ -243,8 +246,7 @@ public class DonationManagerController {
 
 	private void updateDefaultDonationId() {
 		int maxId = donationRepository.getMaxDonationId();
-		nextDonationId = maxId + 1;
-		// Optionally update any UI label that shows the next donation id.
+		int nextDonationId = maxId + 1;
 	}
 
 	private void refreshGridPane() {
@@ -303,7 +305,7 @@ public class DonationManagerController {
 		List<CheckBox> donationCheckBoxes = new ArrayList<>();
 
 		for (SevaEntry donation : tempDonationList) {
-			CheckBox cb = new CheckBox(donation.getName() + " - ₹" + String.format("%.2f", donation.getAmount()));
+			CheckBox cb = new CheckBox(donation.getName());
 			donationCheckBoxes.add(cb);
 			checkboxContainer.getChildren().add(cb);
 		}
@@ -364,5 +366,83 @@ public class DonationManagerController {
 			mainControllerInstance.refreshDonationComboBox();
 		}
 		showAlert("Success", "Selected donations permanently deleted.");
+	}
+	@FXML
+	public void handleSave(ActionEvent actionEvent) {
+		StringBuilder summary = new StringBuilder();
+
+		// === Step 1: Process deletions (these are tracked via donationsMarkedForDeletion) ===
+		for (SevaEntry donation : donationsMarkedForDeletion) {
+			String donationId = donationRepository.getDonationIdByName(donation.getName());
+			if (donationId != null) {
+				boolean deleted = donationRepository.deleteDonationFromDB(donationId);
+				if (deleted) {
+					summary.append("🗑️ Deleted: ").append(donation.getName()).append("\n");
+				} else {
+					showAlert("Delete Failed", "Could not delete Donation '" + donation.getName() + "'");
+				}
+			}
+		}
+
+		// === Step 2: Build the current state map: donation name -> current display order (index+1) ===
+		Map<String, Integer> currentDonationState = new HashMap<>();
+		for (int i = 0; i < tempDonationList.size(); i++) {
+			SevaEntry donation = tempDonationList.get(i);
+			currentDonationState.put(donation.getName(), i + 1);
+		}
+
+		// === Step 3: Compare the current state with the initial state ===
+		for (Map.Entry<String, Integer> entry : currentDonationState.entrySet()) {
+			String donationName = entry.getKey();
+			int newOrder = entry.getValue();
+			if (initialDonationState.containsKey(donationName)) {
+				// Donation existed previously. Check if its order has changed.
+				int oldOrder = initialDonationState.get(donationName);
+				if (oldOrder != newOrder) {
+					String donationId = donationRepository.getDonationIdByName(donationName);
+					if (donationId != null) {
+						boolean updated = donationRepository.updateDisplayOrder(donationId, newOrder);
+						if (updated) {
+							summary.append("🔀 Order changed: ").append(donationName)
+									.append(" #").append(oldOrder)
+									.append(" → #").append(newOrder).append("\n");
+						} else {
+							showAlert("Update Failed", "Could not update order for Donation '" + donationName + "'");
+						}
+					}
+				}
+			} else {
+				// Donation is a new addition.
+				int newDonationId = donationRepository.getMaxDonationId() + 1;
+				boolean added = donationRepository.addDonationToDB(String.valueOf(newDonationId), donationName, newOrder);
+				if (added) {
+					summary.append("✅ Added: ").append(donationName).append("\n");
+				} else {
+					showAlert("Add Failed", "Could not add Donation '" + donationName + "'");
+				}
+			}
+		}
+
+		// Optionally, you can check if some donation was in the initial state but is missing from the current state.
+		// (You may not need it if deletions are being handled elsewhere.)
+
+		// === Step 4: Refresh UI and update the initial state ===
+		donationRepository.loadDonationsFromDB();
+
+		if (mainControllerInstance != null) {
+			mainControllerInstance.refreshDonationComboBox();
+		}
+		// After saving, update the "initial" state to reflect the latest ordering.
+		initialDonationState.clear();
+		for (int i = 0; i < tempDonationList.size(); i++) {
+			SevaEntry donation = tempDonationList.get(i);
+			initialDonationState.put(donation.getName(), i + 1);
+		}
+
+		if (!summary.isEmpty()) {
+			showAlert("Changes Saved", summary.toString());
+		} else {
+			showAlert("No Changes", "Nothing was modified.");
+		}
 	}
 }

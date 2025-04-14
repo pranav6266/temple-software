@@ -102,7 +102,7 @@ public class OtherSevaManagerController {
 				// Modified amount
 				double originalAmount = originalAmounts.get(seva.getName());
 				if (seva.getAmount() != originalAmount) {
-					repository.updateAmount(id, seva.getAmount());
+					OtherSevaRepository.updateAmount(id, seva.getAmount());
 					summary.append("✏️ Amount changed: ").append(seva.getName())
 							.append(" ₹").append(originalAmount)
 							.append(" → ₹").append(seva.getAmount()).append("\n");
@@ -111,7 +111,7 @@ public class OtherSevaManagerController {
 				// Modified order
 				int originalOrder = originalOrders.get(seva.getName());
 				if ((i + 1) != originalOrder) {
-					repository.updateDisplayOrder(id, i + 1);
+					OtherSevaRepository.updateDisplayOrder(id, i + 1);
 					summary.append("🔀 Order changed: ").append(seva.getName())
 							.append(" #").append(originalOrder)
 							.append(" → #").append(i + 1).append("\n");

@@ -94,7 +94,7 @@ public class OtherSevaRepository {
 		}
 	}
 
-	public String getOtherSevaIdByName(String name) {
+	public static String getOtherSevaIdByName(String name) {
 		String sql = "SELECT other_seva_id FROM OtherSevas WHERE other_seva_name = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, name);
