@@ -21,14 +21,18 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 public class MainController {
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
@@ -75,6 +79,9 @@ public class MainController {
 	private Button printPreviewButton;
 	@FXML
 	public Label receiptNumberLabel;
+	@FXML private AnchorPane mainPane;
+
+
 
 	// MainController.java
 	@FXML
@@ -247,6 +254,12 @@ public class MainController {
 		validationServices.setupAmountValidation();
 		refreshSevaCheckboxes();
 		refreshDonationComboBox();
+		setupFocusTraversal();
+		setupFocusLostHandlers();
+//		dummyFocusNode.setVisible(false); // Keep it hidden
+//		mainPane.getChildren().add(dummyFocusNode);
+		setupBlankAreaFocusHandler();
+
 
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
 			while (change.next()) {
@@ -258,6 +271,40 @@ public class MainController {
 			}
 		});
 
+	}
+
+	private void setupBlankAreaFocusHandler() {
+		mainPane.setOnMousePressed(event -> {
+			// If click target is not a text input, force focus to this pane
+			if (!(event.getTarget() instanceof TextInputControl) &&
+					!(event.getTarget() instanceof ComboBox) &&
+					!(event.getTarget() instanceof DatePicker)) {
+				mainPane.requestFocus();
+			}
+		});
+	}
+
+	private void setupFocusLostHandlers() {
+		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+			if (!newVal) {
+				String phone = contactField.getText();
+				if (!phone.matches("\\d{10}")) {
+					showAlert("Invalid Input", "Enter a valid 10-digit mobile number.");
+				}
+			}
+		});
+
+		donationField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+			if (!newVal) {
+				try {
+					double amount = Double.parseDouble(donationField.getText());
+					donationField.setText(String.format("%.2f", amount));
+				} catch (NumberFormatException e) {
+					donationField.clear();
+					showAlert("Invalid Input", "Please enter a valid donation amount.");
+				}
+			}
+		});
 	}
 
 
@@ -319,6 +366,29 @@ public class MainController {
 	}
 
 
+	private void setupFocusTraversal() {
+		List<Control> formControls = List.of(
+				devoteeNameField,
+				contactField,
+				raashiComboBox,
+				nakshatraComboBox,
+				sevaDatePicker,
+				donationCheck,
+				donationField,
+				donationComboBox
+		);
+
+		for (int i = 0; i < formControls.size(); i++) {
+			Control current = formControls.get(i);
+			int nextIndex = i + 1;
+
+			current.setOnKeyPressed(e -> {
+				if (e.getCode().toString().equals("ENTER") && nextIndex < formControls.size()) {
+					formControls.get(nextIndex).requestFocus();
+				}
+			});
+		}
+	}
 
 
 }
