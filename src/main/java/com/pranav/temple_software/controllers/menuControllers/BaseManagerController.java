@@ -63,9 +63,61 @@ public abstract class BaseManagerController<T> { // Use a generic type T for the
 	// --- Common Helper Methods ---
 	@FXML
 	protected void handleCancelButton(ActionEvent actionEvent) {
-		// Optional: Add confirmation dialog here if changes are detected in tempItemList vs originalState
-		closeWindow();
+		// Check if there are unsaved changes
+		boolean hasUnsavedChanges = checkForUnsavedChanges();
+
+		if (hasUnsavedChanges) {
+			// Show confirmation dialog
+			Optional<ButtonType> result = showConfirmationDialog(
+					"Confirm Cancel",
+					"You have unsaved changes. Are you sure you want to cancel?"
+			);
+
+			// Handle user's choice
+			if (result.isPresent() && result.get() == ButtonType.OK) {
+				closeWindow(); // Proceed with closing the window
+			}
+		} else {
+			closeWindow(); // No unsaved changes, close directly
+		}
+
 	}
+
+	protected boolean checkForUnsavedChanges() {
+		if (tempItemList == null || originalState == null) {
+			System.err.println("Error: TempItemList or OriginalState is null!");
+			return false;
+		}
+
+		// Check if any item is added, removed, or modified
+		for (T tempItem : tempItemList) {
+			String itemId = getItemId(tempItem); // Use abstract method to get unique item ID
+			if (!originalState.containsKey(itemId)) {
+				// Item is newly added
+				return true;
+			}
+
+			T originalItem = originalState.get(itemId);
+			if (!tempItem.equals(originalItem)) {
+				// Item has been modified
+				return true;
+			}
+		}
+
+		// Check for deletions
+		for (String originalItemId : originalState.keySet()) {
+			boolean itemExists = tempItemList.stream()
+					.anyMatch(item -> getItemId(item).equals(originalItemId));
+			if (!itemExists) {
+				// Item has been removed
+				return true;
+			}
+		}
+
+		// No changes detected
+		return false;
+	}
+
 
 	protected void closeWindow() {
 		if (cancelButton != null && cancelButton.getScene() != null && cancelButton.getScene().getWindow() != null) {
@@ -89,12 +141,11 @@ public abstract class BaseManagerController<T> { // Use a generic type T for the
 	protected Optional<ButtonType> showConfirmationDialog(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle(title);
-		alert.setHeaderText(null);
+		alert.setHeaderText(null); // Optional, can be added for more detail
 		alert.setContentText(message);
-		// Optional: Add YES/NO buttons explicitly if needed
-		// alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
 		return alert.showAndWait();
 	}
+
 
 	// Optional: Common setup for button actions if handlers are simple delegates
 	protected void setupButtonActions() {
