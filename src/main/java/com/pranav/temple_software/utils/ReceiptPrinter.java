@@ -68,9 +68,6 @@ public class ReceiptPrinter {
 		String nakshatraText = (data.getNakshatra() == null || data.getNakshatra().trim().isEmpty())
 				? "ನಿರ್ದಿಷ್ಟಪಡಿಸಿಲ್ಲ" // Kannada for "Not specified"
 				: data.getNakshatra();
-		// If you prefer an empty space instead of Kannada text, use:
-		// String raashiText = (data.getRaashi() == null || data.getRaashi().trim().isEmpty()) ? "" : data.getRaashi();
-		// String nakshatraText = (data.getNakshatra() == null || data.getNakshatra().trim().isEmpty()) ? "" : data.getNakshatra();
 
 
 		detailsBox.getChildren().add(new Text("ಭಕ್ತರ ರಾಶಿ : " + raashiText));
@@ -90,10 +87,12 @@ public class ReceiptPrinter {
 		GridPane sevaGrid = new GridPane();
 		sevaGrid.setHgap(10);
 		sevaGrid.setVgap(2);
-//		sevaGrid.add(new Text("ಸೇವೆ"), 0, 0); // Header Optional
-//		sevaGrid.add(new Text("ಮೊತ್ತ"), 1, 0); // Header Optional
+		Text particularsHeader = new Text("ಸೇವೆ / ದೇಣಿಗೆ ");
+		Text totalAmountHeader = new Text("ಒಟ್ಟು ಮೊತ್ತ");
+		sevaGrid.add(particularsHeader, 0, 0); // Header Optional
+		sevaGrid.add(totalAmountHeader, 1, 0); // Header Optional
 
-		int rowIndex = 0; // Start from row 0 or 1 if headers are used
+		int rowIndex = 1; // Start from row 0 or 1 if headers are used
 		for (SevaEntry seva : data.getSevas()) {
 			Text sevaName = new Text(seva.getName());
 			sevaName.setFont(KANNADA_FONT_SMALL);
@@ -181,19 +180,6 @@ public class ReceiptPrinter {
 			}
 			previewStage.close(); // Close preview regardless of success
 		});
-
-//		Button savePdfButton = new Button("PDF ಉಳಿಸು"); // Save PDF Button
-//		savePdfButton.setOnAction(e -> {
-//			try {
-//				saveReceiptAsPdf(data, ownerStage); // Call the PDF saving method
-//			} catch (IOException ioException) {
-//				// Handle IO Exception (e.g., show error alert)
-//				ioException.printStackTrace();
-//				showAlert(ownerStage, "Error", "Failed to save PDF: " + ioException.getMessage());
-//			}
-//			// Optionally close preview after saving
-//			// previewStage.close();
-//		});
 
 
 		HBox buttonBox = new HBox(10, printButton); // Add save button
