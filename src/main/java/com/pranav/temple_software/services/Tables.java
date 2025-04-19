@@ -3,11 +3,10 @@ package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 
 public class Tables {
 	MainController controller;
@@ -95,7 +94,6 @@ public class Tables {
 			);
 
 
-
 			ObservableList<String> otherSevaReciepts = FXCollections.observableArrayList(
 					"ಆಯ್ಕೆ",
 					"ಶತ ರುದ್ರಾಭಿಷೇಕ",
@@ -112,7 +110,7 @@ public class Tables {
 
 			// *** Ensure SevaListener instance exists in controller before calling this ***
 			// controller.sevaListener should be initialized in MainController constructor or early init
-			if(controller.sevaListener != null) { //
+			if (controller.sevaListener != null) { //
 				controller.sevaListener.setupSevaCheckboxes(); // Call setup AFTER listener is ready
 			} else {
 				System.err.println("Error in Tables.setupTableView: SevaListener is null!");
@@ -121,9 +119,71 @@ public class Tables {
 			controller.otherServicesComboBox.setItems(otherSevaReciepts);
 			controller.donationComboBox.setItems(donations);
 
+			// Quantity Column (3rd column index)
+			TableColumn<SevaEntry, Number> quantityColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(3);
+			quantityColumn.setCellFactory(col -> new TableCell<>() {
+				private final Spinner<Integer> spinner = new Spinner<>(1, 100, 1); // Min:1, Max:100, Initial:1
 
+				{
+					spinner.setEditable(true);
+					spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+						if (getTableRow() != null && getTableRow().getItem() != null) {
+							SevaEntry entry = getTableView().getItems().get(getIndex());
+							entry.quantityProperty().set(newVal);
+						}
+					});
+
+					// Set spinner width
+					spinner.setMaxWidth(80);
+				}
+
+				@Override
+				protected void updateItem(Number item, boolean empty) {
+					super.updateItem(item, empty);
+					if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+						setGraphic(null);
+					} else {
+						SevaEntry entry = getTableView().getItems().get(getIndex());
+						spinner.getValueFactory().setValue(entry.quantityProperty().get());
+						setGraphic(spinner);
+					}
+				}
+			});
+
+			// Total Amount Column (4th column index)
+			TableColumn<SevaEntry, Number> totalColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(4);
+			totalColumn.setCellValueFactory(cellData -> cellData.getValue().totalAmountProperty());
+			totalColumn.setCellFactory(tc -> new TableCell<>() {
+				@Override
+				protected void updateItem(Number amount, boolean empty) {
+					super.updateItem(amount, empty);
+					if (empty || amount == null) {
+						setText(null);
+					} else {
+						setText(String.format("₹%.2f", amount.doubleValue()));
+						setAlignment(Pos.CENTER_RIGHT);
+					}
+				}
+			});
+
+			// Update main total whenever any SevaEntry changes
+			controller.selectedSevas.addListener((ListChangeListener<SevaEntry>) c -> updateTotal());
+			for (SevaEntry entry : controller.selectedSevas) {
+				entry.totalAmountProperty().addListener((obs, oldVal, newVal) -> updateTotal());
+			}
 		}
 	}
+
+
+		private void updateTotal() {
+			double total = controller.selectedSevas.stream()
+					.mapToDouble(SevaEntry::getTotalAmount)
+					.sum();
+
+//			// This is safe if the label isn't bound
+//			controller.totalLabel.setText(String.format("₹%.2f", total));
+		}
+
 	public void donationListener(){
 		//Donation checkbox listener to put it inside the table view
 		controller.donationCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {

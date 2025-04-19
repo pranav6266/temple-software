@@ -125,7 +125,7 @@ MainController controller;
 		// Create binding for total amount
 		DoubleBinding totalBinding = Bindings.createDoubleBinding(() ->
 						controller.selectedSevas.stream()
-								.mapToDouble(SevaEntry::getAmount)
+								.mapToDouble(SevaEntry::getTotalAmount)
 								.sum(),
 				controller.selectedSevas
 		);

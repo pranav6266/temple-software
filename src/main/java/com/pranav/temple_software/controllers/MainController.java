@@ -14,6 +14,7 @@ import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -245,6 +246,16 @@ public class MainController {
 		validationServices.setupAmountValidation();
 		refreshSevaCheckboxes();
 		refreshDonationComboBox();
+
+		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
+			while (change.next()) {
+				for (SevaEntry entry : change.getAddedSubList()) {
+					entry.totalAmountProperty().addListener((obs, oldVal, newVal) ->
+							validationServices.initializeTotalCalculation()
+					);
+				}
+			}
+		});
 
 	}
 

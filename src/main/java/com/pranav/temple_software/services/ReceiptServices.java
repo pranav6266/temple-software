@@ -69,7 +69,7 @@ public class ReceiptServices {
 			String totalText = controller.totalLabel.getText().replaceAll("[^\\d.]", "");
 			total1 = Double.parseDouble(totalText);
 		} catch (NumberFormatException | NullPointerException ex) {
-			total1 = currentSevas.stream().mapToDouble(SevaEntry::getAmount).sum();
+			total1 = currentSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 			System.err.println("Could not parse total from label, recalculating.");
 		}
 		// Store pending payment mode

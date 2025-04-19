@@ -1,17 +1,22 @@
 package com.pranav.temple_software.models;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class SevaEntry {
 	private final StringProperty name;
 	private DoubleProperty amount;
+	private final IntegerProperty quantity;
+	private final DoubleProperty totalAmount;
 
 	public SevaEntry( String name, double amount) {
 		this.name = new SimpleStringProperty(name);
 		this.amount = new SimpleDoubleProperty(amount);
+		this.quantity = new SimpleIntegerProperty(1); // Default quantity
+		this.totalAmount = new SimpleDoubleProperty(amount * 1);
+
+		// Bind totalAmount to quantity * amount
+		totalAmount.bind(quantity.multiply(amount));
+
 	}
 
 	// Getters and property methods
@@ -20,4 +25,10 @@ public class SevaEntry {
 	public StringProperty nameProperty() { return name; }
 	public DoubleProperty amountProperty() { return amount; }
 	public void setAmount(double amount){this.amount = new SimpleDoubleProperty(amount);}
+	public IntegerProperty quantityProperty() { return quantity; }
+	public DoubleProperty totalAmountProperty() { return totalAmount; }
+
+	public double getTotalAmount() {
+		return totalAmount.get();
+	}
 }
