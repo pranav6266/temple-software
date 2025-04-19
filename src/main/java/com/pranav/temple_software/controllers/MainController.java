@@ -6,6 +6,7 @@ import com.pranav.temple_software.controllers.menuControllers.DonationManager.Do
 import com.pranav.temple_software.controllers.menuControllers.OtherSevaManager.OtherSevaManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
+import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
@@ -288,9 +289,9 @@ public class MainController {
 
 	// ... inside MainController class:
 	public void refreshDonationComboBox() {
-		List<SevaEntry> donationEntries = DonationRepository.getInstance().getAllDonations();
+		List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
 		ObservableList<String> donationNames = FXCollections.observableArrayList(
-				donationEntries.stream().map(SevaEntry::getName).collect(Collectors.toList())
+				donationEntries.stream().map(Donations::getName).collect(Collectors.toList())
 		);
 		donationNames.add(0, "ಆಯ್ಕೆ");  // Optional default prompt
 		donationComboBox.setItems(donationNames);

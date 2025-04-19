@@ -73,7 +73,7 @@ public class OtherSevaRepository {
 	}
 
 
-	public void deleteOtherSevaFromDB(String id) {
+	public boolean deleteOtherSevaFromDB(String id) {
 		String sql = "DELETE FROM OtherSevas WHERE other_seva_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, id);
@@ -81,9 +81,10 @@ public class OtherSevaRepository {
 		} catch (SQLException e) {
 			System.err.println("Failed to delete OtherSeva: " + e.getMessage());
 		}
+		return false;
 	}
 
-	public static void updateDisplayOrder(String id, int order) {
+	public static boolean updateDisplayOrder(String id, int order) {
 		String sql = "UPDATE OtherSevas SET display_order = ? WHERE other_seva_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, order);
@@ -92,6 +93,7 @@ public class OtherSevaRepository {
 		} catch (SQLException e) {
 			System.err.println("Failed to update display order: " + e.getMessage());
 		}
+		return false;
 	}
 
 	public static String getOtherSevaIdByName(String name) {
