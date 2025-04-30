@@ -85,37 +85,38 @@ public abstract class BaseManagerController<T> { // Use a generic type T for the
 
 	protected boolean checkForUnsavedChanges() {
 		if (tempItemList == null || originalState == null) {
-			System.err.println("Error: TempItemList or OriginalState is null!");
 			return false;
 		}
 
-		// Check if any item is added, removed, or modified
+		// ✅ Step 1: Check if any item was added
 		for (T tempItem : tempItemList) {
-			String itemId = getItemId(tempItem); // Use abstract method to get unique item ID
+			String itemId = getItemId(tempItem);
 			if (!originalState.containsKey(itemId)) {
-				// Item is newly added
-				return true;
-			}
-
-			T originalItem = originalState.get(itemId);
-			if (!tempItem.equals(originalItem)) {
-				// Item has been modified
-				return true;
+				return true; // Only return true if a new item was ADDED
 			}
 		}
 
-		// Check for deletions
+		// ✅ Step 2: Check if any item was removed
 		for (String originalItemId : originalState.keySet()) {
-			boolean itemExists = tempItemList.stream()
-					.anyMatch(item -> getItemId(item).equals(originalItemId));
+			boolean itemExists = tempItemList.stream().anyMatch(item -> getItemId(item).equals(originalItemId));
 			if (!itemExists) {
-				// Item has been removed
-				return true;
+				return true; // Only return true if an item was REMOVED
 			}
 		}
 
-		// No changes detected
-		return false;
+		// ✅ Step 3: Check if an item was actually modified
+		for (T tempItem : tempItemList) {
+			String itemId = getItemId(tempItem);
+			if (originalState.containsKey(itemId)) {
+				T originalItem = originalState.get(itemId);
+
+				if (!tempItem.equals(originalItem)) { // Ensure correct equals() implementation in models
+					return true;
+				}
+			}
+		}
+
+		return false; // ✅ Return false only when NO changes are detected
 	}
 
 
