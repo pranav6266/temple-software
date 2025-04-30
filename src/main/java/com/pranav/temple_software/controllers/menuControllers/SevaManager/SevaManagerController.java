@@ -524,7 +524,7 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 			showAlert(Alert.AlertType.INFORMATION,"No Changes", "Nothing was modified."); //[cite: 225]
 		}
 		// Optional: Close window after save? Only if no errors occurred.
-		// closeWindow();
+		 closeWindow();
 	}
 
 	// --- Helper Methods Specific to SevaManager ---

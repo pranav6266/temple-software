@@ -548,7 +548,7 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 			showAlert(Alert.AlertType.INFORMATION,"No Changes", "Nothing was modified.");
 		}
 		// Optional: Close window on successful save
-		// closeWindow();
+		 closeWindow();
 	}
 
 	// Override initialize if needed

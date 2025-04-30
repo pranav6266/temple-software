@@ -476,14 +476,14 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 		// Check for items that were in originalState but are now missing from tempItemList AND not marked for deletion
 		// This shouldn't happen with the current delete logic, but good defensive check.
-        /*
+
          for (String originalName : originalState.keySet()) {
              if (!currentItemsMap.containsKey(originalName) && itemsMarkedForDeletion.stream().noneMatch(d -> d.getName().equals(originalName))) {
                  // This item was removed without using the delete popup - handle as needed (e.g., log warning)
                  summary.append("⚠️ Implicitly Removed (Not Saved): ").append(originalName).append("\n");
              }
          }
-        */
+
 
 
 		// 3. Reload data, update state, refresh UI
@@ -503,7 +503,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 			showAlert(Alert.AlertType.INFORMATION, "No Changes", "Nothing was modified.");
 		}
 		// Optional: Close window on successful save
-		// closeWindow();
+		 closeWindow();
 	}
 
 	// Override initialize if needed
