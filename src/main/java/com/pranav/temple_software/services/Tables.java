@@ -119,7 +119,7 @@ public class Tables {
 			controller.otherServicesComboBox.setItems(otherSevaReciepts);
 			controller.donationComboBox.setItems(donations);
 
-			// Quantity Column (3rd column index)
+//			Quantity column(3rd column)
 			TableColumn<SevaEntry, Number> quantityColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(3);
 			quantityColumn.setCellFactory(col -> new TableCell<>() {
 				private final Spinner<Integer> spinner = new Spinner<>(1, 100, 1); // Min:1, Max:100, Initial:1
@@ -144,11 +144,22 @@ public class Tables {
 						setGraphic(null);
 					} else {
 						SevaEntry entry = getTableView().getItems().get(getIndex());
-						spinner.getValueFactory().setValue(entry.quantityProperty().get());
-						setGraphic(spinner);
+						String name = entry.getName();
+
+						// **Disable spinner for Donations & Other Sevas**
+						boolean isDonation = name.startsWith("ದೇಣಿಗೆ"); // Check if it's a donation
+						boolean isOtherSeva = controller.otherServicesComboBox.getItems().contains(name); // Check if it's an Other Seva
+
+						if (isDonation || isOtherSeva) {
+							setGraphic(null); // Hide Spinner for Donations & Other Sevas
+						} else {
+							spinner.getValueFactory().setValue(entry.quantityProperty().get());
+							setGraphic(spinner);
+						}
 					}
 				}
 			});
+
 
 			// Total Amount Column (4th column index)
 			TableColumn<SevaEntry, Number> totalColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(4);

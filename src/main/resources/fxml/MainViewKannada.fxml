@@ -59,18 +59,14 @@
             </VBox>
         </top>
         <left>
-            <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="475.0" prefWidth="1799.0" spacing="10.0" BorderPane.alignment="CENTER">
-                <GridPane alignment="CENTER" hgap="15" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="598.0" prefWidth="513.0" style="-fx-padding: 20;" vgap="15">
+            <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="597.0" prefWidth="1799.0" spacing="10.0" BorderPane.alignment="CENTER">
+                <GridPane alignment="CENTER" hgap="15" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="591.0" prefWidth="513.0" style="-fx-padding: 20;" vgap="15">
 
                     <!-- Column Constraints -->
                     <columnConstraints>
                         <ColumnConstraints halignment="RIGHT" maxWidth="150.0" minWidth="110.0" prefWidth="110.0" />
                         <ColumnConstraints hgrow="ALWAYS" maxWidth="300.0" minWidth="280.0" prefWidth="300.0" />
                     </columnConstraints>
-
-                    <!-- Row 0: Receipt Number -->
-                    <Label styleClass="kannada-label" text="ರಶೀದಿ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1" />
-                    <Label fx:id="receiptNumberLabel" styleClass="receipt-number" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                     <!-- Row 1: Devotee Name -->
                     <Label styleClass="kannada-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="2" />
@@ -82,7 +78,7 @@
 
                     <!-- Row 3: Seva Date -->
                     <Label styleClass="kannada-label" text="ಸೇವಾ ದಿನಾಂಕ:" GridPane.rowIndex="4" />
-                    <DatePicker fx:id="sevaDatePicker" minHeight="40.0" prefHeight="44.0" prefWidth="276.0" promptText="ದಿನಾಂಕ " styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                    <DatePicker fx:id="sevaDatePicker" minHeight="40.0" prefHeight="71.0" prefWidth="276.0" promptText="ದಿನಾಂಕ " styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
                     <!-- Row 4: Seva Type -->
                     <Label styleClass="kannada-label" text="ಸೇವಾ ಪ್ರಕಾರ :" GridPane.rowIndex="5" />
@@ -124,8 +120,8 @@
                         <RowConstraints />
                         <RowConstraints />
                         <RowConstraints />
-                        <RowConstraints />
-                        <RowConstraints />
+                        <RowConstraints maxHeight="80.0" minHeight="60.0" prefHeight="60.0" />
+                        <RowConstraints minHeight="130.0" />
                         <RowConstraints />
                         <RowConstraints />
                         <RowConstraints />
@@ -203,7 +199,7 @@
         </left>
         <bottom>
             <HBox alignment="CENTER" maxHeight="220.0" maxWidth="-Infinity" prefHeight="220.0" prefWidth="733.0" spacing="100.0" BorderPane.alignment="CENTER">
-                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#clearForm" prefHeight="57.0" prefWidth="269.0" styleClass="action-button" text="ಸ್ಫಟಿಕರಿಸು">
+                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#clearFormAfterChk" prefHeight="57.0" prefWidth="269.0" styleClass="action-button" text="ಸ್ಪಷ್ಟೀಕರಿಸಿ">
                   <HBox.margin>
                       <Insets />
                   </HBox.margin>

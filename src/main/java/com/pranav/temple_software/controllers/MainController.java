@@ -193,18 +193,31 @@ public class MainController {
 		// Clear all fields EXCEPT bound labels
 		devoteeNameField.clear();
 		contactField.clear();
-		raashiComboBox.getSelectionModel().clearSelection();
+		raashiComboBox.getSelectionModel().selectFirst();
 		nakshatraComboBox.getSelectionModel().clearSelection();
 		sevaDatePicker.setValue(LocalDate.now());
 		selectedSevas.clear();
 		donationCheck.setSelected(false);
 		donationField.clear();
-		donationComboBox.getSelectionModel().clearSelection();
+		donationComboBox.getSelectionModel().selectFirst();
 		cashRadio.setSelected(false);
 		onlineRadio.setSelected(false);
-		receiptNumberLabel.setText("");
+		otherServicesComboBox.getSelectionModel().selectFirst();
 	}
 
+	@FXML
+	public void clearFormAfterChk(){
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.setTitle("Confirmation");
+		alert.setHeaderText(null);
+		alert.setContentText("Are you sure you want to clear the form?");
+
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.isPresent() && result.get() == ButtonType.OK) {
+			clearForm();
+		}
+
+	}
 
 	public final Map<String, CheckBox> sevaCheckboxMap = new HashMap<>();
 	public ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
