@@ -3,6 +3,7 @@ package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.ReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.ReceiptRepository;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HistoryController {
 	@FXML
@@ -169,21 +171,22 @@ public class HistoryController {
 
 	}
 
-	private void setOtherSevaColumn(){
+	private void setOtherSevaColumn() {
 		otherSevaColumn.setCellValueFactory(cellData -> {
 			ReceiptData receipt = cellData.getValue();
-			ObservableList<SevaEntry> sevas = receipt.getSevas(); // Get the list of sevas/donations [cite: 42]
+			ObservableList<SevaEntry> sevas = receipt.getSevas();
 
-			// Search for a donation entry
-			for (SevaEntry entry : sevas) {
-				if (entry.getName() != null && entry.getName().startsWith("ಇತರೆ ")) { // Check if it's a donation [cite: 118]
-					// Format the amount as needed (e.g., currency)
-					return new SimpleStringProperty(String.format("%.2f", entry.getAmount())); // Return amount [cite: 50]
-				}
-			}
+			// ✅ **Fetch actual Other Seva list from repository**
+			List<String> validOtherSevas = OtherSevaRepository.getAllOtherSevas().stream()
+					.map(SevaEntry::getName)
+					.toList();
 
-			// If no donation entry is found
-			return new SimpleStringProperty("N/A"); // Return "N/A"
+			double otherSevaAmount = sevas.stream()
+					.filter(entry -> validOtherSevas.contains(entry.getName()))
+					.mapToDouble(SevaEntry::getAmount)
+					.sum();
+
+			return new SimpleStringProperty(otherSevaAmount > 0 ? String.format("₹%.2f", otherSevaAmount) : "N/A");
 		});
 	}
 
