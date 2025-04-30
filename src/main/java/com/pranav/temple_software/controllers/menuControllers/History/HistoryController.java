@@ -5,6 +5,8 @@ import com.pranav.temple_software.models.ReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.ReceiptRepository;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -44,6 +46,8 @@ public class HistoryController {
 	private TableColumn<ReceiptData, String> devoteeNameColumn;
 	@FXML
 	private TableColumn<ReceiptData, String> sevaDateColumn;
+	@FXML
+	private TableColumn<ReceiptData, String> isDonationColumn;
 
 
 	private final ReceiptRepository receiptRepository = new ReceiptRepository();
@@ -52,28 +56,27 @@ public class HistoryController {
 	@FXML
 	public void initialize() {
 		loadHistory();
-		receiptIdColumn.setCellValueFactory(cellData ->
-				new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject()
-		); // Or SimpleStringProperty if you want it as text
+		isDonationColumn.setCellValueFactory(cellData -> {
+			ReceiptData receipt = cellData.getValue();
+			ObservableList<SevaEntry> sevas = receipt.getSevas();
 
-		devoteeNameColumn.setCellValueFactory(cellData ->
-				new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDevoteeName())
-		);
+			// Check if any seva starts with "ದೇಣಿಗೆ", which indicates a donation entry
+			boolean hasDonation = sevas.stream().anyMatch(entry -> entry.getName().startsWith("ದೇಣಿಗೆ"));
 
-		sevaDateColumn.setCellValueFactory(cellData ->
-				// Use the getFormattedDate() method from ReceiptData
-				new javafx.beans.property.SimpleStringProperty(cellData.getValue().getFormattedDate())
-		);
+			return new SimpleStringProperty(hasDonation ? "ಹೌದು" : "ಇಲ್ಲ");
+		});
 
-		totalAmountCoulum.setCellValueFactory(cellData ->
-				new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject()
-		);
-		
+		receiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
+		devoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
+		sevaDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedDate()));
+		totalAmountCoulum.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
+
 		setupDetailsColumn();
 		setDonationAmountColumn();
 		setOtherSevaColumn();
 		setSevaColumn();
 	}
+
 
 	private void setupDetailsColumn() {
 		// Define how each cell in the 'detailsColumn' should be rendered

@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-
-<AnchorPane prefHeight="535.0" prefWidth="558.0" xmlns="http://javafx.com/javafx/23.0.1"
+<AnchorPane prefHeight="600.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/23.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.pranav.temple_software.controllers.menuControllers.History.ReceiptDetailsController">
-    <VBox layoutX="47.0" layoutY="20.0" prefHeight="496.0" prefWidth="466.0" spacing="10" styleClass="details-pane">
+
+    <!-- Container for fields -->
+    <VBox layoutX="20.0" layoutY="20.0" prefHeight="560.0" prefWidth="550.0" spacing="10">
         <Label fx:id="receiptIdLabel" text="Receipt ID: "/>
         <Label fx:id="devoteeNameLabel" text="Name: "/>
         <Label fx:id="phoneNumberLabel" text="Phone: "/>
         <Label fx:id="sevaDateLabel" text="Date: "/>
         <Label fx:id="rashiLabel" text="Rashi: "/>
         <Label fx:id="nakshatraLabel" text="Nakshatra: "/>
-        <Label style="-fx-font-weight: bold;" text="Sevas/Donations:"/>
-        <ListView fx:id="sevasListView" prefHeight="256.0" prefWidth="366.0"/>
-        <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="Total: "/>
-        <opaqueInsets>
-          <Insets/>
-        </opaqueInsets>
-        <padding>
-          <Insets bottom="20.0" left="50.0" right="50.0" top="20.0"/>
-        </padding>
+        <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="Total Amount: "/>
+
+        <!-- Structured ListView for Seva Details -->
+        <Label text="Sevas / Donations / Other Sevas:" style="-fx-font-weight: bold;"/>
+        <TableView fx:id="sevaTableView" prefHeight="300.0" prefWidth="500.0">
+            <columns>
+                <TableColumn fx:id="sevaNameColumn" prefWidth="200.0" text="Seva / Donation / OtherSeva"/>
+                <TableColumn fx:id="priceColumn" prefWidth="100.0" text="Price"/>
+                <TableColumn fx:id="quantityColumn" prefWidth="80.0" text="Quantity"/>
+                <TableColumn fx:id="totalColumn" prefWidth="120.0" text="Total Amount"/>
+            </columns>
+        </TableView>
     </VBox>
+
 </AnchorPane>
