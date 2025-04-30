@@ -69,25 +69,25 @@
                     </columnConstraints>
 
                     <!-- Row 1: Devotee Name -->
-                    <Label styleClass="kannada-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="2" />
-                    <TextField fx:id="devoteeNameField" maxWidth="-Infinity" prefHeight="44.0" prefWidth="301.0" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    <Label styleClass="kannada-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="3" />
+                    <TextField fx:id="devoteeNameField" maxWidth="-Infinity" prefHeight="44.0" prefWidth="301.0" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
                     <!-- Row 2: Contact Number -->
-                    <Label alignment="CENTER_RIGHT" styleClass="kannada-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ :" GridPane.rowIndex="3" />
-                    <TextField fx:id="contactField" maxWidth="-Infinity" prefHeight="44.0" prefWidth="301.0" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                    <Label alignment="CENTER_RIGHT" styleClass="kannada-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ :" GridPane.rowIndex="4" />
+                    <TextField fx:id="contactField" maxWidth="-Infinity" prefHeight="44.0" prefWidth="301.0" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
                     <!-- Row 3: Seva Date -->
-                    <Label styleClass="kannada-label" text="ಸೇವಾ ದಿನಾಂಕ:" GridPane.rowIndex="4" />
-                    <DatePicker fx:id="sevaDatePicker" minHeight="40.0" prefHeight="71.0" prefWidth="276.0" promptText="ದಿನಾಂಕ " styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                    <Label styleClass="kannada-label" text="ಸೇವಾ ದಿನಾಂಕ:" GridPane.rowIndex="5" />
+                    <DatePicker fx:id="sevaDatePicker" minHeight="40.0" prefHeight="71.0" prefWidth="276.0" promptText="ದಿನಾಂಕ " styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
                     <!-- Row 4: Seva Type -->
-                    <Label styleClass="kannada-label" text="ಸೇವಾ ಪ್ರಕಾರ :" GridPane.rowIndex="5" />
-                    <ComboBox fx:id="sevaComboBox" editable="true" promptText="ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                    <ScrollPane fitToWidth="true" maxHeight="500.0" maxWidth="273.0" prefHeight="198.0" prefWidth="273.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="5">
+                    <Label styleClass="kannada-label" text="ಸೇವಾ ಪ್ರಕಾರ :" GridPane.rowIndex="6" />
+                    <ComboBox fx:id="sevaComboBox" editable="true" promptText="ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                    <ScrollPane fitToWidth="true" maxHeight="500.0" maxWidth="273.0" prefHeight="198.0" prefWidth="273.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
                         <VBox fx:id="sevaCheckboxContainer" spacing="5" />
                     </ScrollPane>
-                    <Label styleClass="kannada-label" text="ದೇಣಿಗೆಗಳು :" GridPane.rowIndex="8" />
-                    <HBox alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" GridPane.rowIndex="7">
+                    <Label styleClass="kannada-label" text="ದೇಣಿಗೆಗಳು :" GridPane.rowIndex="9" />
+                    <HBox alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" GridPane.rowIndex="8">
                         <children>
                             <Label alignment="CENTER" graphicTextGap="0.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="10.0" minWidth="66.0" prefHeight="30.0" prefWidth="66.0" styleClass="kannada-label" text="ದೇಣಿಗೆ:" textAlignment="CENTER">
                                 <HBox.margin>
@@ -99,10 +99,10 @@
                             <Insets />
                         </GridPane.margin>
                     </HBox>
-                    <HBox alignment="CENTER_LEFT" prefHeight="54.0" prefWidth="410.0" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                    <HBox alignment="CENTER_LEFT" prefHeight="54.0" prefWidth="410.0" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="9">
                         <ComboBox fx:id="donationComboBox" maxWidth="251.0" prefHeight="54.0" prefWidth="251.0" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" />
                     </HBox>
-                    <HBox alignment="CENTER_LEFT" prefHeight="58.0" prefWidth="336.0" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                    <HBox alignment="CENTER_LEFT" prefHeight="58.0" prefWidth="336.0" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
                         <children>
                             <CheckBox fx:id="donationCheck" contentDisplay="RIGHT" prefHeight="44.0" prefWidth="73.0" styleClass="checkbox" text="ಸೇರಿಸಿ" textAlignment="RIGHT">
                                 <font>
@@ -114,10 +114,13 @@
                         </children>
                     </HBox>
 
-                    <Button fx:id="addDonationButton" maxWidth="196.0" prefHeight="57.0" prefWidth="196.0" styleClass="action-button" text="ದೇಣಿಗೆ ಸೇರಿಸಿ" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+                    <Button fx:id="addDonationButton" maxWidth="196.0" prefHeight="57.0" prefWidth="196.0" styleClass="action-button" text="ದೇಣಿಗೆ ಸೇರಿಸಿ" GridPane.columnIndex="1" GridPane.rowIndex="10" />
+               <Label layoutX="14.0" layoutY="86.0" styleClass="kannada-label" text="ರಶೀದಿ ಸಂಖ್ಯೆ :" GridPane.rowIndex="2" />
+               <Label fx:id="receiptNumberLabel" prefHeight="34.0" prefWidth="135.0" text=" " GridPane.columnIndex="1" GridPane.rowIndex="2" />
                     <rowConstraints>
                         <RowConstraints />
                         <RowConstraints />
+                  <RowConstraints minHeight="40.0" prefHeight="30.0" />
                         <RowConstraints />
                         <RowConstraints />
                         <RowConstraints maxHeight="80.0" minHeight="60.0" prefHeight="60.0" />
