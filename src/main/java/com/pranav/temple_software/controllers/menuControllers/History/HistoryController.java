@@ -15,29 +15,34 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class HistoryController {
-	@FXML
-	private HBox historyHeader;
-	@FXML
-	private VBox historyContainer;
+	@FXML public Button applyFilterButton;
+	@FXML public Button resetFilterButton;
+	public TableColumn<ReceiptData, String> paymentMode;
+	@FXML private Button filterButton;
+	@FXML private AnchorPane filterPanel;
+	@FXML private ComboBox<String> sevaTypeComboBox;
+	@FXML private DatePicker datePicker;
+	@FXML private ComboBox<String> monthComboBox;
+	@FXML private ComboBox<String> yearComboBox;
+	@FXML private RadioButton onlineRadio;
+	@FXML private RadioButton offlineRadio;
+	@FXML private TableView<ReceiptData> historyTable;
 	@FXML
 	public TableColumn<ReceiptData, String> otherSevaColumn;
 	@FXML
 	public TableColumn<ReceiptData, String> sevaColumn;
 	@FXML
-	public TableColumn<ReceiptData, Double> totalAmountCoulum;
+	public TableColumn<ReceiptData, Double> totalAmountColumn;
 	public TableColumn<ReceiptData, Void> detailsColumn;
-	@FXML
-	private TableView<ReceiptData> historyTable;
 	@FXML
 	private TableColumn<ReceiptData, String> donationColumn;
 	@FXML
@@ -52,29 +57,28 @@ public class HistoryController {
 
 	private final ReceiptRepository receiptRepository = new ReceiptRepository();
 
+	private String savedSevaType = "All";
+	private LocalDate savedDate = null;
+	private String savedMonth = "All";
+	private String savedYear = "";
+	private boolean savedOnline = false;
+	private boolean savedOffline = false;
+
 
 	@FXML
 	public void initialize() {
 		loadHistory();
-		isDonationColumn.setCellValueFactory(cellData -> {
-			ReceiptData receipt = cellData.getValue();
-			ObservableList<SevaEntry> sevas = receipt.getSevas();
-
-			// Check if any seva starts with "ದೇಣಿಗೆ", which indicates a donation entry
-			boolean hasDonation = sevas.stream().anyMatch(entry -> entry.getName().startsWith("ದೇಣಿಗೆ"));
-
-			return new SimpleStringProperty(hasDonation ? "ಹೌದು" : "ಇಲ್ಲ");
-		});
-
+		isDonationColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDonationStatus()));
 		receiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
 		devoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
 		sevaDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedDate()));
-		totalAmountCoulum.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
+		totalAmountColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
 
 		setupDetailsColumn();
 		setDonationAmountColumn();
 		setOtherSevaColumn();
 		setSevaColumn();
+		setPaymentModeColumn();
 	}
 
 
@@ -214,10 +218,94 @@ public class HistoryController {
 			}
 		});
 	}
-	private void loadHistory() {
-		List<ReceiptData> receipts = receiptRepository.getAllReceipts();
-		historyTable.setItems(FXCollections.observableArrayList(receipts));
 
+	private void setPaymentModeColumn() {
+		paymentMode.setCellValueFactory(cellData -> {
+			String mode = cellData.getValue().getPaymentMode();
+			return new SimpleStringProperty(mode != null ? mode : "N/A");
+		});
+	}
+
+	private void loadHistory() {
+		historyTable.setItems(FXCollections.observableArrayList(receiptRepository.getAllReceipts()));
+	}
+
+
+
+
+	@FXML
+	public void openFilterPopup() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/FilterPopup.fxml")); // [cite: 198]
+			AnchorPane popupContent = loader.load(); // [cite: 198]
+			FilterPopupController controller = getFilterPopupController(loader);
+			// --- MODIFICATION END ---
+
+
+			Stage popupStage = new Stage();
+			popupStage.setScene(new Scene(popupContent)); // [cite: 199]
+			popupStage.setTitle("Apply Filters"); // [cite: 199]
+			popupStage.initModality(Modality.APPLICATION_MODAL); // [cite: 199]
+			// Set the owner if needed: popupStage.initOwner(historyTable.getScene().getWindow());
+
+
+			// --- MODIFICATION: Call setInitialFilterState BEFORE showing the popup ---
+			controller.setInitialFilterState(
+					savedSevaType,
+					savedDate,
+					savedMonth,
+					savedYear,
+					savedOnline,
+					savedOffline
+			); // [cite: 199]
+
+
+			popupStage.showAndWait(); // [cite: 199]
+
+		} catch (IOException e) {
+			e.printStackTrace(); // [cite: 201]
+			// Show an error alert to the user
+			showAlert("Error", "Could not open the filter popup."); // [cite: 190]
+		}
+	}
+
+	private FilterPopupController getFilterPopupController(FXMLLoader loader) {
+		FilterPopupController controller = loader.getController(); // [cite: 199]
+
+		// --- MODIFICATION START: Implement the updated FilterListener ---
+		controller.setFilterListener(new FilterPopupController.FilterListener() {
+			@Override
+			public void onFiltersApplied(List<ReceiptData> filteredList, String sevaType, LocalDate date, String month, String year, boolean online, boolean offline) {
+				// Update the table view
+				historyTable.setItems(FXCollections.observableArrayList(filteredList)); // [cite: 200]
+
+				// Save the applied filter state
+				savedSevaType = sevaType;
+				savedDate = date;
+				savedMonth = month;
+				savedYear = year;
+				savedOnline = online;
+				savedOffline = offline;
+			}
+
+			@Override
+			public void onFiltersCleared() {
+				// Reset saved state
+				savedSevaType = "ಎಲ್ಲಾ";
+				savedDate = null;
+				savedMonth = "All";
+				savedYear = "";
+				savedOnline = false;
+				savedOffline = false;
+
+				// Reload the full history list
+				loadHistory(); // Assumes loadHistory() re-fetches all receipts
+			}
+		});
+		return controller;
 	}
 
 }
+
+
+

@@ -15,9 +15,11 @@ public class ReceiptData {
 	private final String rashi;
 	private final String nakshatra;
 	private final int receiptId;
+	private final String paymentMode;
+	private final String donationStatus;
 
 	public ReceiptData(int receiptId, String devoteeName, String phoneNumber, String raashi, String nakshatra,
-	                   LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount) {
+	                   LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount,String paymentMode, String donationStatus) {
 		this.receiptId = receiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
@@ -26,6 +28,8 @@ public class ReceiptData {
 		this.sevaDate = sevaDate;
 		this.sevas = sevas;
 		this.totalAmount = totalAmount;
+		this.paymentMode = paymentMode;
+		this.donationStatus = donationStatus;
 	}
 
 
@@ -42,4 +46,6 @@ public class ReceiptData {
 	public double getTotalAmount() { return totalAmount; }
 	public String getFinalLine() { return "ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ಇರಲಿ !"; }
 	public String getFormattedDate() {return sevaDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));}
+	public String getPaymentMode() {return paymentMode;}
+	public String getDonationStatus() {return donationStatus;}
 }

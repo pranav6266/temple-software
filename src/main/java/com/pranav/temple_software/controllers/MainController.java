@@ -96,6 +96,7 @@ public class MainController {
 			historyStage.setMaximized(true);
 			historyStage.show();
 		} catch (IOException e) {
+			e.printStackTrace();
 			showAlert("Error", "Failed to load history view");
 		}
 	}

@@ -12,4 +12,5 @@ module com.pranav.temple_software {
 	exports com.pranav.temple_software.utils;
 	exports com.pranav.temple_software.controllers.menuControllers.SevaManager;
 	exports com.pranav.temple_software.controllers.menuControllers.History;
+	opens com.pranav.temple_software.controllers.menuControllers.History to javafx.fxml;
 }

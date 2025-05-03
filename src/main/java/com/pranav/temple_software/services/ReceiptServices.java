@@ -101,9 +101,10 @@ public class ReceiptServices {
 
 		// 4. Create ReceiptData with the POTENTIAL ID for preview/print
 		//    Store this in the pending state variable
+		boolean hasDonation = currentSevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
 		this.pendingReceiptData = new ReceiptData(
 				this.pendingReceiptId, // Use potential ID
-				devoteeName, phoneNumber, raashi, nakshatra, date, currentSevas, total
+				devoteeName, phoneNumber, raashi, nakshatra, date, currentSevas, total, pendingPaymentMode,hasDonation ? "ಹೌದು" : "ಇಲ್ಲ"
 		);
 
 		// 5. Update UI Label with the POTENTIAL ID

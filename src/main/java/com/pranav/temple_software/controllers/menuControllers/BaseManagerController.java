@@ -2,7 +2,6 @@
 package com.pranav.temple_software.controllers.menuControllers;
 
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry; // Or a more generic type if needed
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

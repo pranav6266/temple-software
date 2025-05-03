@@ -24,7 +24,7 @@
             <columns>
                 <TableColumn fx:id="sevaNameColumn" prefWidth="200.0" text="Seva / Donation / OtherSeva"/>
                 <TableColumn fx:id="priceColumn" prefWidth="100.0" text="Price"/>
-                <TableColumn fx:id="quantityColumn" prefWidth="80.0" text="Quantity"/>
+                <TableColumn fx:id="quantityColumn" text="Quantity"/>
                 <TableColumn fx:id="totalColumn" prefWidth="120.0" text="Total Amount"/>
             </columns>
         </TableView>

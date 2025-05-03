@@ -149,31 +149,65 @@ public class ReceiptRepository {
 	}
 
 
-	// Keep getAllReceipts and parseSevas methods as they are
 	public List<ReceiptData> getAllReceipts() {
-		String sql = "SELECT * FROM Receipts";
 		List<ReceiptData> receipts = new ArrayList<>();
 
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		String query = "SELECT * FROM receipts";
 
-			ResultSet rs = pstmt.executeQuery();
+		try (Connection conn = getConnection();
+		     PreparedStatement stmt = conn.prepareStatement(query);
+		     ResultSet rs = stmt.executeQuery()) {
+
+			int rowCount = 0;
+
 			while (rs.next()) {
-				receipts.add(new ReceiptData(
-						rs.getInt("receipt_id"),
-						rs.getString("devotee_name"),
-						rs.getString("phone_number"),
-						"", "", // rashi and nakshatra not stored currently
-						rs.getDate("seva_date").toLocalDate(),
-						parseSevas(rs.getString("sevas_details")),
-						rs.getDouble("total_amount")
-				));
+				int receiptId = rs.getInt("receipt_id");
+				String devoteeName = rs.getString("devotee_name");
+				String phoneNumber = rs.getString("phone_number");
+				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
+				double totalAmount = rs.getDouble("total_amount");
+
+				// Parse seva entries
+				String sevaDetails = rs.getString("sevas_details");
+				ObservableList<SevaEntry> sevas = parseSevas(sevaDetails);
+
+				// Derive donation status
+				boolean hasDonation = sevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
+				String donationStatus = hasDonation ? "ಹೌದು" : "ಇಲ್ಲ";
+
+				String paymentMode = rs.getString("payment_mode");
+				ReceiptData receipt = new ReceiptData(
+						receiptId,
+						devoteeName,
+						phoneNumber,
+						"", // raashi placeholder
+						"", // nakshatra placeholder
+						sevaDate,
+						sevas,
+						totalAmount,
+						paymentMode,
+						donationStatus
+				);
+
+				receipts.add(receipt);
+				rowCount++;
 			}
+
+			System.out.println("✅ Loaded " + rowCount + " receipts from database.");
+
 		} catch (SQLException e) {
-			System.err.println("Error fetching receipts: " + e.getMessage());
+			System.err.println("❌ SQL error while fetching receipts: " + e.getMessage());
+		} catch (Exception e) {
+			System.err.println("❌ Unexpected error while fetching receipts: " + e.getMessage());
 		}
+
+		if (receipts.isEmpty()) {
+			System.err.println("⚠️ Warning: No receipts found in database [2000-232]");
+		}
+
 		return receipts;
 	}
+
 
 	private ObservableList<SevaEntry> parseSevas(String sevasString) {
 		ObservableList<SevaEntry> sevas = FXCollections.observableArrayList();
