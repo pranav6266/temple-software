@@ -41,6 +41,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation 'org.xerial:sqlite-jdbc:3.45.3.0' // SQLite for DB
     implementation 'com.github.anastaciocintra:escpos-coffee:4.0.2' // ESC/POS thermal printing
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter
+    implementation("org.springframework.boot:spring-boot-starter:3.5.3")
 }
 
 test {
