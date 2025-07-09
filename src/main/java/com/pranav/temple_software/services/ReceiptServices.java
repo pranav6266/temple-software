@@ -27,7 +27,6 @@ public class ReceiptServices {
 	}
 
 	private String formatSevasForDatabase(ObservableList<SevaEntry> sevas) {
-		// Keep this method as is
 		if (sevas == null || sevas.isEmpty()) {
 			return "";
 		}
@@ -35,13 +34,17 @@ public class ReceiptServices {
 		for (int i = 0; i < sevas.size(); i++) {
 			SevaEntry entry = sevas.get(i);
 			String safeName = entry.getName().replace(":", "").replace(";", "");
-			sb.append(safeName).append(":").append(entry.getAmount());
+			sb.append(safeName).append(":")
+					.append(entry.getAmount())
+					.append(":")
+					.append(entry.getQuantity());
 			if (i < sevas.size() - 1) {
 				sb.append(";");
 			}
 		}
 		return sb.toString();
 	}
+
 
 	public void handlePrintPreview() {
 

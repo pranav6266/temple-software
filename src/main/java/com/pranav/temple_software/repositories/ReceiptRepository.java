@@ -211,19 +211,20 @@ public class ReceiptRepository {
 
 	private ObservableList<SevaEntry> parseSevas(String sevasString) {
 		ObservableList<SevaEntry> sevas = FXCollections.observableArrayList();
-
 		if (sevasString == null || sevasString.isEmpty()) {
 			return sevas;
 		}
-
 		String[] entries = sevasString.split(";");
 		for (String entry : entries) {
 			try {
-				String[] parts = entry.split(":", 2);
-				if (parts.length == 2) {
+				String[] parts = entry.split(":");
+				if (parts.length >= 3) {
 					String name = parts[0].trim();
 					double amount = Double.parseDouble(parts[1].trim());
-					sevas.add(new SevaEntry(name, amount));
+					int quantity = Integer.parseInt(parts[2].trim());
+					SevaEntry seva = new SevaEntry(name, amount);
+					seva.setQuantity(quantity);
+					sevas.add(seva);
 				}
 			} catch (NumberFormatException | NullPointerException e) {
 				System.err.println("Error parsing seva entry: " + entry);
@@ -232,4 +233,5 @@ public class ReceiptRepository {
 		}
 		return sevas;
 	}
+
 }

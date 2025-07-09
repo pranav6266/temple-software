@@ -25,7 +25,19 @@ public class SevaEntry {
 	public StringProperty nameProperty() { return name; }
 	public DoubleProperty amountProperty() { return amount; }
 	public void setAmount(double amount){this.amount = new SimpleDoubleProperty(amount);}
-	public IntegerProperty quantityProperty() { return quantity; }
+	// Inside SevaEntry.java
+	public int getQuantity() {
+		return quantity.get();
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity.set(quantity);
+	}
+
+	public IntegerProperty quantityProperty() {
+		return quantity;
+	}
+
 	public DoubleProperty totalAmountProperty() { return totalAmount; }
 
 	public double getTotalAmount() {
