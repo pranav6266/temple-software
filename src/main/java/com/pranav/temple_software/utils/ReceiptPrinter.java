@@ -39,8 +39,10 @@ public class ReceiptPrinter {
 		// Temple Name (Main Heading) - Left Aligned
 		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
 		templeName.setFont(Font.font("Noto Sans Kannada", 16));
-		templeName.setStyle("-fx-font-weight: bold; -fx-text-align: center;");
-		receiptBox.getChildren().add(templeName);
+		templeName.setStyle("-fx-font-weight: bold;");
+		VBox heading =  new VBox(templeName);
+		heading.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(heading);
 
 		// Subheadings - Center Aligned
 		VBox subHeadings = new VBox(2);
