@@ -62,6 +62,7 @@ public class ReceiptServices {
 		}
 
 		// 2. Gather Data (as before, use final where needed for lambda)
+
 		final String devoteeName = controller.devoteeNameField.getText();
 		final String phoneNumber = controller.contactField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
@@ -130,6 +131,8 @@ public class ReceiptServices {
 							this.pendingReceiptId, // The ID we tried to use
 							this.pendingReceiptData.getDevoteeName(),
 							this.pendingReceiptData.getPhoneNumber(),
+							this.pendingReceiptData.getRaashi(),
+							this.pendingReceiptData.getNakshatra(),
 							this.pendingReceiptData.getSevaDate(),
 							sevasDetailsString,
 							this.pendingReceiptData.getTotalAmount(),

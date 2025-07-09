@@ -167,7 +167,7 @@
                       <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="46.0" styleClass="kannada-label" text="ನಕ್ಷತ್ರ :" GridPane.rowIndex="3" />
                       <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="kannada-combo" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                       <Label styleClass="kannada-label" text="ವಿಳಾಸ :" GridPane.rowIndex="4" />
-                      <TextArea prefHeight="200.0" prefWidth="200.0" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                      <TextArea fx:id="addressField" prefHeight="200.0" prefWidth="200.0" styleClass="kannada-input" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                       <Label styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳು :" GridPane.rowIndex="5" />
 
                       <!-- Row 5: Payment Mode -->

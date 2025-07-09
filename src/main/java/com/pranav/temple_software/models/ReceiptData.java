@@ -18,12 +18,12 @@ public class ReceiptData {
 	private final String paymentMode;
 	private final String donationStatus;
 
-	public ReceiptData(int receiptId, String devoteeName, String phoneNumber, String raashi, String nakshatra,
+	public ReceiptData(int receiptId, String devoteeName, String phoneNumber, String rashi, String nakshatra,
 	                   LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount,String paymentMode, String donationStatus) {
 		this.receiptId = receiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
-		this.rashi = raashi;
+		this.rashi = rashi;
 		this.nakshatra = nakshatra;
 		this.sevaDate = sevaDate;
 		this.sevas = sevas;

@@ -63,12 +63,12 @@ public class ReceiptRepository {
 	 * @param paymentMode Payment mode.
 	 * @return The actual ID the receipt was saved with, or -1 on failure.
 	 */
-	public int saveSpecificReceipt(int id, String name, String phone, LocalDate date,
+	public int saveSpecificReceipt(int id, String name, String phone,String rashi,String nakshatra, LocalDate date,
 	                               String sevasDetails, double total, String paymentMode) {
 
-		String sql = "INSERT INTO Receipts (receipt_id, devotee_name, " +
-				"phone_number, seva_date, sevas_details," +
-				" total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO Receipts (receipt_id, devotee_name, phone_number, rashi, nakshatra," +
+				"seva_date, sevas_details, total_amount, payment_mode) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) { // No RETURN_GENERATED_KEYS needed here initially
@@ -76,10 +76,12 @@ public class ReceiptRepository {
 			pstmt.setInt(1, id); // Try inserting with the specific ID
 			pstmt.setString(2, name);
 			pstmt.setString(3, phone);
-			pstmt.setDate(4, java.sql.Date.valueOf(date));
-			pstmt.setString(5, sevasDetails);
-			pstmt.setDouble(6, total);
-			pstmt.setString(7, paymentMode);
+			pstmt.setString(4, rashi);
+			pstmt.setString(5, nakshatra);
+			pstmt.setDate(6, java.sql.Date.valueOf(date));
+			pstmt.setString(7, sevasDetails);
+			pstmt.setDouble(8, total);
+			pstmt.setString(9, paymentMode);
 
 			int affectedRows = pstmt.executeUpdate();
 
@@ -166,6 +168,8 @@ public class ReceiptRepository {
 				String phoneNumber = rs.getString("phone_number");
 				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
 				double totalAmount = rs.getDouble("total_amount");
+				String rashi = rs.getString("rashi");
+				String nakshatra = rs.getString("nakshatra");
 
 				// Parse seva entries
 				String sevaDetails = rs.getString("sevas_details");
@@ -180,8 +184,8 @@ public class ReceiptRepository {
 						receiptId,
 						devoteeName,
 						phoneNumber,
-						"", // raashi placeholder
-						"", // nakshatra placeholder
+						rashi, // raashi placeholder
+						nakshatra, // nakshatra placeholder
 						sevaDate,
 						sevas,
 						totalAmount,

@@ -71,6 +71,7 @@ public class MainController {
 	public TableColumn<SevaEntry, String> sevaNameColumn;
 	@FXML
 	public Button addDonationButton;
+	public TextArea addressField;
 	@FXML
 	private Button addDonationButton1;
 	@FXML
@@ -204,6 +205,7 @@ public class MainController {
 		cashRadio.setSelected(false);
 		onlineRadio.setSelected(false);
 		otherServicesComboBox.getSelectionModel().selectFirst();
+		addressField.clear();
 	}
 
 	@FXML

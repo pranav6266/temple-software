@@ -69,6 +69,8 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().addAll(
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName()),
 				new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()),
+				new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ: " + data.getNakshatra()),
+				new Text("ಭಕ್ತರ ರಾಶಿ: " + data.getRaashi()),
 				new Text("ಸೇವೆ ದಿನಾಂಕ: " + data.getSevaDate().toString())
 		);
 
