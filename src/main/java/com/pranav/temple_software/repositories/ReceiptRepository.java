@@ -63,12 +63,13 @@ public class ReceiptRepository {
 	 * @param paymentMode Payment mode.
 	 * @return The actual ID the receipt was saved with, or -1 on failure.
 	 */
-	public int saveSpecificReceipt(int id, String name, String phone,String rashi,String nakshatra, LocalDate date,
+	public int saveSpecificReceipt(int id, String name, String phone,String address,String rashi,String nakshatra, LocalDate date,
 	                               String sevasDetails, double total, String paymentMode) {
 
-		String sql = "INSERT INTO Receipts (receipt_id, devotee_name, phone_number, rashi, nakshatra," +
+		String sql = "INSERT INTO Receipts (receipt_id, devotee_name, phone_number, " +
+				"address, rashi, nakshatra," +
 				"seva_date, sevas_details, total_amount, payment_mode) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) { // No RETURN_GENERATED_KEYS needed here initially
@@ -76,12 +77,13 @@ public class ReceiptRepository {
 			pstmt.setInt(1, id); // Try inserting with the specific ID
 			pstmt.setString(2, name);
 			pstmt.setString(3, phone);
-			pstmt.setString(4, rashi);
-			pstmt.setString(5, nakshatra);
-			pstmt.setDate(6, java.sql.Date.valueOf(date));
-			pstmt.setString(7, sevasDetails);
-			pstmt.setDouble(8, total);
-			pstmt.setString(9, paymentMode);
+			pstmt.setString(4, address);
+			pstmt.setString(5, rashi);
+			pstmt.setString(6, nakshatra);
+			pstmt.setDate(7, java.sql.Date.valueOf(date));
+			pstmt.setString(8, sevasDetails);
+			pstmt.setDouble(9, total);
+			pstmt.setString(10, paymentMode);
 
 			int affectedRows = pstmt.executeUpdate();
 
@@ -93,7 +95,7 @@ public class ReceiptRepository {
 				// Fall through to fallback might be risky here, maybe just return -1?
 				// For now, let's try the fallback.
 				System.err.println("Attempting fallback to auto-increment save.");
-				return saveReceipt(name, phone, date, sevasDetails, total, paymentMode); // Fallback
+//				return saveReceipt(name, phone, address, sevasDetails, total, paymentMode); // Fallback
 			}
 
 		} catch (SQLException e) {
@@ -108,6 +110,7 @@ public class ReceiptRepository {
 				return -1; // Indicate failure
 			}
 		}
+		return id;
 	}
 
 
@@ -166,6 +169,7 @@ public class ReceiptRepository {
 				int receiptId = rs.getInt("receipt_id");
 				String devoteeName = rs.getString("devotee_name");
 				String phoneNumber = rs.getString("phone_number");
+				String address = rs.getString("address");
 				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
 				double totalAmount = rs.getDouble("total_amount");
 				String rashi = rs.getString("rashi");
@@ -184,8 +188,9 @@ public class ReceiptRepository {
 						receiptId,
 						devoteeName,
 						phoneNumber,
-						rashi, // raashi placeholder
-						nakshatra, // nakshatra placeholder
+						address,
+						rashi,
+						nakshatra,
 						sevaDate,
 						sevas,
 						totalAmount,

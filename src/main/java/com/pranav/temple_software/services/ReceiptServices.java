@@ -65,6 +65,7 @@ public class ReceiptServices {
 
 		final String devoteeName = controller.devoteeNameField.getText();
 		final String phoneNumber = controller.contactField.getText();
+		final String address = controller.addressField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
 		final ObservableList<SevaEntry> currentSevas = FXCollections.observableArrayList(controller.sevaTableView.getItems());
 		final double total;
@@ -108,7 +109,7 @@ public class ReceiptServices {
 		boolean hasDonation = currentSevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
 		this.pendingReceiptData = new ReceiptData(
 				this.pendingReceiptId, // Use potential ID
-				devoteeName, phoneNumber, raashi, nakshatra, date, currentSevas, total, pendingPaymentMode,hasDonation ? "ಹೌದು" : "ಇಲ್ಲ"
+				devoteeName, phoneNumber,address, raashi, nakshatra, date, currentSevas, total, pendingPaymentMode,hasDonation ? "ಹೌದು" : "ಇಲ್ಲ"
 		);
 
 		// 5. Update UI Label with the POTENTIAL ID
@@ -131,7 +132,8 @@ public class ReceiptServices {
 							this.pendingReceiptId, // The ID we tried to use
 							this.pendingReceiptData.getDevoteeName(),
 							this.pendingReceiptData.getPhoneNumber(),
-							this.pendingReceiptData.getRaashi(),
+							this.pendingReceiptData.getAddress(),
+							this.pendingReceiptData.getRashi(),
 							this.pendingReceiptData.getNakshatra(),
 							this.pendingReceiptData.getSevaDate(),
 							sevasDetailsString,

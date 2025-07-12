@@ -70,7 +70,7 @@ public class ReceiptPrinter {
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName()),
 				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "---")),
 				new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಭಕ್ತರ ರಾಶಿ: " + (data.getRaashi() != null ? data.getRaashi() : "---")),
+				new Text("ಭಕ್ತರ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
 				new Text("ಸೇವೆ ದಿನಾಂಕ: " + data.getFormattedDate())
 		);
 

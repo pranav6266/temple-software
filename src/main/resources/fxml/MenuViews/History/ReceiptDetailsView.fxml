@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.text.Text?>
 <AnchorPane prefHeight="600.0" prefWidth="600.0"
             xmlns="http://javafx.com/javafx/23.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -16,6 +17,7 @@
         <Label fx:id="sevaDateLabel" text="Date: "/>
         <Label fx:id="rashiLabel" text="Rashi: "/>
         <Label fx:id="nakshatraLabel" text="Nakshatra: "/>
+        <Text fx:id="addressText" text="Address: "/>
         <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="Total Amount: "/>
 
         <!-- Structured ListView for Seva Details -->

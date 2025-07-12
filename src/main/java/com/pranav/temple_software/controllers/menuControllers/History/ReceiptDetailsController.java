@@ -7,6 +7,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.collections.FXCollections;
+import javafx.scene.control.TextArea;
+import javafx.scene.text.Text;
 
 public class ReceiptDetailsController {
 
@@ -22,6 +24,7 @@ public class ReceiptDetailsController {
 	@FXML private TableColumn<SevaEntry, Number> priceColumn;
 	@FXML private TableColumn<SevaEntry, Number> quantityColumn;
 	@FXML private TableColumn<SevaEntry, Number> totalColumn;
+	@FXML private Text addressText;
 
 	public void initializeDetails(ReceiptData data) {
 		if (data == null) return;
@@ -30,8 +33,9 @@ public class ReceiptDetailsController {
 		devoteeNameLabel.setText("Name: " + data.getDevoteeName());
 		phoneNumberLabel.setText("Phone: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "N/A"));
 		sevaDateLabel.setText("Date: " + data.getFormattedDate());
-		rashiLabel.setText("Rashi: " + (data.getRaashi() != null ? data.getRaashi() : "Not specified"));
+		rashiLabel.setText("Rashi: " + (data.getRashi() != null ? data.getRashi() : "Not specified"));
 		nakshatraLabel.setText("Nakshatra: " + (data.getNakshatra() != null ? data.getNakshatra() : "Not specified"));
+		addressText.setText("Address: "+ (data.getAddress() != null ? data.getAddress() : "N/A"));
 		totalAmountLabel.setText(String.format("Total Amount: ₹%.2f", data.getTotalAmount()));
 
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());

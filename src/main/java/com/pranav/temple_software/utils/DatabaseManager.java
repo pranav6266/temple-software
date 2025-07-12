@@ -23,6 +23,7 @@ public class DatabaseManager {
 				"receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
 				"devotee_name VARCHAR(255), " +
 				"phone_number VARCHAR(20), " +
+				"address VARCHAR(150), " +
 				"rashi VARCHAR(20), " +
 				"nakshatra VARCHAR(20), " +
 				"seva_date DATE, " +
