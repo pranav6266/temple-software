@@ -14,6 +14,7 @@ import com.pranav.temple_software.repositories.ReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
 import com.pranav.temple_software.utils.ReceiptPrinter;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -72,6 +73,7 @@ public class MainController {
 	@FXML
 	public Button addDonationButton;
 	public TextArea addressField;
+	public Button closeButton;
 	@FXML
 	private Button addDonationButton1;
 	@FXML
@@ -84,7 +86,19 @@ public class MainController {
 
 
 
-	// MainController.java
+	@FXML
+	private void handleCloseApp() {
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.setTitle("Exit Confirmation");
+		alert.setHeaderText(null);
+		alert.setContentText("Are you sure you want to exit the application?");
+
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.isPresent() && result.get() == ButtonType.OK) {
+			Platform.exit();
+		}
+	}
+
 	@FXML
 	public void handleHistoryButton() {
 		try {
@@ -273,8 +287,6 @@ public class MainController {
 		refreshDonationComboBox();
 		setupFocusTraversal();
 		setupFocusLostHandlers();
-//		dummyFocusNode.setVisible(false); // Keep it hidden
-//		mainPane.getChildren().add(dummyFocusNode);
 		setupBlankAreaFocusHandler();
 
 

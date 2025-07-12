@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
@@ -20,9 +21,11 @@ public class Launcher extends Application {
 		controller.setMainStage(stage);
 		stage.setTitle("Temple Software");
 		stage.setScene(scene);
-		stage.setMinHeight(350);
-		stage.setMinWidth(450);
+//		stage.setMinHeight(350);
+//		stage.setMinWidth(450);
 		stage.setMaximized(true);
+		stage.setResizable(false);
+		stage.initStyle(StageStyle.UNDECORATED);
 		stage.show();
 	}
 }

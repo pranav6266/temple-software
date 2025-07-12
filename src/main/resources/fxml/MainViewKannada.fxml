@@ -14,7 +14,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -22,6 +22,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="mainPane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
@@ -30,32 +31,51 @@
         <!-- Top Section with Header and Language Toggle -->
         <top>
             <VBox prefHeight="194.0" prefWidth="1800.0" spacing="10" style="-fx-padding: 15;">
-                <VBox alignment="CENTER" prefHeight="64.0" prefWidth="474.0" spacing="5">
-                    <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="58.0" prefWidth="1048.0" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ, ಚೇರ್ಕಬೆ, ಪಡ್ರೆ " textFill="#ff3300" underline="true">
-                        <font>
-                            <Font name="System Bold" size="40.0" />
-                        </font>
-                    </Label>
-                    <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="125.0" prefWidth="1659.0">
-                        <MenuButton mnemonicParsing="false" onAction="#handleHistoryButton" prefHeight="71.0" prefWidth="315.0" styleClass="action-button" text="ಮೆನು ">
-                            <items>
-                                <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" styleClass="kannada-label" text="ಇತಿಹಾಸ" />
-                                <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" styleClass="kannada-label" text="ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
-                                <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" styleClass="kannada-label" text="ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
-                                <MenuItem mnemonicParsing="false" onAction="#handleOtherSevaManagerButton" styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ " />
-                            </items>
-                            <HBox.margin>
-                                <Insets right="1350.0" />
-                            </HBox.margin>
-                        </MenuButton>
-                        <ToggleButton fx:id="langController" mnemonicParsing="false" text="EN/ಕನ್ನಡ " />
-                    </HBox>
-                    <Label alignment="CENTER" prefHeight="36.0" prefWidth="271.0" text="ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ">
-                        <font>
-                            <Font name="System Bold" size="25.0" />
-                        </font>
-                    </Label>
-                </VBox>
+                 <HBox alignment="CENTER_RIGHT" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="81.0" prefWidth="1773.0">
+               <children>
+                  <MenuButton minWidth="150.0" mnemonicParsing="false" onAction="#handleHistoryButton" prefHeight="71.0" prefWidth="159.0" styleClass="action-button" text="ಮೆನು ">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" styleClass="kannada-label" text="ಇತಿಹಾಸ" />
+                        <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" styleClass="kannada-label" text="ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
+                        <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" styleClass="kannada-label" text="ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ " />
+                        <MenuItem mnemonicParsing="false" onAction="#handleOtherSevaManagerButton" styleClass="kannada-label" text="ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ " />
+                     </items>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </MenuButton>
+                       <Label alignment="CENTER" graphicTextGap="3.0" prefHeight="58.0" prefWidth="1555.0" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ, ಚೇರ್ಕಬೆ, ಪಡ್ರೆ " textFill="#ff3300" textOverrun="CENTER_ELLIPSIS" underline="true">
+                           <font>
+                               <Font name="System Bold" size="40.0" />
+                           </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                       </Label>
+                  <Button fx:id="closeButton" mnemonicParsing="false" onAction="#handleCloseApp" prefHeight="37.0" prefWidth="47.0" style="-fx-background-color: red; -fx-text-fill: white;" text="X">
+                     <font>
+                        <Font name="Bookman Old Style Bold" size="25.0" />
+                     </font>
+                     <effect>
+                        <DropShadow blurType="GAUSSIAN" spread="0.2">
+                           <color>
+                              <Color red="0.7763158082962036" green="0.06109892949461937" blue="0.06109892949461937" />
+                           </color>
+                        </DropShadow>
+                     </effect>
+                  </Button>
+               </children>
+                 </HBox>
+                 <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="36.0" prefWidth="1797.0" text="ಚೇರ್ಕಬೆ, ಅಂಚೆ : 671552, ದೂರವಾಣಿ: 6282525216, 9526431593 " textFill="#ff3300" underline="true">
+                     <font>
+                         <Font name="System Bold" size="25.0" />
+                     </font>
+                 </Label>
+            <Label alignment="CENTER" prefHeight="36.0" prefWidth="1959.0" text="ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ">
+               <font>
+                  <Font name="System Bold" size="25.0" />
+               </font>
+            </Label>
             </VBox>
         </top>
         <left>

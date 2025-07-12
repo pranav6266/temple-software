@@ -87,7 +87,6 @@ public class ReceiptServices {
 		// 3. Perform Validation (as before)
 		List<String> errors = new ArrayList<>();
 		// --- Add all your validation checks here ---
-		if (devoteeName == null || devoteeName.trim().isEmpty()) { errors.add("Please enter devotee name"); }
 		if (date == null) { errors.add("Please select a seva date"); }
 		if (currentSevas.isEmpty()) { errors.add("Please add at least one seva or donation"); }
 		if (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected()) { errors.add("Please select payment mode (Cash/Online)"); }
