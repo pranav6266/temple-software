@@ -147,10 +147,10 @@ public class ReceiptServices {
 						Platform.runLater(() -> {
 							// Update label ONLY if the saved ID differs from the previewed one
 							if (finalSavedId != this.pendingReceiptId) {
-								controller.receiptNumberLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + finalSavedId + " (ID Changed)");
+								controller.receiptNumberLabel.setText(" "+finalSavedId);
 								controller.showAlert("Save Successful (ID Changed)", "Receipt printed and saved successfully.");
 							} else {
-								controller.receiptNumberLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + finalSavedId);
+								controller.receiptNumberLabel.setText(" " + finalSavedId);
 								controller.showAlert("Success", "Receipt printed and saved successfully with ID: " + finalSavedId);
 							}
 							controller.clearForm(); // Clear form ONLY on full success
