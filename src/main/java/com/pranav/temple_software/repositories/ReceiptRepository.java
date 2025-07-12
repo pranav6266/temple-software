@@ -19,7 +19,7 @@ public class ReceiptRepository {
 	private static final String H2_PK_VIOLATION_STATE = "23505"; // H2 specific SQLState for unique constraint violation
 
 
-	private Connection getConnection() throws SQLException {
+	private static Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(DB_URL, USER, PASS);
 	}
 
@@ -28,7 +28,7 @@ public class ReceiptRepository {
 	 * Does NOT reserve the ID.
 	 * @return The next potential receipt ID (max_id + 1), or 1 if the table is empty, or -1 on error.
 	 */
-	public int getNextReceiptId() {
+	public static int getNextReceiptId() {
 		String sql = "SELECT MAX(receipt_id) FROM Receipts";
 		int nextId = 1; // Default if table is empty
 

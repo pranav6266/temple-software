@@ -68,10 +68,10 @@ public class ReceiptPrinter {
 		// Devotee Details - Left Aligned
 		receiptBox.getChildren().addAll(
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName()),
-				new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()),
-				new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ: " + data.getNakshatra()),
-				new Text("ಭಕ್ತರ ರಾಶಿ: " + data.getRaashi()),
-				new Text("ಸೇವೆ ದಿನಾಂಕ: " + data.getSevaDate().toString())
+				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "---")),
+				new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಭಕ್ತರ ರಾಶಿ: " + (data.getRaashi() != null ? data.getRaashi() : "---")),
+				new Text("ಸೇವೆ ದಿನಾಂಕ: " + data.getFormattedDate())
 		);
 
 		receiptBox.getChildren().add(new Text("")); // Spacer
@@ -107,7 +107,7 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text("")); // Spacer
 
 		// Blessing Line - Center Aligned
-		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ಇರಲಿ !");
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
 		blessing.setFont(Font.font("Noto Sans Kannada", 12));
 		blessing.setStyle("-fx-font-style: italic;");
 		VBox blessingBox = new VBox(blessing);
@@ -136,7 +136,7 @@ public class ReceiptPrinter {
 		Node receiptNode = createReceiptNode(data);
 
 
-		double scaleFactor = 1; // Adjust this value to control preview size
+		double scaleFactor = 2; // Adjust this value to control preview size
 		receiptNode.setScaleX(scaleFactor);
 		receiptNode.setScaleY(scaleFactor);
 

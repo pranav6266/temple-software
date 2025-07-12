@@ -249,6 +249,7 @@ public class MainController {
 
 	@FXML
 	public void initialize() {
+		receiptNumberLabel.setText(String.valueOf(ReceiptRepository.getNextReceiptId()));
 		sevaDatePicker.setValue(LocalDate.now());
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		sevaTableView.setItems(selectedSevas);
