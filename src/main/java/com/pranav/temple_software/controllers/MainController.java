@@ -285,6 +285,7 @@ public class MainController {
 		validationServices.setupAmountValidation();
 		refreshSevaCheckboxes();
 		refreshDonationComboBox();
+		refreshOtherSevaComboBox();
 		setupFocusTraversal();
 		setupFocusLostHandlers();
 		setupBlankAreaFocusHandler();
@@ -375,7 +376,7 @@ public class MainController {
 
 	public void refreshOtherSevaComboBox() {
 		// Reload from DB if necessary
-		OtherSevaRepository.getInstance().loadOtherSevasFromDB();
+		OtherSevaRepository.loadOtherSevasFromDB();
 
 		// Get all Other Sevas (name + amount)
 		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
@@ -383,7 +384,7 @@ public class MainController {
 		// Format combo box entries to show: Name - ₹Amount
 		ObservableList<String> otherSevaNames = FXCollections.observableArrayList(
 				otherSevaEntries.stream()
-						.map(SevaEntry::getName)
+						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
 						.collect(Collectors.toList())
 		);
 

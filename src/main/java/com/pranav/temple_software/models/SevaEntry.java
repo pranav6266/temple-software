@@ -7,6 +7,7 @@ public class SevaEntry {
 	private DoubleProperty amount;
 	private final IntegerProperty quantity;
 	private final DoubleProperty totalAmount;
+	private final IntegerProperty displayOrder = new SimpleIntegerProperty();
 
 	public SevaEntry( String name, double amount) {
 		this.name = new SimpleStringProperty(name);
@@ -42,5 +43,17 @@ public class SevaEntry {
 
 	public double getTotalAmount() {
 		return totalAmount.get();
+	}
+
+	public int getDisplayOrder() {
+		return displayOrder.get();
+	}
+
+	public void setDisplayOrder(int order) {
+		this.displayOrder.set(order);
+	}
+
+	public IntegerProperty displayOrderProperty() {
+		return displayOrder;
 	}
 }

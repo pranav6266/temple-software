@@ -49,7 +49,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	// Inherited: mainControllerInstance, tempItemList, itemsMarkedForDeletion, originalState
 
 	// Store original order separately for easier comparison during save
-	private Map<String, Integer> originalOrderMap = new HashMap<>();
+	private final Map<String, Integer> originalOrderMap = new HashMap<>();
 
 	@Override
 	protected void loadData() {

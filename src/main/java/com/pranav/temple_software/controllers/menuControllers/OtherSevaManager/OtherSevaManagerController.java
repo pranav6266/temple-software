@@ -537,9 +537,9 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 		itemsMarkedForDeletion.clear(); // Ensure cleared
 		refreshGridPane(); // Refresh the grid in the manager
 
-		if (mainControllerInstance != null) {
-			mainControllerInstance.refreshOtherSevaComboBox(); // Refresh combo box in main view
-		}
+
+		mainControllerInstance.refreshOtherSevaComboBox(); // Refresh combo box in main view
+
 
 		// 4. Show Summary
 		if (changesMade) {
