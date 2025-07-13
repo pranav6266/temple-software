@@ -27,21 +27,20 @@ public class ReceiptPrinter {
 	private static final double RECEIPT_WIDTH_MM = 50;
 	private static final double POINTS_PER_MM = 2.83464; // 72 points per inch / 25.4 mm per inch
 	private static final double RECEIPT_WIDTH_POINTS = RECEIPT_WIDTH_MM * POINTS_PER_MM;
-	private static final Font KANNADA_FONT_SMALL = Font.font("Noto Sans Kannada", FontWeight.NORMAL, 8); // Adjust font size
-	private static final Font KANNADA_FONT_BOLD = Font.font("Noto Sans Kannada", FontWeight.BOLD, 9); // Adjust font size
-	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
 
 	// --- Method to Create the Receipt Layout as a JavaFX Node ---
 	public Node createReceiptNode(ReceiptData data) {
-		VBox receiptBox = new VBox(8);
+		VBox receiptBox = new VBox(1);
 		receiptBox.setStyle("-fx-padding: 10;");  // Left margin (adds padding to whole receipt)
+		receiptBox.setMaxWidth(10);
 
 		// Temple Name (Main Heading) - Left Aligned
 		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
 		templeName.setFont(Font.font("Noto Sans Kannada", 16));
-		templeName.setStyle("-fx-font-weight: bold;");
+		templeName.setStyle("-fx-font-weight: bold; -fx-underline: true;");
 		VBox heading =  new VBox(templeName);
-		heading.setStyle("-fx-alignment: center;");
+		heading.setStyle("-fx-alignment: center; -fx-underline: true;");
 		receiptBox.getChildren().add(heading);
 
 		// Subheadings - Center Aligned
@@ -59,6 +58,7 @@ public class ReceiptPrinter {
 		// Receipt Title - Center Aligned
 		Text receiptTitle = new Text("ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ");
 		receiptTitle.setFont(Font.font("Noto Sans Kannada", 14));
+		receiptTitle.setStyle("-fx-underline: true;");
 		VBox titleBox = new VBox(receiptTitle);
 		titleBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(titleBox);
@@ -69,21 +69,32 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().addAll(
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ?  "---" : data.getDevoteeName() )),
 				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಭಕ್ತರ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಭಕ್ತರ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
-				new Text("ಸೇವೆ ದಿನಾಂಕ: " + data.getFormattedDate())
+				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
+				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
 		);
 
 		receiptBox.getChildren().add(new Text("")); // Spacer
 
-		// Seva Header Row (Fixed Column Widths)
-		HBox headerRow = new HBox(20);
-		headerRow.getChildren().addAll(
-				createLabel("ಸೇವೆ / ದೇಣಿಗೆ", 150),
-				createLabel("ಪ್ರಮಾಣ", 50),
-				createLabel("ಮೊತ್ತ", 70)
-		);
+		// Seva Header Row (Fixed Column Widths + Bold Labels)
+		HBox headerRow = new HBox(20); // spacing 20
+
+		Label sevaLabel = new Label("ಸೇವೆ / ದೇವಿಗೆ");
+		sevaLabel.setMinWidth(150);
+		sevaLabel.setStyle("-fx-font-weight: bold;");
+
+		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
+		pramanaLabel.setMinWidth(50);
+		pramanaLabel.setStyle("-fx-font-weight: bold;");
+
+		Label mottaLabel = new Label("ಮೊತ್ತ");
+		mottaLabel.setMinWidth(70);
+		mottaLabel.setStyle("-fx-font-weight: bold;");
+
+		headerRow.getChildren().addAll(sevaLabel, pramanaLabel, mottaLabel);
+
 		receiptBox.getChildren().add(headerRow);
+
 
 		// Seva Items
 		for (SevaEntry seva : data.getSevas()) {
