@@ -220,6 +220,7 @@ public class MainController {
 		onlineRadio.setSelected(false);
 		otherServicesComboBox.getSelectionModel().selectFirst();
 		addressField.clear();
+		Platform.runLater(() -> devoteeNameField.requestFocus());
 	}
 
 	@FXML
@@ -286,9 +287,24 @@ public class MainController {
 		refreshSevaCheckboxes();
 		refreshDonationComboBox();
 		refreshOtherSevaComboBox();
+
+		Platform.runLater(() -> devoteeNameField.requestFocus());
+
 		setupFocusTraversal();
 		setupFocusLostHandlers();
 		setupBlankAreaFocusHandler();
+
+		// Force uppercase for Name field
+		devoteeNameField.setTextFormatter(new TextFormatter<String>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+
+	// Force uppercase for Address field
+		addressField.setTextFormatter(new TextFormatter<String>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
 
 
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
