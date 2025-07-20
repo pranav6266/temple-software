@@ -82,6 +82,8 @@ public class HistoryController {
 	public void initialize() {
 		loadHistory();
 		// Initialize the toggle button and label
+		historyTable.setVisible(true);
+		donationHistoryTable.setVisible(false);
 		toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Donation Receipts"
 		currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"); // "Seva Receipt History"
 
@@ -104,20 +106,28 @@ public class HistoryController {
 	}
 
 	// Add this method to switch between views
+	// In the handleToggleView() method, update it to:
 	@FXML
 	public void handleToggleView() {
 		isShowingDonations = !isShowingDonations;
 
 		if (isShowingDonations) {
+			// Hide seva table, show donation table
+			historyTable.setVisible(false);
+			donationHistoryTable.setVisible(true);
 			loadDonationHistory();
 			toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Seva Receipts"
 			currentViewLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ"); // "Donation Receipt History"
 		} else {
+			// Hide donation table, show seva table
+			donationHistoryTable.setVisible(false);
+			historyTable.setVisible(true);
 			loadHistory();
 			toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Donation Receipts"
 			currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"); // "Seva Receipt History"
 		}
 	}
+
 
 	// Add this method to load donation history
 	private void loadDonationHistory() {
@@ -200,8 +210,6 @@ public class HistoryController {
 	}
 	// Add method to set up donation table columns
 	private void setupDonationTableColumns() {
-		// You can either create a separate TableView for donations or modify the existing one
-		// Here's an example of setting up columns for donation-specific data
 		if (donationHistoryTable != null) {
 			donationReceiptIdColumn.setCellValueFactory(cellData ->
 					new SimpleIntegerProperty(cellData.getValue().getDonationReceiptId()).asObject());
@@ -215,8 +223,12 @@ public class HistoryController {
 					new SimpleStringProperty(cellData.getValue().getDonationName()));
 			donationPaymentModeColumn.setCellValueFactory(cellData ->
 					new SimpleStringProperty(cellData.getValue().getPaymentMode()));
+
+			// Setup the details column for donations
+			setupDonationDetailsColumn();
 		}
 	}
+
 	// *** ADD THIS: New method to load and show the details window ***
 	private void showReceiptDetails(ReceiptData receiptData) {
 		try {

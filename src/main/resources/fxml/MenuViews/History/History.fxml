@@ -28,7 +28,10 @@
     </TableView>
 
     <!-- Donation Receipts Table (new) -->
-    <TableView fx:id="donationHistoryTable" prefHeight="578.0" prefWidth="925.0" visible="false" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50">
+    <TableView fx:id="donationHistoryTable" prefHeight="578.0" prefWidth="925.0"
+               visible="false" managed="true"
+               AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10"
+               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50">
         <columns>
             <TableColumn fx:id="donationReceiptIdColumn" text="ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ" />
             <TableColumn fx:id="donationDevoteeNameColumn" prefWidth="199.0" text="ಭಕ್ತರ ಹೆಸರು" />

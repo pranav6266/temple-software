@@ -164,9 +164,12 @@ public class ReceiptServices {
 	private void handleDonationReceipts(String devoteeName, String phoneNumber, String address,
 	                                    String raashi, String nakshatra, LocalDate date,
 	                                    List<SevaEntry> donationEntries, String paymentMode) {
+
+		// ✅ Get the initial donation receipt ID ONCE before the loop
+		int donationReceiptId = DonationReceiptRepository.getNextDonationReceiptId();
+
 		// Create separate receipt for each donation
 		for (SevaEntry donation : donationEntries) {
-			int donationReceiptId = DonationReceiptRepository.getNextDonationReceiptId();
 			if (donationReceiptId <= 0) {
 				controller.showAlert("Database Error", "Could not determine the next donation receipt ID.");
 				continue;
@@ -182,11 +185,12 @@ public class ReceiptServices {
 			);
 
 			// Show donation receipt preview
+			int finalDonationReceiptId = donationReceiptId;
 			Consumer<Boolean> donationAfterPrintAction = (printSuccess) -> {
 				if (printSuccess) {
 					DonationReceiptRepository repo = new DonationReceiptRepository();
 					int actualSavedId = repo.saveSpecificDonationReceipt(
-							donationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+							finalDonationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
 							date, donationName, donation.getTotalAmount(), paymentMode
 					);
 
@@ -204,10 +208,14 @@ public class ReceiptServices {
 			};
 
 			controller.receiptPrinter.showDonationPrintPreview(donationReceiptData, controller.mainStage, donationAfterPrintAction);
+
+			// ✅ INCREMENT the ID for the next donation receipt
+			donationReceiptId++;
 		}
 
 		// Clear form only after all receipts are processed
 		Platform.runLater(() -> controller.clearForm());
 	}
+
 
 }
