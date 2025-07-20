@@ -20,6 +20,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
+import com.pranav.temple_software.models.DonationReceiptData;
+
 
 public class ReceiptPrinter {
 
@@ -189,6 +191,124 @@ public class ReceiptPrinter {
 		previewStage.setScene(scene);
 		previewStage.show();
 	}
+
+
+	// Method for donation receipt preview
+	public void showDonationPrintPreview(DonationReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
+		Stage previewStage = new Stage();
+		previewStage.initModality(Modality.WINDOW_MODAL);
+		previewStage.initOwner(ownerStage);
+		previewStage.setTitle("ದೇಣಿಗೆ ರಶೀದಿ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ"); // Donation Receipt Print Preview
+
+		Node receiptNode = createDonationReceiptNode(data);
+
+		double scaleFactor = 2;
+		receiptNode.setScaleX(scaleFactor);
+		receiptNode.setScaleY(scaleFactor);
+
+		Group scaledContainer = new Group(receiptNode);
+		scaledContainer.setAutoSizeChildren(true);
+
+		ScrollPane scrollPane = new ScrollPane(scaledContainer);
+		scrollPane.setFitToWidth(false);
+		scrollPane.setFitToHeight(false);
+		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
+		scrollPane.setPrefViewportHeight(600);
+
+		Button printButton = new Button("ಮುದ್ರಿಸು");
+		printButton.setOnAction(e -> {
+			receiptNode.setScaleX(1.0);
+			receiptNode.setScaleY(1.0);
+			boolean success = printReceipt(receiptNode, ownerStage);
+			if (onPrintComplete != null) {
+				onPrintComplete.accept(success);
+			}
+			previewStage.close();
+		});
+
+		HBox buttonBox = new HBox(10, printButton);
+		buttonBox.setAlignment(Pos.CENTER);
+		buttonBox.setPadding(new Insets(10));
+
+		VBox layout = new VBox(10, scrollPane, buttonBox);
+		layout.setAlignment(Pos.CENTER);
+		scrollPane.setPrefViewportHeight(800);
+
+		Scene scene = new Scene(layout, 700, 1000);
+		previewStage.setScene(scene);
+		previewStage.show();
+	}
+
+	// Method to create donation receipt layout
+	public Node createDonationReceiptNode(DonationReceiptData data) {
+		VBox receiptBox = new VBox(1);
+		receiptBox.setStyle("-fx-padding: 10;");
+		receiptBox.setMaxWidth(10);
+
+		// Temple Name (Main Heading)
+		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		templeName.setFont(Font.font("Noto Sans Kannada", 16));
+		templeName.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		VBox heading = new VBox(templeName);
+		heading.setStyle("-fx-alignment: center; -fx-underline: true;");
+		receiptBox.getChildren().add(heading);
+
+		// Subheadings
+		VBox subHeadings = new VBox(2);
+		subHeadings.setStyle("-fx-alignment: center;");
+		subHeadings.getChildren().addAll(
+				new Text("ಚೇರ್ಕಬೆ"),
+				new Text("ಅಂಚೆ : 671552"),
+				new Text("ದೂರವಾಣಿ: 6282525216, 9526431593")
+		);
+		receiptBox.getChildren().add(subHeadings);
+
+		receiptBox.getChildren().add(new Text(""));
+
+		// Receipt Title - Donation Specific
+		Text receiptTitle = new Text("ದೇಣಿಗೆ ರಶೀದಿ");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", 14));
+		receiptTitle.setStyle("-fx-underline: true;");
+		VBox titleBox = new VBox(receiptTitle);
+		titleBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(titleBox);
+
+		receiptBox.getChildren().add(new Text(""));
+
+		// Receipt ID
+		receiptBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId()));
+
+		// Devotee Details
+		receiptBox.getChildren().addAll(
+				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
+				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
+				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
+				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
+		);
+
+		receiptBox.getChildren().add(new Text(""));
+
+		// Donation Details
+		receiptBox.getChildren().addAll(
+				new Text("ದೇಣಿಗೆ ವಿಧ: " + data.getDonationName()),
+				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount())),
+				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode())
+		);
+
+		receiptBox.getChildren().add(new Text(""));
+
+		// Blessing Line
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
+		blessing.setFont(Font.font("Noto Sans Kannada", 12));
+		blessing.setStyle("-fx-font-style: italic;");
+		VBox blessingBox = new VBox(blessing);
+		blessingBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(blessingBox);
+
+		return receiptBox;
+	}
+
 
 	// --- Method to Handle Actual Printing ---
 // Inside ReceiptPrinter.java

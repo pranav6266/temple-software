@@ -1,8 +1,10 @@
 // HistoryController.java
 package com.pranav.temple_software.controllers.menuControllers.History;
 
+import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.models.ReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.DonationReceiptRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.ReceiptRepository;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -53,10 +55,21 @@ public class HistoryController {
 	private TableColumn<ReceiptData, String> sevaDateColumn;
 	@FXML
 	private TableColumn<ReceiptData, String> isDonationColumn;
-
+	@FXML private Button toggleViewButton;
+	@FXML private Label currentViewLabel;
+	// Add donation table column fields
+	@FXML public TableView<DonationReceiptData> donationHistoryTable;
+	@FXML public TableColumn<DonationReceiptData, Integer> donationReceiptIdColumn;
+	@FXML public TableColumn<DonationReceiptData, String> donationDevoteeNameColumn;
+	@FXML public TableColumn<DonationReceiptData, String> donationDateColumn;
+	@FXML public TableColumn<DonationReceiptData, String> donationNameColumn;
+	@FXML public TableColumn<DonationReceiptData, Double> donationAmountColumn;
+	@FXML public TableColumn<DonationReceiptData, String> donationPaymentModeColumn;
+	@FXML public TableColumn<DonationReceiptData, Void> donationDetailsColumn;
+	private boolean isShowingDonations = false;
 
 	private final ReceiptRepository receiptRepository = new ReceiptRepository();
-
+	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private String savedSevaType = "All";
 	private LocalDate savedDate = null;
 	private String savedMonth = "All";
@@ -68,6 +81,15 @@ public class HistoryController {
 	@FXML
 	public void initialize() {
 		loadHistory();
+		// Initialize the toggle button and label
+		toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Donation Receipts"
+		currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"); // "Seva Receipt History"
+
+		// Setup donation table columns if using separate table
+		setupDonationTableColumns();
+
+		// Existing setup methods...
+		isDonationColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDonationStatus()));
 		isDonationColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDonationStatus()));
 		receiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
 		devoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
@@ -81,38 +103,120 @@ public class HistoryController {
 		setPaymentModeColumn();
 	}
 
+	// Add this method to switch between views
+	@FXML
+	public void handleToggleView() {
+		isShowingDonations = !isShowingDonations;
+
+		if (isShowingDonations) {
+			loadDonationHistory();
+			toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Seva Receipts"
+			currentViewLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ"); // "Donation Receipt History"
+		} else {
+			loadHistory();
+			toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Donation Receipts"
+			currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"); // "Seva Receipt History"
+		}
+	}
+
+	// Add this method to load donation history
+	private void loadDonationHistory() {
+		List<DonationReceiptData> donationReceipts = donationReceiptRepository.getAllDonationReceipts();
+		// Convert DonationReceiptData to a format compatible with the table
+		ObservableList<DonationReceiptData> donationList = FXCollections.observableArrayList(donationReceipts);
+		// You'll need to create a separate TableView for donations or modify the existing one
+		donationHistoryTable.setItems(donationList);
+	}
 
 	private void setupDetailsColumn() {
-		// Define how each cell in the 'detailsColumn' should be rendered
-		detailsColumn.setCellFactory(param -> new TableCell<>() {
-			// Create a button for each row
-			private final Button viewButton = new Button("ವಿವರ ನೋಡಿ"); // "View Details"
+		detailsColumn.setCellFactory(param -> new TableCell<ReceiptData, Void>() {
+			private final Button viewButton = new Button("ವಿವರ ನೋಡಿ");
 
 			{
-				// Define what happens when the button is clicked
 				viewButton.setOnAction(event -> {
-					// Get the ReceiptData object for the row where the button was clicked
 					ReceiptData selectedReceipt = getTableView().getItems().get(getIndex());
-					// Call the method to show the details window
 					showReceiptDetails(selectedReceipt);
 				});
 			}
 
-			// This method updates the cell's content
 			@Override
 			protected void updateItem(Void item, boolean empty) {
 				super.updateItem(item, empty);
-				// If the cell is not empty, display the button
 				if (empty) {
-					setGraphic(null); // Don't show anything in empty rows
+					setGraphic(null);
 				} else {
-					setGraphic(viewButton); // Show the button
-					setAlignment(Pos.CENTER); // Center the button in the cell
+					setGraphic(viewButton);
+					setAlignment(Pos.CENTER);
 				}
 			}
 		});
 	}
 
+
+	private void setupDonationDetailsColumn() {
+		donationDetailsColumn.setCellFactory(param -> new TableCell<>() {
+			private final Button viewButton = new Button("ವಿವರ ನೋಡಿ"); // "View Details"
+
+			{
+				viewButton.setOnAction(event -> {
+					DonationReceiptData selectedDonation = getTableView().getItems().get(getIndex());
+					showDonationDetails(selectedDonation);
+				});
+			}
+
+			@Override
+			protected void updateItem(Void item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setGraphic(null);
+				} else {
+					setGraphic(viewButton);
+					setAlignment(Pos.CENTER);
+				}
+			}
+		});
+	}
+
+	private void showDonationDetails(DonationReceiptData donationData) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/DonationDetailsView.fxml"));
+			Stage detailsStage = new Stage();
+			detailsStage.setTitle("ದೇಣಿಗೆ ರಶೀದಿ ವಿವರಗಳು"); // "Donation Receipt Details"
+			detailsStage.initModality(Modality.WINDOW_MODAL);
+			detailsStage.initOwner(donationHistoryTable.getScene().getWindow());
+
+			Scene scene = new Scene(loader.load());
+			detailsStage.setScene(scene);
+
+			DonationDetailsController detailsController = loader.getController();
+			detailsController.initializeDonationDetails(donationData);
+
+			detailsStage.showAndWait();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Could not load donation details view.");
+		}
+	}
+	// Add method to set up donation table columns
+	private void setupDonationTableColumns() {
+		// You can either create a separate TableView for donations or modify the existing one
+		// Here's an example of setting up columns for donation-specific data
+		if (donationHistoryTable != null) {
+			donationReceiptIdColumn.setCellValueFactory(cellData ->
+					new SimpleIntegerProperty(cellData.getValue().getDonationReceiptId()).asObject());
+			donationDevoteeNameColumn.setCellValueFactory(cellData ->
+					new SimpleStringProperty(cellData.getValue().getDevoteeName()));
+			donationDateColumn.setCellValueFactory(cellData ->
+					new SimpleStringProperty(cellData.getValue().getFormattedDate()));
+			donationAmountColumn.setCellValueFactory(cellData ->
+					new SimpleDoubleProperty(cellData.getValue().getDonationAmount()).asObject());
+			donationNameColumn.setCellValueFactory(cellData ->
+					new SimpleStringProperty(cellData.getValue().getDonationName()));
+			donationPaymentModeColumn.setCellValueFactory(cellData ->
+					new SimpleStringProperty(cellData.getValue().getPaymentMode()));
+		}
+	}
 	// *** ADD THIS: New method to load and show the details window ***
 	private void showReceiptDetails(ReceiptData receiptData) {
 		try {

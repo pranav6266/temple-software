@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer; // Import Consumer
+import com.pranav.temple_software.models.DonationReceiptData;
+import com.pranav.temple_software.repositories.DonationReceiptRepository;
 
 public class ReceiptServices {
 
@@ -47,27 +49,21 @@ public class ReceiptServices {
 
 
 	public void handlePrintPreview() {
-
-		// Clear previous pending state if any (e.g., if preview was cancelled before)
+		// Clear previous pending state
 		this.pendingReceiptId = -1;
 		this.pendingReceiptData = null;
 		this.pendingPaymentMode = "N/A";
 
-
-		// 1. Get the NEXT POTENTIAL Receipt ID *before* gathering other data
-		this.pendingReceiptId = controller.receiptRepository.getNextReceiptId();
-		if (this.pendingReceiptId <= 0) {
-			controller.showAlert("Database Error", "Could not determine the next receipt ID. Please check database connection or logs.");
-			return;
-		}
-
-		// 2. Gather Data (as before, use final where needed for lambda)
-
+		// Gather form data
 		final String devoteeName = controller.devoteeNameField.getText();
 		final String phoneNumber = controller.contactField.getText();
 		final String address = controller.addressField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
 		final ObservableList<SevaEntry> currentSevas = FXCollections.observableArrayList(controller.sevaTableView.getItems());
+		final String raashi = controller.raashiComboBox.getValue();
+		final String nakshatra = controller.nakshatraComboBox.getValue();
+
+		// Calculate total
 		final double total;
 		double total1;
 		try {
@@ -77,109 +73,141 @@ public class ReceiptServices {
 			total1 = currentSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 			System.err.println("Could not parse total from label, recalculating.");
 		}
-		// Store pending payment mode
 		total = total1;
 		this.pendingPaymentMode = controller.cashRadio.isSelected() ? "Cash" : (controller.onlineRadio.isSelected() ? "Online" : "N/A");
-		final String raashi = controller.raashiComboBox.getValue();
-		final String nakshatra = controller.nakshatraComboBox.getValue();
 
-
-		// 3. Perform Validation (as before)
+		// Validation
 		List<String> errors = new ArrayList<>();
-		// --- Add all your validation checks here ---
 		if (date == null) { errors.add("Please select a seva date"); }
 		if (currentSevas.isEmpty()) { errors.add("Please add at least one seva or donation"); }
-		if (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected()) { errors.add("Please select payment mode (Cash/Online)"); }
-		if (phoneNumber != null && !phoneNumber.isEmpty() && phoneNumber.length() < 10) { errors.add("Phone number must contain at least 10 digits"); }
-		// --- End of validation checks ---
-
+		if (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected()) {
+			errors.add("Please select payment mode (Cash/Online)");
+		}
+		if (phoneNumber != null && !phoneNumber.isEmpty() && phoneNumber.length() < 10) {
+			errors.add("Phone number must contain at least 10 digits");
+		}
 
 		if (!errors.isEmpty()) {
 			controller.showAlert("Validation Error", String.join("\n", errors));
-			this.pendingReceiptId = -1; // Reset pending ID if validation fails
 			return;
 		}
 
-		// --- REMOVE Database Save from here ---
+		// Separate seva and donation entries
+		List<SevaEntry> sevaEntries = new ArrayList<>();
+		List<SevaEntry> donationEntries = new ArrayList<>();
 
+		for (SevaEntry entry : currentSevas) {
+			if (entry.getName().startsWith("ದೇಣಿಗೆ ")) {
+				donationEntries.add(entry);
+			} else {
+				sevaEntries.add(entry);
+			}
+		}
 
-		// 4. Create ReceiptData with the POTENTIAL ID for preview/print
-		//    Store this in the pending state variable
-		boolean hasDonation = currentSevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
-		this.pendingReceiptData = new ReceiptData(
-				this.pendingReceiptId, // Use potential ID
-				devoteeName, phoneNumber,address, raashi, nakshatra, date, currentSevas, total, pendingPaymentMode,hasDonation ? "ಹೌದು" : "ಇಲ್ಲ"
+		// Handle seva receipt if sevas exist
+		if (!sevaEntries.isEmpty()) {
+			handleSevaReceipt(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+					sevaEntries, pendingPaymentMode);
+		}
+
+		// Handle donation receipts (one per donation)
+		if (!donationEntries.isEmpty()) {
+			handleDonationReceipts(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+					donationEntries, pendingPaymentMode);
+		}
+	}
+
+	private void handleSevaReceipt(String devoteeName, String phoneNumber, String address,
+	                               String raashi, String nakshatra, LocalDate date,
+	                               List<SevaEntry> sevaEntries, String paymentMode) {
+		// Get next seva receipt ID
+		int sevaReceiptId = controller.receiptRepository.getNextReceiptId();
+		if (sevaReceiptId <= 0) {
+			controller.showAlert("Database Error", "Could not determine the next seva receipt ID.");
+			return;
+		}
+
+		// Calculate seva total
+		double sevaTotal = sevaEntries.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
+
+		// Create seva receipt data
+		ReceiptData sevaReceiptData = new ReceiptData(
+				sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode, "ಇಲ್ಲ"
 		);
 
-		// 5. Update UI Label with the POTENTIAL ID
-		controller.receiptNumberLabel.setText(String.valueOf(this.pendingReceiptId));
+		// Show seva receipt preview
+		Consumer<Boolean> sevaAfterPrintAction = (printSuccess) -> {
+			if (printSuccess) {
+				String sevasDetailsString = formatSevasForDatabase(FXCollections.observableArrayList(sevaEntries));
+				int actualSavedId = controller.receiptRepository.saveSpecificReceipt(
+						sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+						date, sevasDetailsString, sevaTotal, paymentMode
+				);
 
-
-		// 6. Define the callback function for AFTER printing attempt
-		Consumer<Boolean> afterPrintAction = (printSuccess) -> {
-			try { // Use try-finally to ensure cleanup
-				if (printSuccess) {
-					// 7. If PRINT was successful, attempt to save with SPECIFIC ID
-					if (this.pendingReceiptData == null || this.pendingReceiptId <= 0) {
-						// Should not happen if validation passed, but check defensively
-						Platform.runLater(() -> controller.showAlert("Internal Error", "Pending receipt data is missing. Cannot save."));
-						return;
-					}
-
-					String sevasDetailsString = formatSevasForDatabase(this.pendingReceiptData.getSevas());
-					int actualSavedId = controller.receiptRepository.saveSpecificReceipt(
-							this.pendingReceiptId, // The ID we tried to use
-							this.pendingReceiptData.getDevoteeName(),
-							this.pendingReceiptData.getPhoneNumber(),
-							this.pendingReceiptData.getAddress(),
-							this.pendingReceiptData.getRashi(),
-							this.pendingReceiptData.getNakshatra(),
-							this.pendingReceiptData.getSevaDate(),
-							sevasDetailsString,
-							this.pendingReceiptData.getTotalAmount(),
-							this.pendingPaymentMode // Use stored pending payment mode
-					);
-
-					if (actualSavedId != -1) {
-						// 8. If SAVE was successful (with specific or fallback ID)
-						final int finalSavedId = actualSavedId; // Final variable for lambda
-						Platform.runLater(() -> {
-							// Update label ONLY if the saved ID differs from the previewed one
-							if (finalSavedId != this.pendingReceiptId) {
-								controller.receiptNumberLabel.setText(" "+finalSavedId);
-								controller.showAlert("Save Successful (ID Changed)", "Receipt printed and saved successfully.");
-							} else {
-								controller.receiptNumberLabel.setText(" " + finalSavedId);
-								controller.showAlert("Success", "Receipt printed and saved successfully with ID: " + finalSavedId);
-							}
-							controller.clearForm(); // Clear form ONLY on full success
-						});
-					} else {
-						// 9. If PRINT succeeded but SAVE ultimately failed
-						Platform.runLater(() -> {
-							controller.showAlert("Database Error", "Receipt was printed, but failed to save to the database even after fallback. Please record details manually.\nAttempted ID: " + this.pendingReceiptId + "\nName: " + this.pendingReceiptData.getDevoteeName());
-							controller.receiptNumberLabel.setText("Save Failed!"); // Indicate save failure
-						});
-					}
-				} else {
-					// 10. If PRINT failed or was cancelled
+				if (actualSavedId != -1) {
 					Platform.runLater(() -> {
-						controller.showAlert("Print Failed/Cancelled", "The print job was cancelled or failed. Receipt not saved.");
-						// Optional: Clear the label if desired, or leave the potential ID
-						// controller.receiptNumberLabel.setText("");
+						controller.showAlert("Seva Receipt Success", "Seva receipt printed and saved successfully with ID: " + actualSavedId);
+						controller.receiptNumberLabel.setText(String.valueOf(actualSavedId));
 					});
+				} else {
+					Platform.runLater(() -> controller.showAlert("Database Error", "Seva receipt printed but failed to save to database."));
 				}
-			} finally {
-				// 11. Cleanup pending state regardless of success/failure
-				this.pendingReceiptId = -1;
-				this.pendingReceiptData = null;
-				this.pendingPaymentMode = "N/A";
+			} else {
+				Platform.runLater(() -> controller.showAlert("Print Failed", "Seva receipt print job was cancelled or failed."));
 			}
 		};
 
-
-		// 12. Show the print preview, passing the data (with POTENTIAL ID) and the callback
-		// Ensure ReceiptPrinter still takes the Consumer<Boolean> callback
-		controller.receiptPrinter.showPrintPreview(this.pendingReceiptData, controller.mainStage, afterPrintAction);
+		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, sevaAfterPrintAction);
 	}
+
+	private void handleDonationReceipts(String devoteeName, String phoneNumber, String address,
+	                                    String raashi, String nakshatra, LocalDate date,
+	                                    List<SevaEntry> donationEntries, String paymentMode) {
+		// Create separate receipt for each donation
+		for (SevaEntry donation : donationEntries) {
+			int donationReceiptId = DonationReceiptRepository.getNextDonationReceiptId();
+			if (donationReceiptId <= 0) {
+				controller.showAlert("Database Error", "Could not determine the next donation receipt ID.");
+				continue;
+			}
+
+			// Extract donation name (remove "ದೇಣಿಗೆ : " prefix)
+			String donationName = donation.getName().replace("ದೇಣಿಗೆ : ", "");
+
+			// Create donation receipt data
+			DonationReceiptData donationReceiptData = new DonationReceiptData(
+					donationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+					date, donationName, donation.getTotalAmount(), paymentMode
+			);
+
+			// Show donation receipt preview
+			Consumer<Boolean> donationAfterPrintAction = (printSuccess) -> {
+				if (printSuccess) {
+					DonationReceiptRepository repo = new DonationReceiptRepository();
+					int actualSavedId = repo.saveSpecificDonationReceipt(
+							donationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+							date, donationName, donation.getTotalAmount(), paymentMode
+					);
+
+					if (actualSavedId != -1) {
+						Platform.runLater(() -> controller.showAlert("Donation Receipt Success",
+								"Donation receipt for " + donationName + " printed and saved successfully with ID: " + actualSavedId));
+					} else {
+						Platform.runLater(() -> controller.showAlert("Database Error",
+								"Donation receipt printed but failed to save to database."));
+					}
+				} else {
+					Platform.runLater(() -> controller.showAlert("Print Failed",
+							"Donation receipt print job was cancelled or failed."));
+				}
+			};
+
+			controller.receiptPrinter.showDonationPrintPreview(donationReceiptData, controller.mainStage, donationAfterPrintAction);
+		}
+
+		// Clear form only after all receipts are processed
+		Platform.runLater(() -> controller.clearForm());
+	}
+
 }

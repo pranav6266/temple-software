@@ -15,6 +15,7 @@ public class DatabaseManager {
 		createSevaTableIfNotExists(); // *** ADDED CALL ***
 		createDonationsTableIfNotExists();
 		createOtherSevaTableIfNotExists();
+		createDonationReceiptTableIfNotExists();
 	}
 
 	private void createReceiptTableIfNotExists() {
@@ -35,6 +36,29 @@ public class DatabaseManager {
 			stmt.execute(sql);
 		} catch (SQLException e) {
 			System.err.println("Error creating Receipts table: " + e.getMessage());
+		}
+	}
+
+
+	private void createDonationReceiptTableIfNotExists() {
+		String sql = "CREATE TABLE IF NOT EXISTS DonationReceipts(" +
+				"donation_receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"devotee_name VARCHAR(255), " +
+				"phone_number VARCHAR(20), " +
+				"address VARCHAR(150), " +
+				"rashi VARCHAR(20), " +
+				"nakshatra VARCHAR(20), " +
+				"seva_date DATE, " +
+				"donation_name VARCHAR(255), " +
+				"donation_amount DECIMAL(10, 2), " +
+				"payment_mode VARCHAR(10), " +
+				"print_status VARCHAR(20) DEFAULT 'SUCCESS', " +
+				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("DonationReceipts table checked/created successfully.");
+		} catch (SQLException e) {
+			System.err.println("Error creating DonationReceipts table: " + e.getMessage());
 		}
 	}
 
