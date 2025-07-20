@@ -23,6 +23,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryController {
@@ -70,7 +71,6 @@ public class HistoryController {
 
 	private final ReceiptRepository receiptRepository = new ReceiptRepository();
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
-	private String savedSevaType = "All";
 	private LocalDate savedDate = null;
 	private String savedMonth = "All";
 	private String savedYear = "";
@@ -115,18 +115,39 @@ public class HistoryController {
 			// Hide seva table, show donation table
 			historyTable.setVisible(false);
 			donationHistoryTable.setVisible(true);
-			loadDonationHistory();
-			toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Seva Receipts"
-			currentViewLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ"); // "Donation Receipt History"
+
+			// Apply existing filters to donation data
+			List<DonationReceiptData> allDonations = donationReceiptRepository.getAllDonationReceipts();
+			if (savedDate != null || (savedMonth != null && !savedMonth.equals("All")) ||
+					(savedYear != null && !savedYear.isEmpty()) || savedOnline || savedOffline) {
+				List<DonationReceiptData> filteredDonations = applyFiltersToDonationReceipts(allDonations, savedDate, savedMonth, savedYear, savedOnline, savedOffline);
+				donationHistoryTable.setItems(FXCollections.observableArrayList(filteredDonations));
+			} else {
+				donationHistoryTable.setItems(FXCollections.observableArrayList(allDonations));
+			}
+
+			toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
+			currentViewLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ");
 		} else {
 			// Hide donation table, show seva table
 			donationHistoryTable.setVisible(false);
 			historyTable.setVisible(true);
-			loadHistory();
-			toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"); // "View Donation Receipts"
-			currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"); // "Seva Receipt History"
+
+			// Apply existing filters to seva data
+			List<ReceiptData> allReceipts = receiptRepository.getAllReceipts();
+			if (savedDate != null || (savedMonth != null && !savedMonth.equals("All")) ||
+					(savedYear != null && !savedYear.isEmpty()) || savedOnline || savedOffline) {
+				List<ReceiptData> filteredReceipts = applyFiltersToSevaReceipts(allReceipts, savedDate, savedMonth, savedYear, savedOnline, savedOffline);
+				historyTable.setItems(FXCollections.observableArrayList(filteredReceipts));
+			} else {
+				historyTable.setItems(FXCollections.observableArrayList(allReceipts));
+			}
+
+			toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
+			currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ");
 		}
 	}
+
 
 
 	// Add this method to load donation history
@@ -352,75 +373,164 @@ public class HistoryController {
 	@FXML
 	public void openFilterPopup() {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/FilterPopup.fxml")); // [cite: 198]
-			AnchorPane popupContent = loader.load(); // [cite: 198]
-			FilterPopupController controller = getFilterPopupController(loader);
-			// --- MODIFICATION END ---
-
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/FilterPopup.fxml"));
+			AnchorPane popupContent = loader.load();
+			FilterPopupController controller = loader.getController();
 
 			Stage popupStage = new Stage();
-			popupStage.setScene(new Scene(popupContent)); // [cite: 199]
-			popupStage.setTitle("Apply Filters"); // [cite: 199]
-			popupStage.initModality(Modality.APPLICATION_MODAL); // [cite: 199]
-			// Set the owner if needed: popupStage.initOwner(historyTable.getScene().getWindow());
+			popupStage.setScene(new Scene(popupContent));
+			popupStage.setTitle("Apply Filters");
+			popupStage.initModality(Modality.APPLICATION_MODAL);
 
+			// Set initial filter state
+			controller.setInitialFilterState(null, savedDate, savedMonth, savedYear, savedOnline, savedOffline);
 
-			// --- MODIFICATION: Call setInitialFilterState BEFORE showing the popup ---
-			controller.setInitialFilterState(
-					savedSevaType,
-					savedDate,
-					savedMonth,
-					savedYear,
-					savedOnline,
-					savedOffline
-			); // [cite: 199]
+			// Set up the filter listener
+			controller.setFilterListener(new FilterPopupController.FilterListener() {
+				@Override
+				public void onFiltersApplied(LocalDate date, String month, String year, boolean online, boolean offline) {
+					// Save the applied filter state
+					savedDate = date;
+					savedMonth = month;
+					savedYear = year;
+					savedOnline = online;
+					savedOffline = offline;
 
+					// Apply filters based on current view
+					if (isShowingDonations) {
+						// Filter donation receipts
+						List<DonationReceiptData> allDonations = donationReceiptRepository.getAllDonationReceipts();
+						List<DonationReceiptData> filteredDonations = applyFiltersToDonationReceipts(allDonations, date, month, year, online, offline);
+						donationHistoryTable.setItems(FXCollections.observableArrayList(filteredDonations));
+					} else {
+						// Filter seva receipts
+						List<ReceiptData> allReceipts = receiptRepository.getAllReceipts();
+						List<ReceiptData> filteredReceipts = applyFiltersToSevaReceipts(allReceipts, date, month, year, online, offline);
+						historyTable.setItems(FXCollections.observableArrayList(filteredReceipts));
+					}
+				}
 
-			popupStage.showAndWait(); // [cite: 199]
+				@Override
+				public void onFiltersCleared() {
+					// Reset saved state
+					savedDate = null;
+					savedMonth = "All";
+					savedYear = "";
+					savedOnline = false;
+					savedOffline = false;
+
+					// Reload full data based on current view
+					if (isShowingDonations) {
+						loadDonationHistory();
+					} else {
+						loadHistory();
+					}
+				}
+			});
+
+			popupStage.showAndWait();
 
 		} catch (IOException e) {
-			e.printStackTrace(); // [cite: 201]
-			// Show an error alert to the user
-			showAlert("Error", "Could not open the filter popup."); // [cite: 190]
+			e.printStackTrace();
+			showAlert("Error", "Could not open the filter popup.");
 		}
 	}
 
-	private FilterPopupController getFilterPopupController(FXMLLoader loader) {
-		FilterPopupController controller = loader.getController(); // [cite: 199]
 
-		// --- MODIFICATION START: Implement the updated FilterListener ---
-		controller.setFilterListener(new FilterPopupController.FilterListener() {
-			@Override
-			public void onFiltersApplied(List<ReceiptData> filteredList, String sevaType, LocalDate date, String month, String year, boolean online, boolean offline) {
-				// Update the table view
-				historyTable.setItems(FXCollections.observableArrayList(filteredList)); // [cite: 200]
+//	private FilterPopupController getFilterPopupController(FXMLLoader loader) {
+//		FilterPopupController controller = loader.getController(); // [cite: 199]
+//
+//		// --- MODIFICATION START: Implement the updated FilterListener ---
+//		controller.setFilterListener(new FilterPopupController.FilterListener() {
+//			@Override
+//			public void onFiltersApplied(List<ReceiptData> filteredList, String sevaType, LocalDate date, String month, String year, boolean online, boolean offline) {
+//				// Update the table view
+//				historyTable.setItems(FXCollections.observableArrayList(filteredList)); // [cite: 200]
+//
+//				// Save the applied filter state
+//
+//				savedDate = date;
+//				savedMonth = month;
+//				savedYear = year;
+//				savedOnline = online;
+//				savedOffline = offline;
+//			}
+//
+//			@Override
+//			public void onFiltersCleared() {
+//				// Reset saved state
+//				savedDate = null;
+//				savedMonth = "All";
+//				savedYear = "";
+//				savedOnline = false;
+//				savedOffline = false;
+//
+//				// Reload the full history list
+//				loadHistory(); // Assumes loadHistory() re-fetches all receipts
+//			}
+//		});
+//		return controller;
+//	}
 
-				// Save the applied filter state
-				savedSevaType = sevaType;
-				savedDate = date;
-				savedMonth = month;
-				savedYear = year;
-				savedOnline = online;
-				savedOffline = offline;
-			}
+	private List<ReceiptData> applyFiltersToSevaReceipts(List<ReceiptData> receipts, LocalDate date, String month, String year, boolean online, boolean offline) {
+		List<ReceiptData> filtered = new ArrayList<>(receipts);
 
-			@Override
-			public void onFiltersCleared() {
-				// Reset saved state
-				savedSevaType = "ಎಲ್ಲಾ";
-				savedDate = null;
-				savedMonth = "All";
-				savedYear = "";
-				savedOnline = false;
-				savedOffline = false;
+		// Filter by date
+		if (date != null) {
+			filtered.removeIf(receipt -> !receipt.getSevaDate().equals(date));
+		}
 
-				// Reload the full history list
-				loadHistory(); // Assumes loadHistory() re-fetches all receipts
-			}
-		});
-		return controller;
+		// Filter by month (only if date is not selected)
+		if (date == null && month != null && !month.equals("All")) {
+			filtered.removeIf(receipt ->
+					!receipt.getSevaDate().getMonth().name().equalsIgnoreCase(month));
+		}
+
+		// Filter by year (only if date is not selected)
+		if (date == null && year != null && !year.isEmpty()) {
+			filtered.removeIf(receipt ->
+					receipt.getSevaDate().getYear() != Integer.parseInt(year));
+		}
+
+		// Filter by payment mode
+		if (online && !offline) {
+			filtered.removeIf(receipt -> !("Online".equalsIgnoreCase(receipt.getPaymentMode())));
+		} else if (!online && offline) {
+			filtered.removeIf(receipt -> !("Cash".equalsIgnoreCase(receipt.getPaymentMode())));
+		}
+
+		return filtered;
 	}
 
+	private List<DonationReceiptData> applyFiltersToDonationReceipts(List<DonationReceiptData> donations, LocalDate date, String month, String year, boolean online, boolean offline) {
+		List<DonationReceiptData> filtered = new ArrayList<>(donations);
+
+		// Filter by date
+		if (date != null) {
+			filtered.removeIf(donation -> !donation.getSevaDate().equals(date));
+		}
+
+		// Filter by month (only if date is not selected)
+		if (date == null && month != null && !month.equals("All")) {
+			filtered.removeIf(donation ->
+					!donation.getSevaDate().getMonth().name().equalsIgnoreCase(month));
+		}
+
+		// Filter by year (only if date is not selected)
+		if (date == null && year != null && !year.isEmpty()) {
+			filtered.removeIf(donation ->
+					donation.getSevaDate().getYear() != Integer.parseInt(year));
+		}
+
+		// Filter by payment mode
+		if (online && !offline) {
+			filtered.removeIf(donation -> !("Online".equalsIgnoreCase(donation.getPaymentMode())));
+		} else if (!online && offline) {
+			filtered.removeIf(donation -> !("Cash".equalsIgnoreCase(donation.getPaymentMode())));
+		}
+
+		return filtered;
+	}
 }
 
 
