@@ -9,6 +9,7 @@ import javafx.scene.control.TableView;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 public class ReceiptDetailsController {
 
@@ -24,18 +25,18 @@ public class ReceiptDetailsController {
 	@FXML private TableColumn<SevaEntry, Number> priceColumn;
 	@FXML private TableColumn<SevaEntry, Number> quantityColumn;
 	@FXML private TableColumn<SevaEntry, Number> totalColumn;
-	@FXML private Text addressText;
+	@FXML private Label addressText;
 
 	public void initializeDetails(ReceiptData data) {
 		if (data == null) return;
 
 		receiptIdLabel.setText("Receipt ID: " + data.getReceiptId());
-		devoteeNameLabel.setText("Name: " + data.getDevoteeName());
-		phoneNumberLabel.setText("Phone: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "N/A"));
-		sevaDateLabel.setText("Date: " + data.getFormattedDate());
-		rashiLabel.setText("Rashi: " + (data.getRashi() != null ? data.getRashi() : "Not specified"));
-		nakshatraLabel.setText("Nakshatra: " + (data.getNakshatra() != null ? data.getNakshatra() : "Not specified"));
-		addressText.setText("Address: "+ (data.getAddress() != null ? data.getAddress() : "N/A"));
+		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName());
+		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "N/A"));
+		sevaDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedDate());
+		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "Not specified"));
+		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್: " + (data.getNakshatra() != null ? data.getNakshatra() : "Not specified"));
+		addressText.setText("ವಿಳಾಸ: "+ (data.getAddress() != null ? data.getAddress() : "N/A"));
 		totalAmountLabel.setText(String.format("Total Amount: ₹%.2f", data.getTotalAmount()));
 
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
@@ -44,5 +45,12 @@ public class ReceiptDetailsController {
 		totalColumn.setCellValueFactory(cellData -> cellData.getValue().totalAmountProperty());
 
 		sevaTableView.setItems(FXCollections.observableArrayList(data.getSevas()));
+	}
+	@FXML
+	public void handleClose() {
+		Stage stage = (Stage) receiptIdLabel.getScene().getWindow();
+		if (stage != null) {
+			stage.close();
+		}
 	}
 }

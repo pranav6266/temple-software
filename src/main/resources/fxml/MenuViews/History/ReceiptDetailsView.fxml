@@ -1,35 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.text.Text?>
-<AnchorPane prefHeight="600.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/23.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.ReceiptDetailsController">
+<ScrollPane prefHeight="650.0" prefWidth="700.0" styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.ReceiptDetailsController">
 
-    <!-- Container for fields -->
-    <VBox layoutX="20.0" layoutY="20.0" prefHeight="560.0" prefWidth="550.0" spacing="10">
-        <Label fx:id="receiptIdLabel" text="Receipt ID: "/>
-        <Label fx:id="devoteeNameLabel" text="Name: "/>
-        <Label fx:id="phoneNumberLabel" text="Phone: "/>
-        <Label fx:id="sevaDateLabel" text="Date: "/>
-        <Label fx:id="rashiLabel" text="Rashi: "/>
-        <Label fx:id="nakshatraLabel" text="Nakshatra: "/>
-        <Text fx:id="addressText" text="Address: "/>
-        <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="Total Amount: "/>
+    <VBox styleClass="details-container" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
 
-        <!-- Structured ListView for Seva Details -->
-        <Label text="Sevas / Donations / Other Sevas:" style="-fx-font-weight: bold;"/>
-        <TableView fx:id="sevaTableView" prefHeight="300.0" prefWidth="500.0">
-            <columns>
-                <TableColumn fx:id="sevaNameColumn" prefWidth="200.0" text="Seva / Donation / OtherSeva"/>
-                <TableColumn fx:id="priceColumn" prefWidth="100.0" text="Price"/>
-                <TableColumn fx:id="quantityColumn" text="Quantity"/>
-                <TableColumn fx:id="totalColumn" prefWidth="120.0" text="Total Amount"/>
-            </columns>
-        </TableView>
+        <!-- Header -->
+        <Label styleClass="details-header" text="ಸೇವಾ ರಶೀದಿ ವಿವರಗಳು" />
+
+        <!-- Receipt ID -->
+        <Label fx:id="receiptIdLabel" styleClass="receipt-id-label" text="ರಶೀದಿ ಸಂಖ್ಯೆ: " />
+
+        <!-- Devotee Details Section -->
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
+
+            <GridPane styleClass="info-grid">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" minWidth="120" prefWidth="600.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="60" prefHeight="60" />
+                </rowConstraints>
+
+                <Label fx:id="devoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+<!--                <Label  text="ಭಕ್ತರ ಹೆಸರು: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>-->
+
+                <Label fx:id="phoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+<!--                <Label  text="ದೂರವಾಣಿ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="1"/>-->
+
+                <Label fx:id="sevaDateLabel" styleClass="info-label" text="ದಿನಾಂಕ:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+<!--                <Label  text="ದಿನಾಂಕ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="2"/>-->
+
+                <Label fx:id="rashiLabel" styleClass="info-label" text="ರಾಶಿ:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+<!--                <Label  text="ರಾಶಿ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="3"/>-->
+
+                <Label fx:id="nakshatraLabel" styleClass="info-label" text="ನಕ್ಷತ್ರ:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+<!--                <Label  text="ನಕ್ಷತ್ರ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="4"/>-->
+
+                <Label fx:id="addressText" styleClass="info-label" text="ವಿಳಾಸ:" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+<!--                <Text  text="ವಿಳಾಸ: " styleClass="address-text" wrappingWidth="400" GridPane.columnIndex="1" GridPane.rowIndex="5"/>-->
+            </GridPane>
+        </VBox>
+
+        <!-- Total Amount -->
+        <Label fx:id="totalAmountLabel" styleClass="amount-label" text="ಒಟ್ಟು ಮೊತ್ತ: " />
+
+        <!-- Seva Details Section -->
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಸೇವಾ ವಿವರಗಳು" />
+
+            <TableView fx:id="sevaTableView" prefHeight="250.0" styleClass="details-table">
+                <columns>
+                    <TableColumn fx:id="sevaNameColumn" prefWidth="250.0" styleClass="seva-name-cell" text="ಸೇವೆ / ದೇಣಿಗೆ / ಇತರೆ ಸೇವೆ" />
+                    <TableColumn fx:id="priceColumn" prefWidth="100.0" styleClass="price-cell" text="ಬೆಲೆ" />
+                    <TableColumn fx:id="quantityColumn" prefWidth="80.0" styleClass="quantity-cell" text="ಪ್ರಮಾಣ" />
+                    <TableColumn fx:id="totalColumn" prefWidth="120.0" styleClass="total-cell" text="ಒಟ್ಟು ಮೊತ್ತ" />
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Close Button -->
+        <HBox styleClass="button-container">
+            <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
+        </HBox>
+
     </VBox>
 
-</AnchorPane>
+</ScrollPane>

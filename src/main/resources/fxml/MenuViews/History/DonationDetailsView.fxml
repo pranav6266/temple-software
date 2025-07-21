@@ -1,53 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
-<?import javafx.geometry.Insets?>
 
-<AnchorPane prefHeight="500.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DonationDetailsController">
+<AnchorPane prefHeight="600.0" prefWidth="700.0" styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DonationDetailsController">
 
-    <VBox layoutX="20.0" layoutY="20.0" prefHeight="460.0" prefWidth="560.0" spacing="15">
-        <padding>
-            <Insets top="20" right="20" bottom="20" left="20"/>
-        </padding>
+    <VBox styleClass="details-container" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
 
         <!-- Header -->
-        <Label text="ದೇಣಿಗೆ ರಶೀದಿ ವಿವರಗಳು" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+        <Label styleClass="details-header" text="ದೇಣಿಗೆ ರಶೀದಿ ವಿವರಗಳು" />
 
-        <Separator/>
+        <!-- Receipt ID -->
+        <Label fx:id="donationReceiptIdLabel" styleClass="receipt-id-label" text="ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " />
 
-        <!-- Receipt Information -->
-        <Label fx:id="donationReceiptIdLabel" text="ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        <!-- Devotee Details Section -->
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
 
-        <!-- Devotee Details -->
-        <VBox spacing="8">
-            <Label text="ಭಕ್ತರ ವಿವರಗಳು:" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #34495e;"/>
-            <Label fx:id="donationDevoteeNameLabel" text="ಭಕ್ತರ ಹೆಸರು: " style="-fx-font-size: 14px;"/>
-            <Label fx:id="donationPhoneNumberLabel" text="ದೂರವಾಣಿ: " style="-fx-font-size: 14px;"/>
-            <Text fx:id="donationAddressText" text="ವಿಳಾಸ: " wrappingWidth="500" style="-fx-font-size: 14px;"/>
-            <Label fx:id="donationRashiLabel" text="ಜನ್ಮ ರಾಶಿ: " style="-fx-font-size: 14px;"/>
-            <Label fx:id="donationNakshatraLabel" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " style="-fx-font-size: 14px;"/>
+            <GridPane styleClass="info-grid">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="60" prefHeight="60" />
+                </rowConstraints>
+
+
+                <Label fx:id="donationDevoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು: " GridPane.rowIndex="0" />
+
+
+                <Label fx:id="donationPhoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ: " GridPane.rowIndex="1" />
+
+
+                <Label fx:id="donationRashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="2" />
+
+
+                <Label fx:id="donationNakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="3" />
+
+
+                <Text fx:id="donationAddressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="4" />
+            </GridPane>
         </VBox>
 
-        <Separator/>
+        <!-- Donation Details Section -->
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ದೇಣಿಗೆ ವಿವರಗಳು" />
 
-        <!-- Donation Details -->
-        <VBox spacing="8">
-            <Label text="ದೇಣಿಗೆ ವಿವರಗಳು:" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #34495e;"/>
-            <Label fx:id="donationDateLabel" text="ದಿನಾಂಕ: " style="-fx-font-size: 14px;"/>
-            <Label fx:id="donationNameLabel" text="ದೇಣಿಗೆ ವಿಧ: " style="-fx-font-size: 14px;"/>
-            <Label fx:id="donationAmountLabel" text="ದೇಣಿಗೆ ಮೊತ್ತ: " style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
-            <Label fx:id="donationPaymentModeLabel" text="ಪಾವತಿ ವಿಧಾನ: " style="-fx-font-size: 14px;"/>
+            <GridPane styleClass="info-grid">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                    <RowConstraints minHeight="30" prefHeight="30" />
+                </rowConstraints>
+
+
+                <Label fx:id="donationDateLabel" styleClass="info-label" text="ದಿನಾಂಕ: " GridPane.rowIndex="0" />
+
+
+                <Label fx:id="donationNameLabel" styleClass="info-label" text="ದೇಣಿಗೆ ವಿಧ: " GridPane.rowIndex="1" />
+
+      
+                      <Label fx:id="donationAmountLabel" styleClass="amount-label" text="ದೇಣಿಗೆ ಮೊತ್ತ: " GridPane.rowIndex="3" />
+
+      
+                      <Label fx:id="donationPaymentModeLabel" styleClass="info-label" text="ಪಾವತಿ ವಿಧಾನ: " GridPane.rowIndex="2" />
+            </GridPane>
         </VBox>
 
         <!-- Close Button -->
-        <HBox alignment="CENTER" spacing="10">
-            <Button text="ಮುಚ್ಚಿ" onAction="#handleClose"
-                    style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 16;"/>
+        <HBox styleClass="button-container">
+            <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
         </HBox>
     </VBox>
 

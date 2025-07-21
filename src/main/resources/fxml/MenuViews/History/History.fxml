@@ -1,48 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<AnchorPane prefHeight="635.0" prefWidth="1085.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
+<?import javafx.scene.text.Font?>
 
-    <!-- Top controls -->
-    <HBox alignment="CENTER_LEFT" spacing="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10">
-        <Button onAction="#openFilterPopup" text="Apply Filter" />
-        <Button fx:id="toggleViewButton" onAction="#handleToggleView" text="ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ" />
-        <!-- ADD THIS BUTTON -->
-        <Button onAction="#handleDashboardButton" text="ಡ್ಯಾಶ್‌ಬೋರ್ಡ್"
-                style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;"/>
-        <Label fx:id="currentViewLabel" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
-    </HBox>
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" styleClass="history-root" stylesheets="@/css/modern-history.css"
+            xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
 
-    <!-- Seva Receipts Table (existing) -->
-    <TableView fx:id="historyTable" prefHeight="578.0" prefWidth="925.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50">
-        <columns>
-            <TableColumn fx:id="receiptIdColumn" text="ರಶೀದಿ ಸಂಖ್ಯೆ" />
-            <TableColumn fx:id="devoteeNameColumn" prefWidth="199.0" text="ಭಕ್ತರ ಹೆಸರು" />
-            <TableColumn fx:id="sevaDateColumn" prefWidth="69.0" text="ದಿನಾಂಕ" />
-            <TableColumn fx:id="totalAmountColumn" prefWidth="110.0" text="ಒಟ್ಟು ಮೊತ್ತ" />
-            <TableColumn fx:id="donationColumn" prefWidth="83.0" text="ದೇಣಿಗೆ" />
-            <TableColumn fx:id="otherSevaColumn" prefWidth="98.0" text="ಇತರೆ ಸೇವೆ" />
-            <TableColumn fx:id="sevaColumn" prefWidth="79.0" text="ಸೇವೆ" />
-            <TableColumn fx:id="paymentMode" prefWidth="117.0" text="ಪಾವತಿ ವಿಧಾನ " />
-            <TableColumn fx:id="isDonationColumn" prefWidth="111.0" text="ದೇಣಿಗೆ ಇದೆಯೇ?" />
-            <TableColumn fx:id="detailsColumn" prefWidth="117.0" text="ವಿವರಗಳು" />
-        </columns>
-    </TableView>
+    <!-- Header Section -->
+    <top>
+        <VBox styleClass="header-section">
+            <!-- Title Bar -->
+            <HBox styleClass="title-bar">
+                <Label text="📋 ರಶೀದಿ ಇತಿಹಾಸ" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="toggleViewButton" onAction="#handleToggleView" styleClass="toggle-button" text="ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ"/>
+            </HBox>
 
-    <!-- Donation Receipts Table (new) -->
-    <TableView fx:id="donationHistoryTable" prefHeight="578.0" prefWidth="925.0"
-               visible="false" managed="true"
-               AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10"
-               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50">
-        <columns>
-            <TableColumn fx:id="donationReceiptIdColumn" text="ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ" />
-            <TableColumn fx:id="donationDevoteeNameColumn" prefWidth="199.0" text="ಭಕ್ತರ ಹೆಸರು" />
-            <TableColumn fx:id="donationDateColumn" prefWidth="100.0" text="ದಿನಾಂಕ" />
-            <TableColumn fx:id="donationNameColumn" prefWidth="150.0" text="ದೇಣಿಗೆ ವಿಧ" />
-            <TableColumn fx:id="donationAmountColumn" prefWidth="110.0" text="ದೇಣಿಗೆ ಮೊತ್ತ" />
-            <TableColumn fx:id="donationPaymentModeColumn" prefWidth="117.0" text="ಪಾವತಿ ವಿಧಾನ" />
-            <TableColumn fx:id="donationDetailsColumn" prefWidth="117.0" text="ವಿವರಗಳು" />
-        </columns>
-    </TableView>
-</AnchorPane>
+            <!-- Current View Label -->
+            <Label fx:id="currentViewLabel" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" styleClass="current-view-label"/>
+
+            <!-- Filter Section -->
+            <HBox styleClass="filter-section">
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="dashboardButton" onAction="#handleDashboardButton" styleClass="dashboard-button" text="📊 ಡ್ಯಾಶ್‌ಬೋರ್ಡ್"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <StackPane styleClass="content-area">
+            <!-- Seva Receipts Table -->
+            <TableView fx:id="historyTable" styleClass="modern-history-table">
+                <columns>
+                    <TableColumn fx:id="receiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ."/>
+                    <TableColumn fx:id="devoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು"/>
+                    <TableColumn fx:id="sevaDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ"/>
+                    <TableColumn fx:id="sevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಸೇವೆಗಳು (₹)"/>
+                    <TableColumn fx:id="otherSevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಇತರೆ ಸೇವೆಗಳು (₹)"/>
+                    <TableColumn fx:id="donationColumn" prefWidth="140.0" styleClass="amount-column" text="ದೇಣಿಗೆಗಳು (₹)"/>
+                    <TableColumn fx:id="totalAmountColumn" prefWidth="140.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)"/>
+                    <TableColumn fx:id="paymentMode" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ"/>
+                    <TableColumn fx:id="isDonationColumn" prefWidth="90.0" resizable="false" styleClass="status-column" text="ದೇಣಿಗೆ?"/>
+                    <TableColumn fx:id="detailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು"/>
+                </columns>
+            </TableView>
+
+            <!-- Donation Receipts Table -->
+            <TableView fx:id="donationHistoryTable" styleClass="modern-history-table" visible="false">
+                <columns>
+                    <TableColumn fx:id="donationReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ."/>
+                    <TableColumn fx:id="donationDevoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು"/>
+                    <TableColumn fx:id="donationDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ"/>
+                    <TableColumn fx:id="donationNameColumn" prefWidth="200.0" styleClass="service-column" text="ದೇಣಿಗೆ ಪ್ರಕಾರ"/>
+                    <TableColumn fx:id="donationAmountColumn" prefWidth="140.0" styleClass="amount-column" text="ದೇಣಿಗೆ ಮೊತ್ತ (₹)"/>
+                    <TableColumn fx:id="donationPaymentModeColumn" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ"/>
+                    <TableColumn fx:id="donationDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು"/>
+                </columns>
+            </TableView>
+        </StackPane>
+    </center>
+
+    <!-- Footer -->
+    <bottom>
+        <HBox styleClass="footer-section">
+            <Label text="ಒಟ್ಟು ದಾಖಲೆಗಳು: " styleClass="footer-label"/>
+            <Label fx:id="totalRecordsLabel" text="0" styleClass="footer-value"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="© ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ" styleClass="footer-copyright"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
