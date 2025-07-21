@@ -437,6 +437,23 @@ public class HistoryController {
 	}
 
 
+	@FXML
+	public void handleDashboardButton() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/Dashboard.fxml"));
+			Stage dashboardStage = new Stage();
+			dashboardStage.setTitle("ಸೇವಾ/ದೇಣಿಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್");
+			dashboardStage.setScene(new Scene(loader.load()));
+			dashboardStage.initModality(Modality.WINDOW_MODAL);
+			dashboardStage.initOwner(historyTable.getScene().getWindow());
+			dashboardStage.setMaximized(true);
+			dashboardStage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Failed to load dashboard view: " + e.getMessage());
+		}
+	}
+
 //	private FilterPopupController getFilterPopupController(FXMLLoader loader) {
 //		FilterPopupController controller = loader.getController(); // [cite: 199]
 //

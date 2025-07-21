@@ -8,6 +8,9 @@
     <HBox alignment="CENTER_LEFT" spacing="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10">
         <Button onAction="#openFilterPopup" text="Apply Filter" />
         <Button fx:id="toggleViewButton" onAction="#handleToggleView" text="ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ" />
+        <!-- ADD THIS BUTTON -->
+        <Button onAction="#handleDashboardButton" text="ಡ್ಯಾಶ್‌ಬೋರ್ಡ್"
+                style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;"/>
         <Label fx:id="currentViewLabel" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
     </HBox>
 
