@@ -11,6 +11,7 @@ import com.pranav.temple_software.controllers.MainController;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer; // Import Consumer
 import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.repositories.DonationReceiptRepository;
@@ -104,26 +105,60 @@ public class ReceiptServices {
 			}
 		}
 
+		// **NEW: Success tracking for ALL receipts**
+		final AtomicInteger totalReceipts = new AtomicInteger(0);
+		final AtomicInteger successfulReceipts = new AtomicInteger(0);
+
+		// Calculate total receipts that will be generated
+		if (!sevaEntries.isEmpty()) totalReceipts.incrementAndGet();
+		totalReceipts.addAndGet(donationEntries.size());
+
+		// Success callback to track individual receipt printing
+		Consumer<Boolean> trackPrintSuccess = (success) -> {
+			if (success) {
+				int completed = successfulReceipts.incrementAndGet();
+				System.out.println("Receipt " + completed + " of " + totalReceipts.get() + " printed successfully");
+
+				// Clear form ONLY when ALL receipts are printed successfully
+				if (completed == totalReceipts.get()) {
+					Platform.runLater(() -> {
+						controller.clearForm();
+						Platform.runLater(() -> controller.devoteeNameField.requestFocus());
+						controller.showAlert("All Receipts Printed",
+								"All " + totalReceipts.get() + " receipts have been printed and saved successfully!");
+					});
+				}
+			} else {
+				Platform.runLater(() -> {
+					controller.showAlert("Print Failed",
+							"One or more receipts failed to print. Form will not be cleared.");
+				});
+			}
+		};
+
 		// Handle seva receipt if sevas exist
 		if (!sevaEntries.isEmpty()) {
-			handleSevaReceipt(devoteeName, phoneNumber, address, raashi, nakshatra, date,
-					sevaEntries, pendingPaymentMode);
+			handleSevaReceiptWithCallback(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+					sevaEntries, pendingPaymentMode, trackPrintSuccess);
 		}
 
 		// Handle donation receipts (one per donation)
 		if (!donationEntries.isEmpty()) {
-			handleDonationReceipts(devoteeName, phoneNumber, address, raashi, nakshatra, date,
-					donationEntries, pendingPaymentMode);
+			handleDonationReceiptsWithCallback(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+					donationEntries, pendingPaymentMode, trackPrintSuccess);
 		}
 	}
 
-	private void handleSevaReceipt(String devoteeName, String phoneNumber, String address,
-	                               String raashi, String nakshatra, LocalDate date,
-	                               List<SevaEntry> sevaEntries, String paymentMode) {
+
+	private void handleSevaReceiptWithCallback(String devoteeName, String phoneNumber, String address,
+	                                           String raashi, String nakshatra, LocalDate date,
+	                                           List<SevaEntry> sevaEntries, String paymentMode,
+	                                           Consumer<Boolean> successCallback) {
 		// Get next seva receipt ID
 		int sevaReceiptId = controller.receiptRepository.getNextReceiptId();
 		if (sevaReceiptId <= 0) {
 			controller.showAlert("Database Error", "Could not determine the next seva receipt ID.");
+			successCallback.accept(false); // Report failure
 			return;
 		}
 
@@ -148,30 +183,35 @@ public class ReceiptServices {
 				if (actualSavedId != -1) {
 					Platform.runLater(() -> {
 						controller.showAlert("Seva Receipt Success", "Seva receipt printed and saved successfully with ID: " + actualSavedId);
-
 					});
+					successCallback.accept(true); // Report success
 				} else {
 					Platform.runLater(() -> controller.showAlert("Database Error", "Seva receipt printed but failed to save to database."));
+					successCallback.accept(false); // Report failure
 				}
 			} else {
 				Platform.runLater(() -> controller.showAlert("Print Failed", "Seva receipt print job was cancelled or failed."));
+				successCallback.accept(false); // Report failure
 			}
 		};
 
 		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, sevaAfterPrintAction);
 	}
 
-	private void handleDonationReceipts(String devoteeName, String phoneNumber, String address,
-	                                    String raashi, String nakshatra, LocalDate date,
-	                                    List<SevaEntry> donationEntries, String paymentMode) {
 
-		// ✅ Get the initial donation receipt ID ONCE before the loop
+	private void handleDonationReceiptsWithCallback(String devoteeName, String phoneNumber, String address,
+	                                                String raashi, String nakshatra, LocalDate date,
+	                                                List<SevaEntry> donationEntries, String paymentMode,
+	                                                Consumer<Boolean> successCallback) {
+
+		// Get the initial donation receipt ID ONCE before the loop
 		int donationReceiptId = DonationReceiptRepository.getNextDonationReceiptId();
 
 		// Create separate receipt for each donation
 		for (SevaEntry donation : donationEntries) {
 			if (donationReceiptId <= 0) {
 				controller.showAlert("Database Error", "Could not determine the next donation receipt ID.");
+				successCallback.accept(false); // Report failure
 				continue;
 			}
 
@@ -197,25 +237,28 @@ public class ReceiptServices {
 					if (actualSavedId != -1) {
 						Platform.runLater(() -> controller.showAlert("Donation Receipt Success",
 								"Donation receipt for " + donationName + " printed and saved successfully with ID: " + actualSavedId));
+						successCallback.accept(true); // Report success
 					} else {
 						Platform.runLater(() -> controller.showAlert("Database Error",
 								"Donation receipt printed but failed to save to database."));
+						successCallback.accept(false); // Report failure
 					}
 				} else {
 					Platform.runLater(() -> controller.showAlert("Print Failed",
 							"Donation receipt print job was cancelled or failed."));
+					successCallback.accept(false); // Report failure
 				}
 			};
 
 			controller.receiptPrinter.showDonationPrintPreview(donationReceiptData, controller.mainStage, donationAfterPrintAction);
 
-			// ✅ INCREMENT the ID for the next donation receipt
+			// INCREMENT the ID for the next donation receipt
 			donationReceiptId++;
 		}
 
-		// Clear form only after all receipts are processed
-		Platform.runLater(() -> controller.clearForm());
+		// Remove the old form clearing code from here - it's now handled by the success callback
 	}
+
 
 
 }
