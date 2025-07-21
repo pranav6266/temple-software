@@ -39,6 +39,7 @@
 }
 
 .menu-button:hover {
+	-fx-text-fill: black;
     -fx-background-color: linear-gradient(to bottom, #1976d2 0%, #1565c0 100%);
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 0, 2);
 }
@@ -128,7 +129,7 @@
 }
 
 .panel-title {
-    -fx-font-size: 16px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
     -fx-text-fill: #1565c0;
     -fx-padding: 0 0 15 0;
@@ -306,7 +307,7 @@
 .modern-table .table-row-cell {
     -fx-background-color: white;
     -fx-padding: 4;
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
 }
 
 .modern-table .table-row-cell:odd {
@@ -322,7 +323,7 @@
     -fx-alignment: center;
     -fx-padding: 4;
     -fx-border-color: #f0f0f0;
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
 }
 
 .total-container {
@@ -379,7 +380,7 @@
 }
 
 .status-label {
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: #495057;
     -fx-alignment: center;
@@ -393,7 +394,7 @@
 .primary-button {
     -fx-background-color: linear-gradient(to bottom, #2196f3 0%, #1976d2 100%);
     -fx-text-fill: white;
-    -fx-font-size: 16px;
+    -fx-font-size: 17px;
     -fx-font-weight: bold;
     -fx-background-radius: 8;
     -fx-padding: 12 30;
@@ -412,7 +413,7 @@
 .secondary-button {
     -fx-background-color: linear-gradient(to bottom, #ff5722 0%, #d84315 100%);
     -fx-text-fill: white;
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-background-radius: 6;
     -fx-padding: 10 20;
@@ -442,7 +443,7 @@
     -fx-border-radius: 6;
     -fx-background-radius: 6;
     -fx-border-width: 2;
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
     -fx-padding: 8;
     -fx-pref-height: 35;
 }
@@ -454,11 +455,11 @@
 }
 
 .combo-box .list-view {
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
 }
 
 .combo-box .list-cell {
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
     -fx-padding: 6 8;
 }
 
@@ -506,7 +507,7 @@
 
 /* Menu Item Styling */
 .menu-item {
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
     -fx-padding: 6 12;
 }
 
