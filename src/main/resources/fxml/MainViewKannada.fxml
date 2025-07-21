@@ -36,7 +36,7 @@
                 <VBox styleClass="title-container">
                    <!-- Navigation and Close Button Row -->
                    <HBox styleClass="nav-bar">
-                  <MenuButton fx:id="menuButton" prefHeight="52.0" prefWidth="131.0" styleClass="menu-button" text="☰ ಮೆನು">
+                  <MenuButton fx:id="menuButton" prefHeight="60.0" prefWidth="153.0" styleClass="menu-button" text="☰ ಮೆನು">
                      <items>
                         <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" text="📋 ಇತಿಹಾಸ" />
                         <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" text="🛠️ ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
@@ -52,7 +52,7 @@
                            </effect>
                        </Button>
                    </HBox>
-                    <Label prefHeight="29.0" prefWidth="109.0" styleClass="temple-subtitle" text="ಚೇರ್ಕಬೆ, ಪಡ್ರೆ" />
+                    <Label prefHeight="43.0" prefWidth="136.0" styleClass="temple-subtitle" text="ಚೇರ್ಕಬೆ, ಪಡ್ರೆ" />
                     <Label styleClass="temple-contact" text="ಅಂಚೆ: 671552 | ದೂರವಾಣಿ: 6282525216, 9526431593" />
                     <Label styleClass="receipt-title" text="ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ" />
                 </VBox>
@@ -114,36 +114,35 @@
 
                 <!-- Center Panel - Services Selection -->
                 <VBox maxWidth="582.0" minWidth="550.0" prefHeight="666.0" prefWidth="582.0" styleClass="service-panel">
-                    <Label prefHeight="50.0" prefWidth="238.0" styleClass="panel-title" text="ಸೇವೆಗಳು ಮತ್ತು ದೇಣಿಗೆಗಳು" />
+                    <Label prefHeight="38.0" prefWidth="262.0" styleClass="panel-title" text="ಸೇವೆಗಳು ಮತ್ತು ದೇಣಿಗೆಗಳು" />
 
                     <!-- Seva Services -->
-                    <VBox prefHeight="481.0" prefWidth="508.0" styleClass="service-section">
-                        <Label prefHeight="38.0" prefWidth="153.0" styleClass="section-title" text="🕉️ ಸೇವಾ ಪ್ರಕಾರಗಳು" />
-                        <ScrollPane fitToWidth="true" maxHeight="392.0" prefHeight="392.0" prefWidth="508.0" styleClass="seva-scroll">
+                    <VBox prefHeight="490.0" prefWidth="508.0" styleClass="service-section">
+                        <ScrollPane fitToWidth="true" maxHeight="392.0" minHeight="160.0" prefHeight="213.0" prefWidth="508.0" styleClass="seva-scroll">
                             <VBox fx:id="sevaCheckboxContainer" styleClass="seva-container" />
                         </ScrollPane>
                     </VBox>
 
                     <!-- Other Services -->
-                    <VBox prefHeight="192.0" prefWidth="508.0" styleClass="service-section">
-                        <Label prefHeight="51.0" prefWidth="145.0" styleClass="section-title" text="⚙️ ಇತರೆ ಸೇವೆಗಳು" />
+                    <VBox prefHeight="115.0" prefWidth="508.0" styleClass="service-section">
+                        <Label prefHeight="37.0" prefWidth="132.0" styleClass="section-title" text="⚙️ ಇತರೆ ಸೇವೆಗಳು" />
                         <HBox styleClass="other-seva-row">
-                            <ComboBox fx:id="otherServicesComboBox" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" HBox.hgrow="ALWAYS" />
-                            <Button fx:id="addDonationButton1" styleClass="add-button" text="➕ ಸೇರಿಸಿ" />
+                            <ComboBox fx:id="otherServicesComboBox" prefHeight="50.0" prefWidth="245.0" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" HBox.hgrow="ALWAYS" />
+                            <Button fx:id="addDonationButton1" prefHeight="43.0" prefWidth="84.0" styleClass="add-button" text="➕ ಸೇರಿಸಿ" />
                         </HBox>
                     </VBox>
 
                     <!-- Donations -->
-                    <VBox prefHeight="161.0" prefWidth="482.0" styleClass="service-section">
-                        <Label prefHeight="38.0" prefWidth="124.0" styleClass="section-title" text="💰 ದೇಣಿಗೆಗಳು" />
+                    <VBox prefHeight="154.0" prefWidth="508.0" styleClass="service-section">
+                        <Label prefHeight="37.0" prefWidth="105.0" styleClass="section-title" text="💰 ದೇಣಿಗೆಗಳು" />
                         <HBox styleClass="donation-row">
                             <CheckBox fx:id="donationCheck" styleClass="donation-checkbox" text="ಸಕ್ರಿಯಗೊಳಿಸಿ" />
                             <TextField fx:id="donationField" promptText="ಮೊತ್ತ" styleClass="amount-input" />
                         </HBox>
-                  <HBox prefHeight="51.0" prefWidth="508.0" spacing="30.0">
+                  <HBox maxHeight="40.0" maxWidth="-Infinity" minHeight="60.0" minWidth="40.0" prefHeight="40.0" prefWidth="508.0" spacing="30.0">
                      <children>
-                              <ComboBox fx:id="donationComboBox" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" />
-                              <Button fx:id="addDonationButton" styleClass="add-button" text="💰 ದೇಣಿಗೆ ಸೇರಿಸಿ">
+                              <ComboBox fx:id="donationComboBox" minHeight="65.0" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" />
+                              <Button fx:id="addDonationButton" prefHeight="43.0" prefWidth="128.0" styleClass="add-button" text="💰 ದೇಣಿಗೆ ಸೇರಿಸಿ">
                            <HBox.margin>
                               <Insets top="7.0" />
                            </HBox.margin>
@@ -159,8 +158,8 @@
 
                     <TableView fx:id="sevaTableView" prefHeight="400" prefWidth="726.0" styleClass="modern-table">
                         <columns>
-                            <TableColumn fx:id="slNoColumn" maxWidth="84.0" minWidth="70" prefWidth="84.0" resizable="false" text="ಕ್ರ.ಸಂ" />
-                            <TableColumn fx:id="sevaNameColumn" minWidth="140" prefWidth="214.0" resizable="false" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
+                            <TableColumn fx:id="slNoColumn" maxWidth="139.5" minWidth="70" prefWidth="97.0" resizable="false" text="ಕ್ರ.ಸಂ" />
+                            <TableColumn fx:id="sevaNameColumn" minWidth="140" prefWidth="201.0" resizable="false" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
                             <TableColumn fx:id="quantityColumn" minWidth="50" prefWidth="88.0" resizable="false" text="ಪ್ರಮಾಣ " />
                             <TableColumn minWidth="42.0" resizable="false" text="ಮೊತ್ತ " />
                             <TableColumn minWidth="60.0" prefWidth="96.0" resizable="false" text="ಒಟ್ಟು ಮೊತ್ತ " />
@@ -170,7 +169,7 @@
 
                     <!-- Total Amount Display -->
                     <HBox styleClass="total-container">
-                        <Label prefHeight="26.0" prefWidth="93.0" styleClass="total-label-text" text="ಒಟ್ಟು ಮೊತ್ತ:" />
+                        <Label prefHeight="46.0" prefWidth="140.0" styleClass="total-label-text" text="ಒಟ್ಟು ಮೊತ್ತ:" />
                         <Region HBox.hgrow="ALWAYS" />
                         <Label fx:id="totalLabel" styleClass="total-amount" text="₹೦.೦೦" />
                     </HBox>
