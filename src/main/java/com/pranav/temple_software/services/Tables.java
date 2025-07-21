@@ -2,23 +2,25 @@ package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
-import javafx.collections.FXCollections;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
+import javafx.util.converter.IntegerStringConverter;
 
 public class Tables {
-	MainController controller;
-	public Tables(MainController mainController) {
-		this.controller = mainController;
-	}
+	private final MainController controller;
 
+	public Tables(MainController controller) {
+		this.controller = controller;
+	}
 
 	public void setupTableView() {
 		// Serial number column
-		controller.slNoColumn.setCellFactory(col -> new TableCell<>() {
+		controller.slNoColumn.setCellFactory(col -> new TableCell<SevaEntry, String>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
 				super.updateItem(item, empty);
@@ -30,162 +32,31 @@ public class Tables {
 		// Seva name column
 		controller.sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 
-		// Amount column
-		TableColumn<SevaEntry, Number> amountColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(2);
-		amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
+		// Setup amount column
+		setupAmountColumn();
 
-		// Format amount as currency
-		amountColumn.setCellFactory(tc -> new TableCell<>() {
-			@Override
-			protected void updateItem(Number amount, boolean empty) {
-				super.updateItem(amount, empty);
-				if (empty || amount == null) {
-					setText(null);
-				} else {
-					setText(String.format("₹%.2f", amount.doubleValue()));
-					setAlignment(Pos.CENTER_RIGHT);
-				}
-			}
-		});
-		{
-			// Add a new TableColumn for actions
-			TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Actions");
-			actionColumn.setCellFactory(col -> new TableCell<>() {
-				private final Button removeButton = new Button("Remove");
+		// Setup quantity column
+		setupQuantityColumn();
 
-				{
-					removeButton.setOnAction(event -> {
-						SevaEntry entry = getTableView().getItems().get(getIndex());
-						controller.selectedSevas.remove(entry);
-					});
-				}
+		// Setup total amount column
+		setupTotalAmountColumn();
 
-				@Override
-				protected void updateItem(Void item, boolean empty) {
-					super.updateItem(item, empty);
-					setGraphic(empty ? null : removeButton);
-				}
-			});
+		// Add Print Status Column - this is the key addition
+		setupPrintStatusColumn();
 
-			// Add the column to your TableView
-			controller.sevaTableView.getColumns().add(actionColumn);
+		// Setup action column with print controls
+		setupActionColumn();
 
-			ObservableList<String> rashis = FXCollections.observableArrayList(
-					"ಆಯ್ಕೆ", "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
-					"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
-			);
+		// Setup donation-related functionality
+		donationListener();
+	}
 
-			ObservableList<String> nakshatras = FXCollections.observableArrayList(
-					"ಆಯ್ಕೆ", "ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ", "ಆರ್ದ್ರ",
-					"ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ", "ಮಘ", "ಪೂರ್ವ ಫಲ್ಗುಣಿ", "ಉತ್ತರ ಫಲ್ಗುಣಿ",
-					"ಹಸ್ತ", "ಚಿತ್ತ", "ಸ್ವಾತಿ", "ವಿಶಾಖ", "ಅನೂರಾಧ", "ಜ್ಯೇಷ್ಠ",
-					"ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ", "ಶತಭಿಷ",
-					"ಪೂರ್ವ ಭಾದ್ರಪದ", "ಉತ್ತರ ಭಾದ್ರಪದ", "ರೇವತಿ"
-			);
-
-
-			ObservableList<String> donations = FXCollections.observableArrayList(
-					"ಆಯ್ಕೆ",
-					"ಸ್ಥಳ ಕಾಣಿಕ",
-					"ಪಾತ್ರೆ ಬಾಡಿಗೆ",
-					"ವಿದ್ಯುತ್",
-					"ಜನರೇಟರ್", "ಕಟ್ಟಿಗೆ", "ತೆಂಗಿನಕಾಯಿ", "ಅರ್ಚಕರ ದಕ್ಷಿಣೆ", "ಅಡಿಗೆಯವರಿಗೆ", "ಕೂಲಿ", "ಊಟೋಪಚಾರದ ಬಗ್ಗೆ", "ಇತರ ಖರ್ಚಿನ ಬಾಬ್ತು"
-			);
-
-
-			ObservableList<String> otherSevaReciepts = FXCollections.observableArrayList(
-					"ಆಯ್ಕೆ",
-					"ಶತ ರುದ್ರಾಭಿಷೇಕ",
-					"ಸಾಮೂಹಿಕ ಆಶ್ಲೇಷ ಬಲಿ",
-					"ಶ್ರೀಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ",
-					"ವರಮಹಾಲಕ್ಷ್ಮೀ  ಪೂಜೆ",
-					"ಪ್ರತಿಷ್ಠಾ ದಿನ (ಕಳಭ)",
-					"ಸಮಾಜ ಸೇವಾ ಕಾರ್ಯಗಳು",
-					"ನಿತ್ಯ-ನೈಮಿತ್ತಿಕ ಕಾರ್ಯಗಳು",
-					"ಜೀರ್ಣೋದ್ಧಾರ ಕಾರ್ಯಗಳು",
-					"ಅಭಿವೃದ್ಧಿ ಕಾರ್ಯಗಳು",
-					"ಅನ್ನದಾನ"
-			);
-
-			// *** Ensure SevaListener instance exists in controller before calling this ***
-			// controller.sevaListener should be initialized in MainController constructor or early init
-			if (controller.sevaListener != null) { //
-				controller.sevaListener.setupSevaCheckboxes(); // Call setup AFTER listener is ready
-			} else {
-				System.err.println("Error in Tables.setupTableView: SevaListener is null!");
-			}
-			controller.raashiComboBox.setItems(rashis);
-			controller.otherServicesComboBox.setItems(otherSevaReciepts);
-			controller.donationComboBox.setItems(donations);
-
-//			Quantity column(3rd column)
-			TableColumn<SevaEntry, Number> quantityColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(3);
-			quantityColumn.setCellFactory(col -> new TableCell<>() {
-				private final Spinner<Integer> spinner = new Spinner<>(1, 100, 1); // Min:1, Max:100, Initial:1
-
-				{
-					spinner.setEditable(true);
-					spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
-						if (getTableRow() != null && getTableRow().getItem() != null) {
-							SevaEntry entry = getTableView().getItems().get(getIndex());
-							entry.quantityProperty().set(newVal);
-						}
-					});
-
-					// Set spinner width
-					spinner.setMaxWidth(80);
-				}
-
-				@Override
-				protected void updateItem(Number item, boolean empty) {
-					super.updateItem(item, empty);
-					if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-						setGraphic(null);
-					} else {
-						SevaEntry entry = getTableView().getItems().get(getIndex());
-						String name = entry.getName();
-
-						// **Disable spinner for Donations & Other Sevas**
-						boolean isDonation = name.startsWith("ದೇಣಿಗೆ"); // Check if it's a donation
-						boolean isOtherSeva = controller.otherServicesComboBox.getItems().contains(name); // Check if it's an Other Seva
-
-						if (isDonation || isOtherSeva) {
-							setGraphic(null); // Hide Spinner for Donations & Other Sevas
-						} else {
-							spinner.getValueFactory().setValue(entry.quantityProperty().get());
-							setGraphic(spinner);
-						}
-					}
-				}
-			});
-
-
-			// Total Amount Column (4th column index)
-			TableColumn<SevaEntry, Number> totalColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(4);
-			totalColumn.setCellValueFactory(cellData -> cellData.getValue().totalAmountProperty());
-			totalColumn.setCellFactory(tc -> new TableCell<>() {
-				@Override
-				protected void updateItem(Number amount, boolean empty) {
-					super.updateItem(amount, empty);
-					if (empty || amount == null) {
-						setText(null);
-					} else {
-						setText(String.format("₹%.2f", amount.doubleValue()));
-						setAlignment(Pos.CENTER_RIGHT);
-					}
-				}
-			});
-
-			// Update main total whenever any SevaEntry changes
-			controller.selectedSevas.addListener((ListChangeListener<SevaEntry>) c -> updateTotal());
-			for (SevaEntry entry : controller.selectedSevas) {
-				entry.totalAmountProperty().addListener((obs, oldVal, newVal) -> updateTotal());
-			}
-		}
-
-		// Print Status Column
+	private void setupPrintStatusColumn() {
+		// Create the print status column
 		TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn = new TableColumn<>("Print Status");
+		statusColumn.setPrefWidth(120);
 		statusColumn.setCellValueFactory(cellData -> cellData.getValue().printStatusProperty());
+
 		statusColumn.setCellFactory(column -> new TableCell<SevaEntry, SevaEntry.PrintStatus>() {
 			@Override
 			protected void updateItem(SevaEntry.PrintStatus status, boolean empty) {
@@ -195,7 +66,6 @@ public class Tables {
 					setStyle("");
 				} else {
 					setText(status.getDisplayText());
-					// Color coding
 					switch (status) {
 						case SUCCESS:
 							setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
@@ -214,17 +84,134 @@ public class Tables {
 			}
 		});
 
-		// Add the status column to the table
-		controller.sevaTableView.getColumns().add(5, statusColumn); // Insert at position 2
+		// Insert status column at the appropriate position
+		// Find the position after total amount column
+		int insertPosition = -1;
+		for (int i = 0; i < controller.sevaTableView.getColumns().size(); i++) {
+			TableColumn<?, ?> column = controller.sevaTableView.getColumns().get(i);
+			if ("ಒಟ್ಟು ಮೊತ್ತ ".equals(column.getText()) || "Total Amount".equals(column.getText())) {
+				insertPosition = i + 1;
+				break;
+			}
+		}
 
-		// Modify the existing Action column to include selective operations
-		TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Actions");
+		if (insertPosition > 0 && insertPosition <= controller.sevaTableView.getColumns().size()) {
+			controller.sevaTableView.getColumns().add(insertPosition, statusColumn);
+		} else {
+			// Fallback: add at the end before action column
+			controller.sevaTableView.getColumns().add(controller.sevaTableView.getColumns().size() - 1, statusColumn);
+		}
+	}
+
+	private void setupAmountColumn() {
+		// Find the amount column
+		TableColumn<SevaEntry, Number> amountColumn = null;
+		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
+			if ("ಮೊತ್ತ ".equals(column.getText()) || "Amount".equals(column.getText())) {
+				amountColumn = (TableColumn<SevaEntry, Number>) column;
+				break;
+			}
+		}
+
+		if (amountColumn != null) {
+			amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+			amountColumn.setCellFactory(column -> new TableCell<SevaEntry, Number>() {
+				@Override
+				protected void updateItem(Number amount, boolean empty) {
+					super.updateItem(amount, empty);
+					if (empty || amount == null) {
+						setText(null);
+					} else {
+						setText(String.format("₹%.2f", amount.doubleValue()));
+					}
+					setAlignment(Pos.CENTER_RIGHT);
+				}
+			});
+		}
+	}
+
+	private void setupQuantityColumn() {
+		// Find the quantity column
+		TableColumn<SevaEntry, Integer> quantityColumn = null;
+		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
+			if ("ಪ್ರಮಾಣ ".equals(column.getText()) || "Quantity".equals(column.getText())) {
+				quantityColumn = (TableColumn<SevaEntry, Integer>) column;
+				break;
+			}
+		}
+
+		if (quantityColumn != null) {
+			quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+			quantityColumn.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+			quantityColumn.setOnEditCommit(event -> {
+				SevaEntry seva = event.getRowValue();
+				int newQuantity = event.getNewValue();
+				if (newQuantity > 0) {
+					seva.setQuantity(newQuantity);
+					// Reset print status when quantity changes
+					seva.setPrintStatus(SevaEntry.PrintStatus.PENDING);
+					controller.updatePrintStatusLabel();
+				} else {
+					controller.showAlert("Invalid Quantity", "Quantity must be greater than 0");
+					event.consume();
+				}
+			});
+		}
+	}
+
+	private void setupTotalAmountColumn() {
+		// Find the total amount column
+		TableColumn<SevaEntry, Number> totalColumn = null;
+		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
+			if ("ಒಟ್ಟು ಮೊತ್ತ ".equals(column.getText()) || "Total Amount".equals(column.getText())) {
+				totalColumn = (TableColumn<SevaEntry, Number>) column;
+				break;
+			}
+		}
+
+		if (totalColumn != null) {
+			totalColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
+			totalColumn.setCellFactory(column -> new TableCell<SevaEntry, Number>() {
+				@Override
+				protected void updateItem(Number totalAmount, boolean empty) {
+					super.updateItem(totalAmount, empty);
+					if (empty || totalAmount == null) {
+						setText(null);
+					} else {
+						setText(String.format("₹%.2f", totalAmount.doubleValue()));
+					}
+					setAlignment(Pos.CENTER_RIGHT);
+				}
+			});
+		}
+	}
+
+	private void setupActionColumn() {
+		// Find or create the action column
+		TableColumn<SevaEntry, Void> actionColumn = null;
+		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
+			if ("Action".equals(column.getText()) || "Actions".equals(column.getText()) ||
+					"ಕ್ರಿಯೆಗಳು".equals(column.getText())) {
+				actionColumn = (TableColumn<SevaEntry, Void>) column;
+				break;
+			}
+		}
+
+		if (actionColumn == null) {
+			actionColumn = new TableColumn<>("Actions");
+			controller.sevaTableView.getColumns().add(actionColumn);
+		}
+
+		actionColumn.setPrefWidth(120);
 		actionColumn.setCellFactory(col -> new TableCell<SevaEntry, Void>() {
 			private final Button removeButton = new Button("Remove");
 			private final Button retryButton = new Button("Retry");
 			private final HBox buttonBox = new HBox(5);
 
 			{
+				removeButton.setStyle("-fx-font-size: 10px; -fx-padding: 2px 8px;");
+				retryButton.setStyle("-fx-font-size: 10px; -fx-padding: 2px 8px;");
+
 				removeButton.setOnAction(event -> {
 					SevaEntry entry = getTableView().getItems().get(getIndex());
 					controller.selectedSevas.remove(entry);
@@ -234,14 +221,13 @@ public class Tables {
 				retryButton.setOnAction(event -> {
 					SevaEntry entry = getTableView().getItems().get(getIndex());
 					if (entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED) {
-						// Reset to pending and trigger individual retry
-						entry.setPrintStatus(SevaEntry.PrintStatus.PENDING);
 						controller.receiptServices.retryIndividualItem(entry);
 					}
 				});
 
 				buttonBox.getChildren().addAll(removeButton, retryButton);
 				buttonBox.setAlignment(Pos.CENTER);
+				buttonBox.setSpacing(3);
 			}
 
 			@Override
@@ -252,36 +238,79 @@ public class Tables {
 				} else {
 					SevaEntry entry = getTableView().getItems().get(getIndex());
 					// Show retry button only for failed items
-					retryButton.setVisible(entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED);
-					retryButton.setManaged(entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED);
+					boolean showRetry = entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED;
+					retryButton.setVisible(showRetry);
+					retryButton.setManaged(showRetry);
 					setGraphic(buttonBox);
 				}
 			}
 		});
-
-		controller.sevaTableView.getColumns().removeIf(col -> col.getText().equals("Action"));
 	}
 
-
-		private void updateTotal() {
-			double total = controller.selectedSevas.stream()
-					.mapToDouble(SevaEntry::getTotalAmount)
-					.sum();
-
-//			// This is safe if the label isn't bound
-//			controller.totalLabel.setText(String.format("₹%.2f", total));
-		}
-
-	public void donationListener(){
-		//Donation checkbox listener to put it inside the table view
-		controller.donationCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
-			controller.donationField.setDisable(!newVal);
-			controller.donationComboBox.setDisable(!newVal);
-			controller.addDonationButton.setDisable(!newVal);
+	public void donationListener() {
+		controller.donationCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue) {
+				controller.donationField.setDisable(false);
+				controller.donationComboBox.setDisable(false);
+				controller.addDonationButton.setDisable(false);
+			} else {
+				controller.donationField.setDisable(true);
+				controller.donationComboBox.setDisable(true);
+				controller.addDonationButton.setDisable(true);
+				controller.donationField.clear();
+				controller.donationComboBox.getSelectionModel().selectFirst();
+			}
 		});
 
-		// Add Donation button handler
-		controller.addDonationButton.setOnAction(e -> controller.donation.handleAddDonation());
+		controller.addDonationButton.setOnAction(e -> {
+			String selectedDonation = controller.donationComboBox.getValue();
+			String donationAmountText = controller.donationField.getText();
 
+			if (selectedDonation == null || selectedDonation.equals("ಆಯ್ಕೆ") ||
+					donationAmountText == null || donationAmountText.trim().isEmpty()) {
+				controller.showAlert("Incomplete Input", "Please select a donation type and enter an amount.");
+				return;
+			}
+
+			try {
+				double donationAmount = Double.parseDouble(donationAmountText);
+				if (donationAmount <= 0) {
+					controller.showAlert("Invalid Amount", "Donation amount must be greater than 0.");
+					return;
+				}
+
+				String donationName = "ದೇಣಿಗೆ : " + selectedDonation;
+
+				// Check if this donation already exists
+				boolean exists = controller.selectedSevas.stream()
+						.anyMatch(seva -> seva.getName().equals(donationName));
+
+				if (exists) {
+					controller.showAlert("Duplicate Entry", "This donation is already added.");
+					return;
+				}
+
+				SevaEntry donationEntry = new SevaEntry(donationName, donationAmount);
+				donationEntry.setPrintStatus(SevaEntry.PrintStatus.PENDING);
+				controller.selectedSevas.add(donationEntry);
+				controller.updatePrintStatusLabel();
+
+				// Clear the fields
+				controller.donationField.clear();
+				controller.donationComboBox.getSelectionModel().selectFirst();
+
+			} catch (NumberFormatException ex) {
+				controller.showAlert("Invalid Input", "Please enter a valid donation amount.");
+			}
+		});
+
+		// Listen for changes to update print status label
+		controller.selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
+			while (change.next()) {
+				if (change.wasAdded() || change.wasRemoved()) {
+					controller.updatePrintStatusLabel();
+				}
+			}
+		});
 	}
 }

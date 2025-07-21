@@ -490,6 +490,110 @@ public class ReceiptPrinter {
 //		}
 //	}
 
+	public void showPrintPreviewWithCancelCallback(ReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		Stage previewStage = new Stage();
+		previewStage.initModality(Modality.WINDOW_MODAL);
+		previewStage.initOwner(ownerStage);
+		previewStage.setTitle("ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+
+		Node receiptNode = createReceiptNode(data);
+
+		double scaleFactor = 2;
+		receiptNode.setScaleX(scaleFactor);
+		receiptNode.setScaleY(scaleFactor);
+
+		Group scaledContainer = new Group(receiptNode);
+		scaledContainer.setAutoSizeChildren(true);
+
+		ScrollPane scrollPane = new ScrollPane(scaledContainer);
+		scrollPane.setFitToWidth(false);
+		scrollPane.setFitToHeight(false);
+		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
+		scrollPane.setPrefViewportHeight(600);
+
+		Button printButton = new Button("ಮುದ್ರಿಸು");
+		printButton.setOnAction(e -> {
+			receiptNode.setScaleX(1.0);
+			receiptNode.setScaleY(1.0);
+			boolean success = printReceipt(receiptNode, ownerStage);
+			if (onPrintComplete != null) {
+				onPrintComplete.accept(success);
+			}
+			previewStage.close();
+		});
+
+		// **KEY FIX: Handle window close event**
+		previewStage.setOnCloseRequest(e -> {
+			if (onDialogClosed != null) {
+				onDialogClosed.run();
+			}
+		});
+
+		HBox buttonBox = new HBox(10, printButton);
+		buttonBox.setAlignment(Pos.CENTER);
+		buttonBox.setPadding(new Insets(10));
+
+		VBox layout = new VBox(10, scrollPane, buttonBox);
+		layout.setAlignment(Pos.CENTER);
+		scrollPane.setPrefViewportHeight(800);
+
+		Scene scene = new Scene(layout, 700, 1000);
+		previewStage.setScene(scene);
+		previewStage.show();
+	}
+
+	public void showDonationPrintPreviewWithCancelCallback(DonationReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		Stage previewStage = new Stage();
+		previewStage.initModality(Modality.WINDOW_MODAL);
+		previewStage.initOwner(ownerStage);
+		previewStage.setTitle("ದೇಣಿಗೆ ರಶೀದಿ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+
+		Node receiptNode = createDonationReceiptNode(data);
+
+		double scaleFactor = 2;
+		receiptNode.setScaleX(scaleFactor);
+		receiptNode.setScaleY(scaleFactor);
+
+		Group scaledContainer = new Group(receiptNode);
+		scaledContainer.setAutoSizeChildren(true);
+
+		ScrollPane scrollPane = new ScrollPane(scaledContainer);
+		scrollPane.setFitToWidth(false);
+		scrollPane.setFitToHeight(false);
+		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
+		scrollPane.setPrefViewportHeight(600);
+
+		Button printButton = new Button("ಮುದ್ರಿಸು");
+		printButton.setOnAction(e -> {
+			receiptNode.setScaleX(1.0);
+			receiptNode.setScaleY(1.0);
+			boolean success = printReceipt(receiptNode, ownerStage);
+			if (onPrintComplete != null) {
+				onPrintComplete.accept(success);
+			}
+			previewStage.close();
+		});
+
+		// **KEY FIX: Handle window close event**
+		previewStage.setOnCloseRequest(e -> {
+			if (onDialogClosed != null) {
+				onDialogClosed.run();
+			}
+		});
+
+		HBox buttonBox = new HBox(10, printButton);
+		buttonBox.setAlignment(Pos.CENTER);
+		buttonBox.setPadding(new Insets(10));
+
+		VBox layout = new VBox(10, scrollPane, buttonBox);
+		layout.setAlignment(Pos.CENTER);
+		scrollPane.setPrefViewportHeight(800);
+
+		Scene scene = new Scene(layout, 700, 1000);
+		previewStage.setScene(scene);
+		previewStage.show();
+	}
+
 
 	// --- Helper Alert Method ---
 	private void showAlert(Stage owner, String title, String message) {
