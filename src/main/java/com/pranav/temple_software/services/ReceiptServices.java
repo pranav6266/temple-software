@@ -94,7 +94,7 @@ public class ReceiptServices {
 	public void handleClearSuccessful() {
 		List<SevaEntry> successfulItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
-				.collect(Collectors.toList());
+				.toList();
 
 		if (successfulItems.isEmpty()) {
 			controller.showAlert("No Successful Items", "No successful items to clear.");

@@ -118,16 +118,23 @@ public class MainController {
 
 			// **FIXED: Check auto-clear condition FIRST**
 			if (successCount > 0 && pendingCount == 0 && failedCount == 0) {
-				// All items successful - disable button and auto-clear
-				smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
-				smartActionButton.setDisable(true);
-				smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+				// **NEW: Check if ALL processing is truly complete**
+				// Only auto-clear if no items are currently in PRINTING status
+				long printingCount = selectedSevas.stream()
+						.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING ? 1 : 0)
+						.sum();
 
-				// Auto-clear form after a brief delay (avoid immediate clearing inside Platform.runLater)
-				Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
-					clearForm();
-				}));
-				timeline.play();
+				if (printingCount == 0) {
+					// All items successful AND no items currently printing - safe to auto-clear
+					smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
+					smartActionButton.setDisable(true);
+					smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+
+					Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
+						clearForm();
+					}));
+					timeline.play();
+				}
 			}
 			// Dynamic main button text and state for other conditions
 			else if (pendingCount > 0) {
