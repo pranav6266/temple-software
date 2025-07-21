@@ -90,7 +90,6 @@ public class SevaListener {
 			controller.sevaCheckboxContainer.getChildren().add(checkBox);
 			displayIndex++; // Increment for the next checkbox
 		}
-		raashiNakshatraMap();
 		System.out.println("Seva checkboxes setup complete with " + sevas.size() + " sevas.");
 	}
 

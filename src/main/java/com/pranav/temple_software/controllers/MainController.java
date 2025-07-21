@@ -96,6 +96,10 @@ public class MainController {
 	@FXML private Label statusLabel;
 
 
+	{
+
+	}
+
 	public void updatePrintStatusLabel() {
 		long pendingCount = selectedSevas.stream()
 				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING ? 1 : 0)
@@ -381,7 +385,9 @@ public class MainController {
 		validationServices.setupNameValidation();
 		validationServices.setupPhoneValidation();
 		validationServices.setupAmountValidation();
+		sevaListener.raashiNakshatraMap();
 		refreshSevaCheckboxes();
+		populateRashiComboBox();
 		refreshDonationComboBox();
 		refreshOtherSevaComboBox();
 
@@ -414,6 +420,17 @@ public class MainController {
 			}
 		});
 
+	}
+
+	private void populateRashiComboBox() {
+		ObservableList<String> rashiOptions = FXCollections.observableArrayList();
+		rashiOptions.add("ಆಯ್ಕೆ");
+		rashiOptions.addAll(
+				"ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
+				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
+		);
+		raashiComboBox.setItems(rashiOptions);
+		raashiComboBox.getSelectionModel().selectFirst();
 	}
 
 	private void setupBlankAreaFocusHandler() {
