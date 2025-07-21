@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class MainController {
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
 
-	public ReceiptPrinter receiptPrinter = new ReceiptPrinter();
+	public ReceiptPrinter receiptPrinter = new ReceiptPrinter(this);
 	public Stage mainStage;
 	@FXML
 	public ComboBox<String> raashiComboBox;
@@ -80,8 +80,7 @@ public class MainController {
 	public Label totalLabel;
 	@FXML
 	private Button printPreviewButton;
-	@FXML
-	public Label receiptNumberLabel;
+
 	@FXML private AnchorPane mainPane;
 
 
@@ -264,7 +263,7 @@ public class MainController {
 
 	@FXML
 	public void initialize() {
-		receiptNumberLabel.setText(String.valueOf(ReceiptRepository.getNextReceiptId()));
+
 		sevaDatePicker.setValue(LocalDate.now());
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		sevaTableView.setItems(selectedSevas);

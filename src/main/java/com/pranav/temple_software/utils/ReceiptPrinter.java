@@ -1,7 +1,10 @@
 package com.pranav.temple_software.utils;
 
+import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.models.ReceiptData;
+import com.sun.tools.javac.Main;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.print.*;
@@ -13,12 +16,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.time.format.DateTimeFormatter;
+
 import java.util.function.Consumer;
 import com.pranav.temple_software.models.DonationReceiptData;
 
@@ -30,7 +31,10 @@ public class ReceiptPrinter {
 	private static final double POINTS_PER_MM = 2.83464; // 72 points per inch / 25.4 mm per inch
 	private static final double RECEIPT_WIDTH_POINTS = RECEIPT_WIDTH_MM * POINTS_PER_MM;
 
-
+	MainController controller;
+	public ReceiptPrinter(MainController controller){
+		this.controller = controller;
+	}
 	// --- Method to Create the Receipt Layout as a JavaFX Node ---
 	public Node createReceiptNode(ReceiptData data) {
 		VBox receiptBox = new VBox(1);
@@ -69,6 +73,7 @@ public class ReceiptPrinter {
 
 		// Devotee Details - Left Aligned
 		receiptBox.getChildren().addAll(
+				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()),
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ?  "---" : data.getDevoteeName() )),
 				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
 				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),

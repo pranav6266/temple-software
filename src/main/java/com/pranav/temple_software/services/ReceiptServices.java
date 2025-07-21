@@ -148,7 +148,7 @@ public class ReceiptServices {
 				if (actualSavedId != -1) {
 					Platform.runLater(() -> {
 						controller.showAlert("Seva Receipt Success", "Seva receipt printed and saved successfully with ID: " + actualSavedId);
-						controller.receiptNumberLabel.setText(String.valueOf(actualSavedId));
+
 					});
 				} else {
 					Platform.runLater(() -> controller.showAlert("Database Error", "Seva receipt printed but failed to save to database."));

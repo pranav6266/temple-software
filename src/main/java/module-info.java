@@ -5,6 +5,7 @@ module com.pranav.temple_software {
 	requires org.apache.pdfbox;
 	requires com.h2database;
 	requires spring.context;
+	requires jdk.compiler;
 	exports com.pranav.temple_software.controllers;
 	exports com.pranav.temple_software.listeners;
 	exports com.pranav.temple_software.models;
