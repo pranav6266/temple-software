@@ -14,6 +14,8 @@ import com.pranav.temple_software.repositories.ReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
 import com.pranav.temple_software.utils.ReceiptPrinter;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -29,6 +31,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -83,21 +87,15 @@ public class MainController {
 
 	@FXML private AnchorPane mainPane;
 
-	@FXML private Button retryFailedButton;
-	@FXML private Button clearSuccessfulButton;
-	@FXML private Button printAllPendingButton;
-	@FXML private Label printStatusLabel;
 
 
-	// Add this method to reset all print statuses
-	public void resetPrintStatuses() {
-		for (SevaEntry entry : selectedSevas) {
-			entry.setPrintStatus(SevaEntry.PrintStatus.PENDING);
-		}
-		updatePrintStatusLabel();
-	}
 
-	// Add this method to update status label
+	// Replace existing print buttons with these
+	@FXML private Button smartActionButton;
+	@FXML private Button clearFormButton;
+	@FXML private Label statusLabel;
+
+
 	public void updatePrintStatusLabel() {
 		long pendingCount = selectedSevas.stream()
 				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING ? 1 : 0)
@@ -110,30 +108,77 @@ public class MainController {
 				.sum();
 
 		Platform.runLater(() -> {
-			printStatusLabel.setText(String.format("Pending: %d | Success: %d | Failed: %d",
+			// Update status label
+			statusLabel.setText(String.format("ಬಾಕಿ: %d | ಯಶಸ್ವಿ: %d | ವಿಫಲ: %d",
 					pendingCount, successCount, failedCount));
 
-			// Update button states
-			retryFailedButton.setDisable(failedCount == 0);
-			clearSuccessfulButton.setDisable(successCount == 0);
-			printAllPendingButton.setDisable(pendingCount == 0);
+			// **FIXED: Check auto-clear condition FIRST**
+			if (successCount > 0 && pendingCount == 0 && failedCount == 0) {
+				// All items successful - disable button and auto-clear
+				smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
+				smartActionButton.setDisable(true);
+				smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+
+				// Auto-clear form after a brief delay (avoid immediate clearing inside Platform.runLater)
+				Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
+					clearForm();
+				}));
+				timeline.play();
+			}
+			// Dynamic main button text and state for other conditions
+			else if (pendingCount > 0) {
+				smartActionButton.setText("ಮುದ್ರಿಸಿ (" + pendingCount + " ಐಟಂಗಳು)");
+				smartActionButton.setDisable(false);
+				smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+			} else if (failedCount > 0) {
+				smartActionButton.setText("ವಿಫಲವಾದವುಗಳನ್ನು ಮರುಪ್ರಯತ್ನಿಸಿ (" + failedCount + ")");
+				smartActionButton.setDisable(false);
+				smartActionButton.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+			} else if (successCount > 0) {
+				// This handles partial success (some successful, but also some pending/failed)
+				smartActionButton.setText("ಯಶಸ್ವಿಯಾದವುಗಳನ್ನು ತೆರವುಮಾಡಿ (" + successCount + ")");
+				smartActionButton.setDisable(false);
+				smartActionButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+			} else {
+				// No items or all cleared
+				smartActionButton.setText("ಐಟಂಗಳನ್ನು ಸೇರಿಸಿ");
+				smartActionButton.setDisable(selectedSevas.isEmpty());
+				smartActionButton.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+			}
+
+			// Clear form button state
+			clearFormButton.setDisable(selectedSevas.isEmpty());
 		});
 	}
 
-	// Add button handlers
-	@FXML
-	public void handleRetryFailed() {
-		receiptServices.handleRetryFailed();
-	}
+
 
 	@FXML
-	public void handleClearSuccessful() {
-		receiptServices.handleClearSuccessful();
-	}
+	public void handleSmartAction() {
+		long pendingCount = selectedSevas.stream()
+				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING ? 1 : 0)
+				.sum();
+		long failedCount = selectedSevas.stream()
+				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED ? 1 : 0)
+				.sum();
+		long successCount = selectedSevas.stream()
+				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS ? 1 : 0)
+				.sum();
 
-	@FXML
-	public void handlePrintAllPending() {
-		receiptServices.handlePrintAllPending();
+		if (pendingCount > 0) {
+			// Print pending items
+			receiptServices.handlePrintAllPending();
+		} else if (failedCount > 0) {
+			// Retry failed items
+			receiptServices.handleRetryFailed();
+		} else if (successCount > 0) {
+			// Clear successful items
+			receiptServices.handleClearSuccessful();
+		} else {
+			// Focus on adding items
+			Platform.runLater(() -> devoteeNameField.requestFocus());
+			showAlert("Add Items", "Please add seva items to the table to proceed.");
+		}
 	}
 
 	@FXML
@@ -274,6 +319,7 @@ public class MainController {
 		Platform.runLater(() -> devoteeNameField.requestFocus());
 	}
 
+
 	@FXML
 	public void clearFormAfterChk(){
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -321,7 +367,7 @@ public class MainController {
 		sevaTableView.setItems(selectedSevas);
 		table.setupTableView();
 		validationServices.initializeTotalCalculation();
-		printPreviewButton.setOnAction(e -> receiptServices.handlePrintPreview());
+		smartActionButton.setOnAction(e -> handleSmartAction());
 		addDonationButton1.setOnAction(e -> otherSevas.handleAddOtherSeva());
 		donation.setDisable();
 		donationField.setDisable(true);

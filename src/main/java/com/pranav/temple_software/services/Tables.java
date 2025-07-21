@@ -2,6 +2,7 @@ package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
@@ -52,7 +53,6 @@ public class Tables {
 	}
 
 	private void setupPrintStatusColumn() {
-		// Create the print status column
 		TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn = new TableColumn<>("Print Status");
 		statusColumn.setPrefWidth(120);
 		statusColumn.setCellValueFactory(cellData -> cellData.getValue().printStatusProperty());
@@ -68,40 +68,47 @@ public class Tables {
 					setText(status.getDisplayText());
 					switch (status) {
 						case SUCCESS:
-							setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+							setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
 							break;
 						case FAILED:
-							setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+							setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
 							break;
 						case PRINTING:
-							setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+							setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
 							break;
 						default:
-							setStyle("-fx-text-fill: gray;");
+							setStyle("-fx-text-fill: #7f8c8d;");
 					}
 				}
 				setAlignment(Pos.CENTER);
 			}
 		});
 
-		// Insert status column at the appropriate position
-		// Find the position after total amount column
+		// Add status change listener to update main button
+		statusColumn.setCellValueFactory(cellData -> {
+			cellData.getValue().printStatusProperty().addListener((obs, oldVal, newVal) -> {
+				Platform.runLater(controller::updatePrintStatusLabel);
+			});
+			return cellData.getValue().printStatusProperty();
+		});
+
+		// Insert status column at appropriate position
 		int insertPosition = -1;
 		for (int i = 0; i < controller.sevaTableView.getColumns().size(); i++) {
 			TableColumn<?, ?> column = controller.sevaTableView.getColumns().get(i);
-			if ("ಒಟ್ಟು ಮೊತ್ತ ".equals(column.getText()) || "Total Amount".equals(column.getText())) {
+			if ("ಒಟ್ಟು ಮೊತ್ತ ".equals(column.getText())) {
 				insertPosition = i + 1;
 				break;
 			}
 		}
 
-		if (insertPosition > 0 && insertPosition <= controller.sevaTableView.getColumns().size()) {
+		if (insertPosition > 0) {
 			controller.sevaTableView.getColumns().add(insertPosition, statusColumn);
 		} else {
-			// Fallback: add at the end before action column
-			controller.sevaTableView.getColumns().add(controller.sevaTableView.getColumns().size() - 1, statusColumn);
+			controller.sevaTableView.getColumns().add(statusColumn);
 		}
 	}
+
 
 	private void setupAmountColumn() {
 		// Find the amount column
