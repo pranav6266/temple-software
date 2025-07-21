@@ -7,6 +7,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 
 public class Tables {
 	MainController controller;
@@ -29,7 +30,6 @@ public class Tables {
 		// Seva name column
 		controller.sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 
-
 		// Amount column
 		TableColumn<SevaEntry, Number> amountColumn = (TableColumn<SevaEntry, Number>) controller.sevaTableView.getColumns().get(2);
 		amountColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
@@ -47,10 +47,9 @@ public class Tables {
 				}
 			}
 		});
-
 		{
 			// Add a new TableColumn for actions
-			TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Action");
+			TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Actions");
 			actionColumn.setCellFactory(col -> new TableCell<>() {
 				private final Button removeButton = new Button("Remove");
 
@@ -183,6 +182,84 @@ public class Tables {
 				entry.totalAmountProperty().addListener((obs, oldVal, newVal) -> updateTotal());
 			}
 		}
+
+		// Print Status Column
+		TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn = new TableColumn<>("Print Status");
+		statusColumn.setCellValueFactory(cellData -> cellData.getValue().printStatusProperty());
+		statusColumn.setCellFactory(column -> new TableCell<SevaEntry, SevaEntry.PrintStatus>() {
+			@Override
+			protected void updateItem(SevaEntry.PrintStatus status, boolean empty) {
+				super.updateItem(status, empty);
+				if (empty || status == null) {
+					setText(null);
+					setStyle("");
+				} else {
+					setText(status.getDisplayText());
+					// Color coding
+					switch (status) {
+						case SUCCESS:
+							setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+							break;
+						case FAILED:
+							setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+							break;
+						case PRINTING:
+							setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+							break;
+						default:
+							setStyle("-fx-text-fill: gray;");
+					}
+				}
+				setAlignment(Pos.CENTER);
+			}
+		});
+
+		// Add the status column to the table
+		controller.sevaTableView.getColumns().add(5, statusColumn); // Insert at position 2
+
+		// Modify the existing Action column to include selective operations
+		TableColumn<SevaEntry, Void> actionColumn = new TableColumn<>("Actions");
+		actionColumn.setCellFactory(col -> new TableCell<SevaEntry, Void>() {
+			private final Button removeButton = new Button("Remove");
+			private final Button retryButton = new Button("Retry");
+			private final HBox buttonBox = new HBox(5);
+
+			{
+				removeButton.setOnAction(event -> {
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+					controller.selectedSevas.remove(entry);
+					controller.updatePrintStatusLabel();
+				});
+
+				retryButton.setOnAction(event -> {
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+					if (entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED) {
+						// Reset to pending and trigger individual retry
+						entry.setPrintStatus(SevaEntry.PrintStatus.PENDING);
+						controller.receiptServices.retryIndividualItem(entry);
+					}
+				});
+
+				buttonBox.getChildren().addAll(removeButton, retryButton);
+				buttonBox.setAlignment(Pos.CENTER);
+			}
+
+			@Override
+			protected void updateItem(Void item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty) {
+					setGraphic(null);
+				} else {
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+					// Show retry button only for failed items
+					retryButton.setVisible(entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED);
+					retryButton.setManaged(entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED);
+					setGraphic(buttonBox);
+				}
+			}
+		});
+
+		controller.sevaTableView.getColumns().removeIf(col -> col.getText().equals("Action"));
 	}
 
 

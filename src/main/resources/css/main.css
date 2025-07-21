@@ -120,3 +120,42 @@
     -fx-border-width: 2px;
     -fx-background-color: #f0f8ff;
 }
+
+/* Print status styling */
+.print-status-success {
+    -fx-text-fill: #27ae60;
+    -fx-font-weight: bold;
+}
+
+.print-status-failed {
+    -fx-text-fill: #e74c3c;
+    -fx-font-weight: bold;
+}
+
+.print-status-printing {
+    -fx-text-fill: #f39c12;
+    -fx-font-weight: bold;
+}
+
+.print-status-pending {
+    -fx-text-fill: #7f8c8d;
+}
+
+/* Selective action buttons */
+.selective-button {
+    -fx-font-size: 14px;
+    -fx-background-color: #9b59b6;
+    -fx-text-fill: white;
+    -fx-padding: 8 16;
+    -fx-background-radius: 4px;
+    -fx-pref-width: 140px;
+}
+
+.selective-button:hover {
+    -fx-background-color: #8e44ad;
+}
+
+.selective-button:disabled {
+    -fx-background-color: #bdc3c7;
+    -fx-text-fill: #7f8c8d;
+}

@@ -83,7 +83,58 @@ public class MainController {
 
 	@FXML private AnchorPane mainPane;
 
+	@FXML private Button retryFailedButton;
+	@FXML private Button clearSuccessfulButton;
+	@FXML private Button printAllPendingButton;
+	@FXML private Label printStatusLabel;
 
+
+	// Add this method to reset all print statuses
+	public void resetPrintStatuses() {
+		for (SevaEntry entry : selectedSevas) {
+			entry.setPrintStatus(SevaEntry.PrintStatus.PENDING);
+		}
+		updatePrintStatusLabel();
+	}
+
+	// Add this method to update status label
+	public void updatePrintStatusLabel() {
+		long pendingCount = selectedSevas.stream()
+				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING ? 1 : 0)
+				.sum();
+		long successCount = selectedSevas.stream()
+				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS ? 1 : 0)
+				.sum();
+		long failedCount = selectedSevas.stream()
+				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED ? 1 : 0)
+				.sum();
+
+		Platform.runLater(() -> {
+			printStatusLabel.setText(String.format("Pending: %d | Success: %d | Failed: %d",
+					pendingCount, successCount, failedCount));
+
+			// Update button states
+			retryFailedButton.setDisable(failedCount == 0);
+			clearSuccessfulButton.setDisable(successCount == 0);
+			printAllPendingButton.setDisable(pendingCount == 0);
+		});
+	}
+
+	// Add button handlers
+	@FXML
+	public void handleRetryFailed() {
+		receiptServices.handleRetryFailed();
+	}
+
+	@FXML
+	public void handleClearSuccessful() {
+		receiptServices.handleClearSuccessful();
+	}
+
+	@FXML
+	public void handlePrintAllPending() {
+		receiptServices.handlePrintAllPending();
+	}
 
 	@FXML
 	private void handleCloseApp() {
@@ -211,7 +262,7 @@ public class MainController {
 		raashiComboBox.getSelectionModel().selectFirst();
 		nakshatraComboBox.getSelectionModel().clearSelection();
 		sevaDatePicker.setValue(LocalDate.now());
-		selectedSevas.clear();
+		selectedSevas.clear(); // This will also clear print statuses
 		donationCheck.setSelected(false);
 		donationField.clear();
 		donationComboBox.getSelectionModel().selectFirst();
@@ -219,6 +270,7 @@ public class MainController {
 		onlineRadio.setSelected(false);
 		otherServicesComboBox.getSelectionModel().selectFirst();
 		addressField.clear();
+		updatePrintStatusLabel(); // Update status after clearing
 		Platform.runLater(() -> devoteeNameField.requestFocus());
 	}
 
@@ -246,7 +298,7 @@ public class MainController {
 	public ReceiptRepository receiptRepository = new ReceiptRepository();
 	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
-	ReceiptServices receiptServices = new ReceiptServices(this);
+	public ReceiptServices receiptServices = new ReceiptServices(this);
 	OtherSevas otherSevas = new OtherSevas(this);
 	public Donation donation = new Donation(this);
 	Tables table = new Tables(this);
