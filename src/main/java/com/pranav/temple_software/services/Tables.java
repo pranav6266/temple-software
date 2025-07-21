@@ -138,33 +138,67 @@ public class Tables {
 	}
 
 	private void setupQuantityColumn() {
-		// Find the quantity column
-		TableColumn<SevaEntry, Integer> quantityColumn = null;
-		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
-			if ("ಪ್ರಮಾಣ ".equals(column.getText()) || "Quantity".equals(column.getText())) {
-				quantityColumn = (TableColumn<SevaEntry, Integer>) column;
-				break;
-			}
-		}
+		// Reference to the quantity column
+		TableColumn<SevaEntry, Integer> quantityColumn = controller.quantityColumn;
 
-		if (quantityColumn != null) {
-			quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-			quantityColumn.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
-			quantityColumn.setOnEditCommit(event -> {
-				SevaEntry seva = event.getRowValue();
-				int newQuantity = event.getNewValue();
-				if (newQuantity > 0) {
-					seva.setQuantity(newQuantity);
-					// Reset print status when quantity changes
-					seva.setPrintStatus(SevaEntry.PrintStatus.PENDING);
+		// Bind the cell value to the SevaEntry.quantity property
+		quantityColumn.setCellValueFactory(cellData ->
+				cellData.getValue().quantityProperty().asObject()
+		);
+
+		// Provide a custom cell factory
+		quantityColumn.setCellFactory(col -> new TableCell<SevaEntry, Integer>() {
+			private final Spinner<Integer> spinner = new Spinner<>(1, Integer.MAX_VALUE, 1);
+
+			{
+				// Make spinner editable
+				spinner.setEditable(true);
+
+				// Commit any typed value on focus lost
+				spinner.focusedProperty().addListener((obs, oldF, newF) -> {
+					if (!newF) commitEdit(spinner.getValue());
+				});
+
+				// Update model and reset print status on value change
+				spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+					entry.setQuantity(newVal);
+					entry.setPrintStatus(SevaEntry.PrintStatus.PENDING);
 					controller.updatePrintStatusLabel();
+				});
+			}
+
+			@Override
+			protected void updateItem(Integer qty, boolean empty) {
+				super.updateItem(qty, empty);
+
+				if (empty) {
+					setGraphic(null);
 				} else {
-					controller.showAlert("Invalid Quantity", "Quantity must be greater than 0");
-					event.consume();
+					SevaEntry entry = getTableView().getItems().get(getIndex());
+
+					// If this is a donation entry, show plain label instead of spinner
+					if (entry.getName().startsWith("ದೇಣಿಗೆ")) {
+						setGraphic(new Label(String.valueOf(qty)));
+					} else {
+						spinner.getValueFactory().setValue(qty);
+						setGraphic(spinner);
+					}
 				}
-			});
-		}
+				setAlignment(Pos.CENTER);
+			}
+
+			@Override
+			public void startEdit() {
+				super.startEdit();
+				spinner.requestFocus();
+			}
+		});
+
+		// Enable editing on the TableView so spinner cells can receive focus
+		controller.sevaTableView.setEditable(true);
 	}
+
 
 	private void setupTotalAmountColumn() {
 		// Find the total amount column

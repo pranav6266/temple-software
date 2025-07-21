@@ -161,7 +161,7 @@
                         <columns>
                             <TableColumn fx:id="slNoColumn" maxWidth="70" minWidth="70" prefWidth="40" text="ಕ್ರ.ಸಂ" />
                             <TableColumn fx:id="sevaNameColumn" minWidth="140" prefWidth="160" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
-                            <TableColumn minWidth="50" prefWidth="60" text="ಪ್ರಮಾಣ " />
+                            <TableColumn fx:id="quantityColumn"    minWidth="50" prefWidth="60" text="ಪ್ರಮಾಣ " />
                             <TableColumn minWidth="70" text="ಮೊತ್ತ " />
                             <TableColumn minWidth="80" prefWidth="90" text="ಒಟ್ಟು ಮೊತ್ತ " />
                             <TableColumn minWidth="70" text="ಕ್ರಿಯೆಗಳು" />

@@ -7,6 +7,7 @@ import com.pranav.temple_software.controllers.menuControllers.OtherSevaManager.O
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.Donations;
+import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
@@ -78,13 +79,14 @@ public class MainController {
 	public Button addDonationButton;
 	public TextArea addressField;
 	public Button closeButton;
+	public TableColumn<SevaEntry, Integer> quantityColumn;
 	@FXML
 	private Button addDonationButton1;
 	@FXML
 	public Label totalLabel;
 	@FXML
 	private Button printPreviewButton;
-
+	
 	@FXML private AnchorPane mainPane;
 
 
