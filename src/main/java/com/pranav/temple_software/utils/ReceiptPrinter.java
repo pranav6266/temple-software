@@ -3,8 +3,6 @@ package com.pranav.temple_software.utils;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.models.ReceiptData;
-import com.sun.tools.javac.Main;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.print.*;
