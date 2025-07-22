@@ -8,14 +8,20 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 public class DashboardController {
 
@@ -48,6 +54,64 @@ public class DashboardController {
 
 		// Load initial data
 		generateReport();
+	}
+
+	@FXML
+	public void openFilterWindow() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/FilterWindow.fxml"));
+			Stage filterStage = new Stage();
+			filterStage.setTitle("ಫಿಲ್ಟರ್ ಆಯ್ಕೆಗಳು");
+			filterStage.initModality(Modality.WINDOW_MODAL);
+			filterStage.initOwner(dashboardTable.getScene().getWindow());
+			filterStage.setResizable(false);
+
+			Scene scene = new Scene(loader.load());
+			scene.getStylesheets().add(getClass().getResource("/css/modern-dashboard.css").toExternalForm());
+			filterStage.setScene(scene);
+
+			// Get the filter controller and set up the filter components
+			FilterPopupController filterController = loader.getController();
+			filterController.initializeWithCurrentFilters(
+					typeComboBox.getValue(),
+					itemComboBox.getValue(),
+					fromDatePicker.getValue(),
+					toDatePicker.getValue(),
+					monthComboBox.getValue(),
+					yearComboBox.getValue(),
+					paymentModeComboBox.getValue()
+			);
+
+			filterController.setFilterApplyHandler(() -> {
+				// Copy filter values back to main controller
+				typeComboBox.setValue(filterController.getTypeValue());
+				itemComboBox.setValue(filterController.getItemValue());
+				fromDatePicker.setValue(filterController.getFromDateValue());
+				toDatePicker.setValue(filterController.getToDateValue());
+				monthComboBox.setValue(filterController.getMonthValue());
+				yearComboBox.setValue(filterController.getYearValue());
+				paymentModeComboBox.setValue(filterController.getPaymentModeValue());
+
+				// Generate report with new filters
+				generateReport();
+
+				filterStage.close();
+			});
+
+			filterStage.showAndWait();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Failed to open filter window: " + e.getMessage());
+		}
+	}
+
+	public void showAlert(String title, String message) { //
+		Alert alert = new Alert(Alert.AlertType.WARNING); //
+		alert.setTitle(title); //
+		alert.setHeaderText(null); //
+		alert.setContentText(message); //
+		alert.showAndWait(); //
 	}
 
 	private void setupComboBoxes() {
@@ -149,7 +213,7 @@ public class DashboardController {
 					setText(null);
 				} else {
 					setText(String.format("₹%.2f", amount));
-					setAlignment(Pos.CENTER_RIGHT);
+					setAlignment(Pos.CENTER);
 				}
 			}
 		});

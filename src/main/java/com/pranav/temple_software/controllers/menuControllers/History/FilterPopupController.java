@@ -1,8 +1,12 @@
-// FILE: src\main\java\com\pranav\temple_software\controllers\menuControllers\History\FilterPopupController.java
 package com.pranav.temple_software.controllers.menuControllers.History;
 
-import com.pranav.temple_software.models.ReceiptData;
-import com.pranav.temple_software.repositories.ReceiptRepository;
+import com.pranav.temple_software.models.Donations;
+import com.pranav.temple_software.models.Seva;
+import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.DonationRepository;
+import com.pranav.temple_software.repositories.OtherSevaRepository;
+import com.pranav.temple_software.repositories.SevaRepository;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -11,145 +15,239 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors; // Import Collectors
+import java.util.stream.Collectors;
 
 public class FilterPopupController {
 
-
-	@FXML private DatePicker datePicker;
+	@FXML private ComboBox<String> typeComboBox;
+	@FXML private ComboBox<String> itemComboBox;
+	@FXML private DatePicker fromDatePicker;
+	@FXML private DatePicker toDatePicker;
 	@FXML private ComboBox<String> monthComboBox;
 	@FXML private ComboBox<String> yearComboBox;
-	@FXML private RadioButton onlineRadio;
-	@FXML private RadioButton offlineRadio;
-	@FXML private Button applyButton;
-	@FXML private Button clearButton; // Assuming you add fx:id="clearButton" to your FXML
+	@FXML private ComboBox<String> paymentModeComboBox;
 
-	private final ReceiptRepository receiptRepository = new ReceiptRepository();
-	private FilterListener listener;
+	private FilterApplyHandler filterApplyHandler;
 
-	// --- State variables to hold the filter values ---
-	private String initialSevaType = "ಎಲ್ಲಾ"; // Default to "All" in Kannada [cite: 159]
-	private LocalDate initialDate = null;
-	private String initialMonth = "All";
-	private String initialYear = "";
-	private boolean initialOnline = false;
-	private boolean initialOffline = false;
-
-	// --- Interface for the listener ---
-	public interface FilterListener {
-		void onFiltersApplied(LocalDate date, String month, String year, boolean online, boolean offline);
-		void onFiltersCleared();
+	// Interface for handling filter apply action
+	public interface FilterApplyHandler {
+		void handle();
 	}
 
-	// --- Setter for the listener ---
-	public void setFilterListener(FilterListener listener) {
-		this.listener = listener;
+	// Setter for the filter apply handler
+	public void setFilterApplyHandler(FilterApplyHandler handler) {
+		this.filterApplyHandler = handler;
 	}
-
-	// --- Method to receive the initial/saved filter state from HistoryController ---
-	public void setInitialFilterState(String sevaType, LocalDate date, String month, String year, boolean online, boolean offline) {
-		// Store the passed-in state
-		this.initialSevaType = (sevaType == null || sevaType.isEmpty()) ? "ಎಲ್ಲಾ" : sevaType;
-		this.initialDate = date;
-		this.initialMonth = (month == null || month.isEmpty()) ? "All" : month;
-		this.initialYear = (year == null) ? "" : year;
-		this.initialOnline = online;
-		this.initialOffline = offline;
-
-		// Apply the initial state to the UI controls
-		applyStateToUI();
-	}
-
-	// --- Apply the stored state variables to the UI controls ---
-	private void applyStateToUI() {
-
-		datePicker.setValue(initialDate);
-		monthComboBox.setValue(initialMonth);
-		yearComboBox.setValue(initialYear);
-		onlineRadio.setSelected(initialOnline);
-		offlineRadio.setSelected(initialOffline);
-	}
-
 
 	@FXML
 	public void initialize() {
-		monthComboBox.setItems(FXCollections.observableArrayList("All", "JANUARY", "FEBRUARY", "MARCH", "APRIL",
-				"MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"));
+		setupComboBoxes();
+		setupDefaultValues();
+	}
 
+	private void setupComboBoxes() {
+		// Type ComboBox
+		typeComboBox.setItems(FXCollections.observableArrayList(
+				"ಎಲ್ಲಾ", "ಸೇವೆ", "ಇತರೆ ಸೇವೆ", "ದೇಣಿಗೆ"
+		));
+		typeComboBox.setValue("ಎಲ್ಲಾ");
+
+		// Item ComboBox (initially with default option)
+		itemComboBox.setItems(FXCollections.observableArrayList("ಎಲ್ಲಾ"));
+		itemComboBox.setValue("ಎಲ್ಲಾ");
+
+		// Payment Mode ComboBox
+		paymentModeComboBox.setItems(FXCollections.observableArrayList(
+				"All", "Cash", "Online"
+		));
+		paymentModeComboBox.setValue("All");
+
+		// Month ComboBox
+		monthComboBox.setItems(FXCollections.observableArrayList(
+				"All", "ಜನವರಿ", "ಫೆಬ್ರುವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್",
+				"ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"
+		));
+		monthComboBox.setValue("All");
+
+		// Year ComboBox
 		List<String> years = new ArrayList<>();
-		years.add(""); // Option for no year filter
+		years.add("");
 		int currentYear = LocalDate.now().getYear();
 		for (int y = currentYear; y >= 2000; y--) {
 			years.add(String.valueOf(y));
 		}
 		yearComboBox.setItems(FXCollections.observableArrayList(years));
+		yearComboBox.setValue("");
+	}
 
+	private void setupDefaultValues() {
 		// Set default values
-		monthComboBox.setValue("All");
-		yearComboBox.setValue("");
-		datePicker.setValue(null);
-		onlineRadio.setSelected(false);
-		offlineRadio.setSelected(false);
-
-		// Setup radio button toggle group
-		ToggleGroup paymentGroup = new ToggleGroup();
-		onlineRadio.setToggleGroup(paymentGroup);
-		offlineRadio.setToggleGroup(paymentGroup);
+		fromDatePicker.setValue(null);
+		toDatePicker.setValue(null);
 	}
 
+	// Method to initialize with current filter values from main dashboard
+	public void initializeWithCurrentFilters(String typeValue, String itemValue,
+	                                         LocalDate fromDate, LocalDate toDate,
+	                                         String monthValue, String yearValue,
+	                                         String paymentModeValue) {
+		if (typeValue != null) {
+			typeComboBox.setValue(typeValue);
+		}
+		if (itemValue != null) {
+			itemComboBox.setValue(itemValue);
+		}
+		fromDatePicker.setValue(fromDate);
+		toDatePicker.setValue(toDate);
+		if(validateFilters()) {
+			if (monthValue != null) {
+				monthComboBox.setValue(monthValue);
+			}
+			if (yearValue != null) {
+				yearComboBox.setValue(yearValue);
+			}
+			if (paymentModeValue != null) {
+				paymentModeComboBox.setValue(paymentModeValue);
+			}
+		}
+	}
 
 	@FXML
-	public void handleApplyFilters() {
-		// Get current selections from UI (remove seva type)
-		LocalDate selectedDate = datePicker.getValue();
-		String selectedMonth = monthComboBox.getValue();
-		String selectedYear = yearComboBox.getValue();
-		boolean isOnlineSelected = onlineRadio.isSelected();
-		boolean isOfflineSelected = offlineRadio.isSelected();
-
-		// Pass the filter criteria back to the listener without any data filtering
-		if (listener != null) {
-			listener.onFiltersApplied( selectedDate, selectedMonth, selectedYear, isOnlineSelected, isOfflineSelected);
+	public void applyFilters() {
+		if (filterApplyHandler != null) {
+			filterApplyHandler.handle();
 		}
-
-		// Close the popup stage
-		Stage stage = (Stage) applyButton.getScene().getWindow();
-		stage.close();
 	}
-
-
 
 	@FXML
-	private void handleClearFiltersAndClose() {
-		// Reset UI components (remove seva type reset)
-		datePicker.setValue(null);
+	public void clearFilters() {
+		// Reset all filter values to defaults
+		typeComboBox.setValue("ಎಲ್ಲಾ");
+		itemComboBox.setValue("ಎಲ್ಲಾ");
+		fromDatePicker.setValue(null);
+		toDatePicker.setValue(null);
 		monthComboBox.setValue("All");
 		yearComboBox.setValue("");
-		onlineRadio.setSelected(false);
-		offlineRadio.setSelected(false);
+		paymentModeComboBox.setValue("All");
+	}
 
-		// Reset internal state variables (remove seva type)
-		this.initialDate = null;
-		this.initialMonth = "All";
-		this.initialYear = "";
-		this.initialOnline = false;
-		this.initialOffline = false;
+	@FXML
+	public void closeWindow() {
+		Stage stage = (Stage) typeComboBox.getScene().getWindow();
+		if (stage != null) {
+			stage.close();
+		}
+	}
 
-		// Notify listener that filters were cleared
-		if (listener != null) {
-			listener.onFiltersCleared();
+	// Getters for filter values
+	public String getTypeValue() {
+		return typeComboBox.getValue();
+	}
+
+	public String getItemValue() {
+		return itemComboBox.getValue();
+	}
+
+	public LocalDate getFromDateValue() {
+		return fromDatePicker.getValue();
+	}
+
+	public LocalDate getToDateValue() {
+		return toDatePicker.getValue();
+	}
+
+	public String getMonthValue() {
+		return monthComboBox.getValue();
+	}
+
+	public String getYearValue() {
+		return yearComboBox.getValue();
+	}
+
+	public String getPaymentModeValue() {
+		return paymentModeComboBox.getValue();
+	}
+
+	// Method to handle type selection change and update item combo box accordingly
+	@FXML
+	public void handleTypeSelectionChange() {
+		String selectedType = typeComboBox.getValue();
+
+		// Clear current item selection first
+		itemComboBox.setValue(null);
+		itemComboBox.getSelectionModel().clearSelection();
+
+		// Update the items based on selected type
+		updateItemComboBoxBasedOnType(selectedType);
+
+		// Set default selection to "All" after updating items
+		Platform.runLater(() -> {
+			if (!itemComboBox.getItems().isEmpty()) {
+				itemComboBox.setValue("ಎಲ್ಲಾ"); // Set to "All" option
+			}
+		});
+	}
+
+	private void updateItemComboBoxBasedOnType(String selectedType) {
+		List<String> items = new ArrayList<>();
+		items.add("ಎಲ್ಲಾ");
+
+		switch (selectedType) {
+			case "ಸೇವೆ":
+				// Get all regular sevas from SevaRepository
+				List<Seva> sevaEntries = SevaRepository.getInstance().getAllSevas();
+				items.addAll(sevaEntries.stream()
+						.map(Seva::getName)
+						.toList());
+				break;
+
+			case "ಇತರೆ ಸೇವೆ":
+				// Get all other sevas from OtherSevaRepository
+				List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
+				items.addAll(otherSevaEntries.stream()
+						.map(SevaEntry::getName)
+						.toList());
+				break;
+
+			case "ದೇಣಿಗೆ":
+				// Get all donations from DonationRepository
+				List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
+				items.addAll(donationEntries.stream()
+						.map(Donations::getName)
+						.toList());
+				break;
+
+			case "ಎಲ್ಲಾ":
+			default:
+				// For "All" option, keep only the default "ಎಲ್ಲಾ" option
+				break;
 		}
 
-		// Close the popup
-		Stage stage = (Stage) applyButton.getScene().getWindow();
-		stage.close();
+		// Update the combo box items
+		itemComboBox.setItems(FXCollections.observableArrayList(items));
+		itemComboBox.setValue("ಎಲ್ಲಾ");
 	}
 
 
-	// --- Getters for the current UI state (optional, if needed elsewhere) ---
-	public LocalDate getSelectedDate() { return datePicker.getValue(); }
-	public String getSelectedMonth() { return monthComboBox.getValue(); }
-	public String getSelectedYear() { return yearComboBox.getValue(); }
-	public boolean isOnlineSelected() { return onlineRadio.isSelected(); }
-	public boolean isOfflineSelected() { return offlineRadio.isSelected(); }
+	// Validation method to check if filters are valid
+	public boolean validateFilters() {
+		LocalDate fromDate = fromDatePicker.getValue();
+		LocalDate toDate = toDatePicker.getValue();
+
+		if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+			showValidationAlert("Invalid Date Range",
+					"From date cannot be after to date.");
+			return false;
+		}
+
+		return true;
+	}
+
+	private void showValidationAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
+	}
 }
