@@ -1,0 +1,329 @@
+/* ============================================
+   MODERN MANAGER POPUP STYLES
+   ============================================ */
+
+/* Root Styles for Manager Windows */
+.manager-root {
+    -fx-font-family: "Noto Sans Kannada", "Segoe UI", Arial, sans-serif;
+    -fx-background-color: linear-gradient(to bottom, #f8fafc 0%, #e2e8f0 100%);
+    -fx-font-size: 14px;
+}
+
+/* ============================================
+   MAIN GRID STYLING (Dynamically Generated Content)
+   ============================================ */
+
+.manager-grid {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 15, 0, 0, 4);
+    -fx-padding: 20;
+}
+
+/* Grid Headers (First Row) */
+.manager-grid .label:first-child,
+.manager-grid > .label {
+    -fx-background-color: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%);
+    -fx-text-fill: #374151;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 12 15;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 0 0 2 0;
+    -fx-background-radius: 6 6 0 0;
+    -fx-alignment: center;
+}
+
+/* Grid Data Cells */
+.manager-grid .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #374151;
+    -fx-font-size: 13px;
+    -fx-padding: 10 15;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+}
+
+/* Alternating Row Colors */
+.manager-grid .label:nth-child(even) {
+    -fx-background-color: #f8fafc;
+}
+
+.manager-grid .label:nth-child(odd) {
+    -fx-background-color: white;
+}
+
+/* Amount/Number Columns (Right Align) */
+.manager-grid .label:contains("₹"),
+.manager-grid .label:matches("\\d+\\.\\d+"),
+.manager-grid .label:matches("\\d+") {
+    -fx-alignment: center-right;
+    -fx-font-weight: 600;
+    -fx-text-fill: #059669;
+}
+
+/* Serial Number Column */
+.manager-grid .label:first-of-type {
+    -fx-alignment: center;
+    -fx-font-weight: 600;
+    -fx-text-fill: #6b7280;
+    -fx-background-color: #f9fafb;
+}
+
+/* ============================================
+   BUTTON STYLING
+   ============================================ */
+
+.manager-button {
+    -fx-background-color: linear-gradient(to bottom, #3b82f6 0%, #2563eb 100%);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8;
+    -fx-padding: 12 24;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.3), 4, 0, 0, 2);
+    -fx-min-width: 120;
+}
+
+.manager-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #2563eb 0%, #1d4ed8 100%);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.manager-save-button {
+    -fx-background-color: linear-gradient(to bottom, #10b981 0%, #059669 100%);
+}
+
+.manager-save-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #059669 0%, #047857 100%);
+}
+
+.manager-delete-button {
+    -fx-background-color: linear-gradient(to bottom, #ef4444 0%, #dc2626 100%);
+}
+
+.manager-delete-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #dc2626 0%, #b91c1c 100%);
+}
+
+.manager-cancel-button {
+    -fx-background-color: linear-gradient(to bottom, #6b7280 0%, #4b5563 100%);
+}
+
+.manager-cancel-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #4b5563 0%, #374151 100%);
+}
+
+/* ============================================
+   POPUP DIALOG STYLES
+   ============================================ */
+
+.popup-dialog {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 8);
+}
+
+.popup-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+    -fx-padding: 20 20 15 20;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+    -fx-background-radius: 12 12 0 0;
+}
+
+.popup-content {
+    -fx-padding: 20;
+    -fx-spacing: 15;
+    -fx-background-color: white;
+}
+
+.popup-field-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #374151;
+}
+
+.popup-text-field {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 12;
+    -fx-font-size: 14px;
+}
+
+.popup-text-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #eff6ff;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.25), 3, 0, 0, 0);
+}
+
+.popup-button-container {
+    -fx-spacing: 12;
+    -fx-alignment: center;
+    -fx-padding: 15 20 20 20;
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1 0 0 0;
+    -fx-background-radius: 0 0 12 12;
+}
+
+/* ============================================
+   LIST VIEW STYLING (For Edit Popups)
+   ============================================ */
+
+.manager-list-view {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);
+}
+
+.manager-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 12 15;
+    -fx-font-size: 14px;
+    -fx-text-fill: #374151;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 0 0 1 0;
+}
+
+.manager-list-view .list-cell:odd {
+    -fx-background-color: #f8fafc;
+}
+
+.manager-list-view .list-cell:hover {
+    -fx-background-color: #e0f2fe;
+    -fx-cursor: hand;
+}
+
+.manager-list-view .list-cell:selected {
+    -fx-background-color: #bfdbfe;
+    -fx-text-fill: #1e40af;
+}
+
+/* Drag and Drop Visual Feedback */
+.manager-list-view .list-cell:drag-over {
+    -fx-background-color: #dbeafe;
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 2 0;
+}
+
+/* ============================================
+   CHECKBOX STYLING (For Delete Popups)
+   ============================================ */
+
+.manager-checkbox {
+    -fx-font-size: 14px;
+    -fx-text-fill: #374151;
+    -fx-padding: 8 12;
+}
+
+.manager-checkbox .box {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 2;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.manager-checkbox:selected .box {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+.manager-checkbox .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 0,3 L 3,6 L 8,0";
+}
+
+/* ============================================
+   SCROLL PANE STYLING
+   ============================================ */
+
+.manager-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.manager-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 4;
+    -fx-pref-width: 8;
+}
+
+.manager-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 4;
+}
+
+.manager-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .manager-grid .label {
+        -fx-font-size: 12px;
+        -fx-padding: 8 12;
+    }
+
+    .manager-button {
+        -fx-font-size: 13px;
+        -fx-padding: 10 20;
+    }
+}
+
+/* ============================================
+   SPINNER STYLING (For Other Seva Edit)
+   ============================================ */
+
+.manager-spinner {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.manager-spinner:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.25), 3, 0, 0, 0);
+}
+
+.manager-spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 8 10;
+}
+
+/* ============================================
+   ANIMATION EFFECTS
+   ============================================ */
+
+.manager-button, .popup-text-field, .manager-checkbox {
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+.manager-grid .label {
+    -fx-transition: background-color 0.15s ease-in-out;
+}
