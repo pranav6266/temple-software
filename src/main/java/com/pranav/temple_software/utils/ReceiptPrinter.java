@@ -62,7 +62,7 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text("")); // Spacer
 
 		// Receipt Title - Center Aligned
-		Text receiptTitle = new Text("ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ");
+		Text receiptTitle = new Text("ಸೇವಾ ರಶೀದಿ");
 		receiptTitle.setFont(Font.font("Noto Sans Kannada", 14));
 		receiptTitle.setStyle("-fx-underline: true;");
 		VBox titleBox = new VBox(receiptTitle);
@@ -86,7 +86,7 @@ public class ReceiptPrinter {
 		// Seva Header Row (Fixed Column Widths + Bold Labels)
 		HBox headerRow = new HBox(20); // spacing 20
 
-		Label sevaLabel = new Label("ಸೇವೆ / ದೇವಿಗೆ");
+		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
 		sevaLabel.setMinWidth(150);
 		sevaLabel.setStyle("-fx-font-weight: bold;");
 
@@ -297,8 +297,8 @@ public class ReceiptPrinter {
 		// Donation Details
 		receiptBox.getChildren().addAll(
 				new Text("ದೇಣಿಗೆ ವಿಧ: " + data.getDonationName()),
-				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount())),
-				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode())
+				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode()),
+				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount()))
 		);
 
 		receiptBox.getChildren().add(new Text(""));
