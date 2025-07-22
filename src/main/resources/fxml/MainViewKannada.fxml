@@ -26,7 +26,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
-    <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1086.0" prefWidth="1920.0" styleClass="root" stylesheets="@/css/modern-main.css">
+    <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1086.0" prefWidth="1920.0" styleClass="root" stylesheets="@../css/modern-main.css">
 
         <!-- Top Section with Header -->
         <top>

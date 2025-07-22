@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="1080.0" prefWidth="1920.0" styleClass="history-root" stylesheets="@/css/modern-history.css"
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" styleClass="history-root" stylesheets="@../../../css/modern-history.css"
             xmlns="http://javafx.com/javafx/23.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">

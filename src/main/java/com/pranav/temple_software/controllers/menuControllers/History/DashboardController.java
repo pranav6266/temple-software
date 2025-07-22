@@ -32,7 +32,7 @@ public class DashboardController {
 	@FXML private ComboBox<String> monthComboBox;
 	@FXML private ComboBox<String> yearComboBox;
 	@FXML private ComboBox<String> paymentModeComboBox;
-	@FXML private Button generateReportButton;
+
 	@FXML private Button clearFiltersButton;
 	@FXML private TableView<DashboardStats> dashboardTable;
 	@FXML private TableColumn<DashboardStats, String> itemNameColumn;
@@ -222,8 +222,6 @@ public class DashboardController {
 	private void setupEventHandlers() {
 		// Type selection change handler
 		typeComboBox.setOnAction(e -> updateItemComboBox());
-
-		generateReportButton.setOnAction(e -> generateReport());
 		clearFiltersButton.setOnAction(e -> clearAllFilters());
 	}
 

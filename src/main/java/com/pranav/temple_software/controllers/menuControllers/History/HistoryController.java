@@ -30,6 +30,7 @@ public class HistoryController {
 	@FXML public Button applyFilterButton;
 	@FXML public Button resetFilterButton;
 	public TableColumn<ReceiptData, String> paymentMode;
+	public Button dashboardButton;
 	@FXML private Button filterButton;
 	@FXML private AnchorPane filterPanel;
 	@FXML private ComboBox<String> sevaTypeComboBox;
