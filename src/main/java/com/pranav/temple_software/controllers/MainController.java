@@ -81,6 +81,12 @@ public class MainController {
 	public Button closeButton;
 	public TableColumn<SevaEntry, Integer> quantityColumn;
 	@FXML
+	public TableColumn<SevaEntry, Number> amountColumn;
+	@FXML
+	public TableColumn<SevaEntry, Number> totalAmountColumn;
+	@FXML
+	public TableColumn<SevaEntry, Void> actionColumn;
+	@FXML
 	private Button addDonationButton1;
 	@FXML
 	public Label totalLabel;

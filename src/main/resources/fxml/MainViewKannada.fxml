@@ -161,9 +161,12 @@
                             <TableColumn fx:id="slNoColumn" maxWidth="139.5" minWidth="70" prefWidth="97.0" resizable="false" text="ಕ್ರ.ಸಂ" />
                             <TableColumn fx:id="sevaNameColumn" minWidth="140" prefWidth="201.0" resizable="false" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
                             <TableColumn fx:id="quantityColumn" minWidth="50" prefWidth="88.0" resizable="false" text="ಪ್ರಮಾಣ " />
-                            <TableColumn minWidth="42.0" resizable="false" text="ಮೊತ್ತ " />
-                            <TableColumn minWidth="60.0" prefWidth="96.0" resizable="false" text="ಒಟ್ಟು ಮೊತ್ತ " />
-                            <TableColumn minWidth="70" resizable="false" text="ಕ್ರಿಯೆಗಳು" />
+
+                            <TableColumn fx:id="amountColumn" minWidth="42.0" resizable="false" text="ಮೊತ್ತ " />
+
+                            <TableColumn fx:id="totalAmountColumn" minWidth="60.0" prefWidth="96.0" resizable="false" text="ಒಟ್ಟು ಮೊತ್ತ " />
+
+                            <TableColumn fx:id="actionColumn" minWidth="70" resizable="false" text="ಕ್ರಿಯೆಗಳು" />
                         </columns>
                     </TableView>
 

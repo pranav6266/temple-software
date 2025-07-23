@@ -3,8 +3,7 @@ plugins {
     id 'application'
     id 'org.javamodularity.moduleplugin' version '1.8.12'
     id 'org.openjfx.javafxplugin' version '0.0.14'
-    id 'org.beryx.jlink' version '2.25.0'
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id 'org.beryx.jlink' version '3.1.1'
 }
 
 group 'com.pranav'
@@ -23,10 +22,6 @@ java {
     targetCompatibility = '21'
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
-
 application {
     mainModule = 'com.pranav.temple_software'
     mainClass = 'com.pranav.temple_software.Launcher'
@@ -37,6 +32,10 @@ javafx {
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics']
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 dependencies {
     implementation 'com.h2database:h2:2.2.224'
     implementation 'org.apache.pdfbox:pdfbox:3.0.2'
@@ -44,6 +43,10 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
     implementation 'com.github.anastaciocintra:escpos-coffee:4.0.2'
+
+    // Explicitly include SLF4J dependencies
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
 }
 
 test {
@@ -62,11 +65,11 @@ jlink {
             '--ignore-signing-information'
     ]
 
-    // Force merge problematic dependencies
-    forceMerge('h2')
-    forceMerge('pdfbox')
-    forceMerge('sqlite-jdbc')
-    forceMerge('escpos-coffee')
+//    forceMerge('h2', 'pdfbox', 'sqlite-jdbc', 'escpos-coffee', 'slf4j-api', 'slf4j-simple')
+
+    // Add this block to fix the "module not found" error
+    addExtraDependencies("slf4j.api")
+    addExtraDependencies("slf4j.simple")
 
     launcher {
         name = 'temple-software'
@@ -76,7 +79,9 @@ jlink {
                 '--add-opens', 'java.desktop/sun.awt=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.nio=ALL-UNNAMED',
                 '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+                '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+                '--add-exports', 'java.base/sun.nio.ch=ALL-UNNAMED',
+                '--add-exports', 'java.desktop/sun.awt=ALL-UNNAMED'
         ]
     }
 
@@ -105,19 +110,10 @@ jlink {
 
         appVersion = '1.0.0'
         vendor = 'Temple Management'
-        description = 'Temple Management Software for Sri Shastara Subramanyeshwar Devasthana'
+        description = 'Temple Management Software for Sri Shastara Subramanyeshwara Devasthana'
     }
 }
 
 jlinkZip {
     group = 'distribution'
 }
-
-// Alternative Shadow JAR task for fallback
-//shadowJar {
-//    archiveClassifier.set('')
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//    manifest {
-//        attributes 'Main-Class': 'com.pranav.temple_software.Launcher'
-//    }
-//}

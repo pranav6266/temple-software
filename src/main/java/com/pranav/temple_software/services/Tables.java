@@ -111,30 +111,19 @@ public class Tables {
 
 
 	private void setupAmountColumn() {
-		// Find the amount column
-		TableColumn<SevaEntry, Number> amountColumn = null;
-		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
-			if ("ಮೊತ್ತ ".equals(column.getText()) || "Amount".equals(column.getText())) {
-				amountColumn = (TableColumn<SevaEntry, Number>) column;
-				break;
-			}
-		}
-
-		if (amountColumn != null) {
-			amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
-			amountColumn.setCellFactory(column -> new TableCell<SevaEntry, Number>() {
-				@Override
-				protected void updateItem(Number amount, boolean empty) {
-					super.updateItem(amount, empty);
-					if (empty || amount == null) {
-						setText(null);
-					} else {
-						setText(String.format("₹%.2f", amount.doubleValue()));
-					}
-					setAlignment(Pos.CENTER_RIGHT);
+		controller.amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+		controller.amountColumn.setCellFactory(column -> new TableCell<>() {
+			@Override
+			protected void updateItem(Number amount, boolean empty) {
+				super.updateItem(amount, empty);
+				if (empty || amount == null) {
+					setText(null);
+				} else {
+					setText(String.format("₹%.2f", amount.doubleValue()));
 				}
-			});
-		}
+				setAlignment(Pos.CENTER_RIGHT);
+			}
+		});
 	}
 
 	private void setupQuantityColumn() {
@@ -201,50 +190,24 @@ public class Tables {
 
 
 	private void setupTotalAmountColumn() {
-		// Find the total amount column
-		TableColumn<SevaEntry, Number> totalColumn = null;
-		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
-			if ("ಒಟ್ಟು ಮೊತ್ತ ".equals(column.getText()) || "Total Amount".equals(column.getText())) {
-				totalColumn = (TableColumn<SevaEntry, Number>) column;
-				break;
-			}
-		}
-
-		if (totalColumn != null) {
-			totalColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
-			totalColumn.setCellFactory(column -> new TableCell<SevaEntry, Number>() {
-				@Override
-				protected void updateItem(Number totalAmount, boolean empty) {
-					super.updateItem(totalAmount, empty);
-					if (empty || totalAmount == null) {
-						setText(null);
-					} else {
-						setText(String.format("₹%.2f", totalAmount.doubleValue()));
-					}
-					setAlignment(Pos.CENTER_RIGHT);
+		controller.totalAmountColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
+		controller.totalAmountColumn.setCellFactory(column -> new TableCell<>() {
+			@Override
+			protected void updateItem(Number totalAmount, boolean empty) {
+				super.updateItem(totalAmount, empty);
+				if (empty || totalAmount == null) {
+					setText(null);
+				} else {
+					setText(String.format("₹%.2f", totalAmount.doubleValue()));
 				}
-			});
-		}
+				setAlignment(Pos.CENTER_RIGHT);
+			}
+		});
 	}
 
 	private void setupActionColumn() {
-		// Find or create the action column
-		TableColumn<SevaEntry, Void> actionColumn = null;
-		for (TableColumn<SevaEntry, ?> column : controller.sevaTableView.getColumns()) {
-			if ("Action".equals(column.getText()) || "Actions".equals(column.getText()) ||
-					"ಕ್ರಿಯೆಗಳು".equals(column.getText())) {
-				actionColumn = (TableColumn<SevaEntry, Void>) column;
-				break;
-			}
-		}
-
-		if (actionColumn == null) {
-			actionColumn = new TableColumn<>("Actions");
-			controller.sevaTableView.getColumns().add(actionColumn);
-		}
-
-		actionColumn.setPrefWidth(120);
-		actionColumn.setCellFactory(col -> new TableCell<SevaEntry, Void>() {
+		controller.actionColumn.setPrefWidth(120);
+		controller.actionColumn.setCellFactory(col -> new TableCell<>() {
 			private final Button removeButton = new Button("Remove");
 			private final Button retryButton = new Button("Retry");
 			private final HBox buttonBox = new HBox(5);
@@ -278,7 +241,6 @@ public class Tables {
 					setGraphic(null);
 				} else {
 					SevaEntry entry = getTableView().getItems().get(getIndex());
-					// Show retry button only for failed items
 					boolean showRetry = entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED;
 					retryButton.setVisible(showRetry);
 					retryButton.setManaged(showRetry);
