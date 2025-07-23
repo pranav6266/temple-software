@@ -1,8 +1,6 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.utils.DatabaseManager;
-
 import java.sql.*;
 import java.util.*;
 
@@ -11,13 +9,12 @@ public class OtherSevaRepository {
 	private static final String USER = "sa";
 	private static final String PASS = "";
 
-	private static final List<SevaEntry> otherSevaList = new ArrayList<>();
-
 	private static final OtherSevaRepository instance = new OtherSevaRepository();
-
+	private final List<SevaEntry> otherSevaList = new ArrayList<>();
+	private boolean isDataLoaded = false;
 
 	private OtherSevaRepository() {
-		loadOtherSevasFromDB();
+		// Constructor remains empty for lazy loading
 	}
 
 	public static OtherSevaRepository getInstance() {
@@ -28,8 +25,13 @@ public class OtherSevaRepository {
 		return DriverManager.getConnection(DB_URL, USER, PASS);
 	}
 
-	public static void loadOtherSevasFromDB() {
-		otherSevaList.clear();
+	// *** KEY CHANGE: Made this method static again ***
+	public static synchronized void loadOtherSevasFromDB() {
+		// Use the instance to manage the loaded state and list
+		if (instance.isDataLoaded) {
+			return;
+		}
+		instance.otherSevaList.clear();
 		String sql = "SELECT * FROM OtherSevas ORDER BY display_order";
 		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 			while (rs.next()) {
@@ -38,21 +40,26 @@ public class OtherSevaRepository {
 				int order = rs.getInt("display_order");
 
 				SevaEntry entry = new SevaEntry(name, amount);
-				entry.setDisplayOrder(order); // 🟡 Add a field for this if not already in SevaEntry
-				otherSevaList.add(entry);
+				entry.setDisplayOrder(order);
+				instance.otherSevaList.add(entry);
 			}
+			instance.isDataLoaded = true;
+			System.out.println("Loaded " + instance.otherSevaList.size() + " other sevas from DB.");
 		} catch (SQLException e) {
 			System.err.println("Failed to load Other Sevas: " + e.getMessage());
 		}
 	}
 
-
-
+	// *** KEY CHANGE: Made this method static again ***
 	public static List<SevaEntry> getAllOtherSevas() {
-		otherSevaList.sort(Comparator.comparingInt(SevaEntry::getDisplayOrder));
-		return Collections.unmodifiableList(otherSevaList);
+		if (!instance.isDataLoaded) {
+			loadOtherSevasFromDB();
+		}
+		instance.otherSevaList.sort(Comparator.comparingInt(SevaEntry::getDisplayOrder));
+		return Collections.unmodifiableList(instance.otherSevaList);
 	}
 
+	// This method was already non-static and correct, as it's called on the instance.
 	public int getMaxOtherSevaId() {
 		String sql = "SELECT MAX(CAST(other_seva_id AS INT)) FROM OtherSevas";
 		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
@@ -63,8 +70,8 @@ public class OtherSevaRepository {
 		return 0;
 	}
 
+	// This method was already non-static and correct.
 	public void addOtherSevaToDB(String id, String name, int amount) {
-		// Now includes amount column in the insertion.
 		String sql = "INSERT INTO OtherSevas (other_seva_id, other_seva_name, other_seva_amount, display_order) VALUES (?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -78,12 +85,11 @@ public class OtherSevaRepository {
 		}
 	}
 
-
+	// This method was already non-static and correct.
 	public boolean deleteOtherSevaFromDB(String id) {
 		String sql = "DELETE FROM OtherSevas WHERE other_seva_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, id);
-			pstmt.executeUpdate();
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
 		} catch (SQLException e) {
@@ -92,12 +98,13 @@ public class OtherSevaRepository {
 		return false;
 	}
 
+	// *** KEY CHANGE: Made this method static again ***
 	public static boolean updateDisplayOrder(String id, int order) {
 		String sql = "UPDATE OtherSevas SET display_order = ? WHERE other_seva_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, order);
 			pstmt.setString(2, id);
-			int affected = pstmt.executeUpdate(); // Check how many rows were updated
+			int affected = pstmt.executeUpdate();
 			return affected > 0;
 		} catch (SQLException e) {
 			System.err.println("Failed to update display order: " + e.getMessage());
@@ -105,8 +112,8 @@ public class OtherSevaRepository {
 		}
 	}
 
-
-	public static String getOtherSevaIdByName(String name) {
+	// This method was already non-static and correct.
+	public String getOtherSevaIdByName(String name) {
 		String sql = "SELECT other_seva_id FROM OtherSevas WHERE other_seva_name = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, name);
@@ -120,16 +127,17 @@ public class OtherSevaRepository {
 		return null;
 	}
 
+	// *** KEY CHANGE: Made this method static again ***
 	public static boolean updateAmount(String otherSevaId, double newAmount) {
 		String sql = "UPDATE OtherSevas SET other_seva_amount = ? WHERE other_seva_id = ?";
-		try (Connection conn = DatabaseManager.getConnection();
+		try (Connection conn = getConnection();
 		     PreparedStatement stmt = conn.prepareStatement(sql)) {
 			stmt.setDouble(1, newAmount);
 			stmt.setString(2, otherSevaId);
 			int affectedRows = stmt.executeUpdate();
 			return affectedRows > 0;
 		} catch (SQLException e) {
-			System.err.println("Error updating amount for seva ID " + otherSevaId + ": " + e.getMessage());
+			System.err.println("Error updating amount for other seva ID " + otherSevaId + ": " + e.getMessage());
 			return false;
 		}
 	}

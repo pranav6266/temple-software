@@ -18,45 +18,9 @@ import java.util.stream.Collectors;
 
 public class ReceiptServices {
 	private final MainController controller;
-	private int pendingReceiptId = -1;
-	private ReceiptData pendingReceiptData = null;
-	private String pendingPaymentMode = "N/A";
 
 	public ReceiptServices(MainController controller) {
 		this.controller = controller;
-	}
-
-	public void handlePrintPreview() {
-		// Reset all statuses to pending
-		controller.selectedSevas.forEach(entry -> entry.setPrintStatus(SevaEntry.PrintStatus.PENDING));
-		controller.updatePrintStatusLabel();
-
-		// Existing validation and processing logic remains the same
-		final String devoteeName = controller.devoteeNameField.getText();
-		final String phoneNumber = controller.contactField.getText();
-		final String address = controller.addressField.getText();
-		final LocalDate date = controller.sevaDatePicker.getValue();
-		final ObservableList<SevaEntry> currentSevas = FXCollections.observableArrayList(controller.sevaTableView.getItems());
-		final String raashi = controller.raashiComboBox.getValue();
-		final String nakshatra = controller.nakshatraComboBox.getValue();
-
-		String paymentMode = controller.cashRadio.isSelected() ? "Cash" :
-				(controller.onlineRadio.isSelected() ? "Online" : "N/A");
-
-		// Validation
-		List<String> errors = new ArrayList<>();
-		if (date == null) errors.add("Please select a seva date");
-		if (currentSevas.isEmpty()) errors.add("Please add at least one seva or donation");
-		if (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected()) {
-			errors.add("Please select payment mode (Cash/Online)");
-		}
-
-		if (!errors.isEmpty()) {
-			controller.showAlert("Validation Error", String.join("\n", errors));
-			return;
-		}
-
-		processReceiptsWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date, currentSevas, paymentMode);
 	}
 
 	public void handlePrintAllPending() {
@@ -82,7 +46,6 @@ public class ReceiptServices {
 			return;
 		}
 
-		// Reset failed items to pending
 		Platform.runLater(() -> {
 			failedItems.forEach(entry -> entry.setPrintStatus(SevaEntry.PrintStatus.PENDING));
 			controller.updatePrintStatusLabel();
@@ -105,7 +68,6 @@ public class ReceiptServices {
 			controller.selectedSevas.removeAll(successfulItems);
 			controller.updatePrintStatusLabel();
 
-			// Check if form should be cleared completely
 			if (controller.selectedSevas.isEmpty()) {
 				controller.clearForm();
 			}
@@ -140,7 +102,6 @@ public class ReceiptServices {
 	                                               String raashi, String nakshatra, LocalDate date,
 	                                               ObservableList<SevaEntry> items, String paymentMode) {
 
-		// Separate seva and donation entries
 		List<SevaEntry> sevaEntries = new ArrayList<>();
 		List<SevaEntry> donationEntries = new ArrayList<>();
 
@@ -159,13 +120,11 @@ public class ReceiptServices {
 			}
 		}
 
-		// Handle seva receipt if sevas exist
 		if (!sevaEntries.isEmpty()) {
 			handleSevaReceiptWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
 					sevaEntries, paymentMode);
 		}
 
-		// Handle donation receipts (one per donation)
 		for (SevaEntry donation : donationEntries) {
 			handleDonationReceiptWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
 					donation, paymentMode);
@@ -209,7 +168,6 @@ public class ReceiptServices {
 			controller.updatePrintStatusLabel();
 		};
 
-		// **KEY FIX: Add cancellation callback**
 		Runnable onDialogClosed = () -> {
 			if (donation.getPrintStatus() == SevaEntry.PrintStatus.PRINTING) {
 				markItemAsFailed(donation, "Print preview was cancelled");
@@ -256,9 +214,7 @@ public class ReceiptServices {
 			controller.updatePrintStatusLabel();
 		};
 
-		// **KEY FIX: Add a cancellation callback for when dialog is closed**
 		Runnable onDialogClosed = () -> {
-			// Check if items are still in PRINTING status when dialog closes
 			boolean stillPrinting = sevaEntries.stream()
 					.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
 
@@ -270,18 +226,11 @@ public class ReceiptServices {
 		controller.receiptPrinter.showPrintPreviewWithCancelCallback(sevaReceiptData, controller.mainStage, sevaAfterPrintAction, onDialogClosed);
 	}
 
-
-
-
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {
 		Platform.runLater(() -> {
 			items.forEach(entry -> entry.setPrintStatus(SevaEntry.PrintStatus.FAILED));
 			controller.updatePrintStatusLabel();
-
-			// ✅ FIXED: Defer the alert to avoid showAndWait during layout processing
-			Platform.runLater(() -> {
-				controller.showAlert("Print Failed", reason);
-			});
+			Platform.runLater(() -> controller.showAlert("Print Failed", reason));
 		});
 	}
 
@@ -303,17 +252,23 @@ public class ReceiptServices {
 		Platform.runLater(() -> {
 			item.setPrintStatus(SevaEntry.PrintStatus.FAILED);
 			controller.updatePrintStatusLabel();
-
-			// ✅ FIXED: Defer the alert
-			Platform.runLater(() -> {
-				controller.showAlert("Print Failed", reason + " for: " + item.getName());
-			});
+			Platform.runLater(() -> controller.showAlert("Print Failed", reason + " for: " + item.getName()));
 		});
 	}
 
+	/**
+	 * *** BUG FIX ***
+	 * Corrected the format to match what the parseSevas method expects.
+	 * It now uses ":" to separate parts and ";" to separate entries.
+	 * Format: "SevaName:BaseAmount:Quantity;AnotherSeva:BaseAmount:Quantity"
+	 */
 	private String formatSevasForDatabase(ObservableList<SevaEntry> sevas) {
 		return sevas.stream()
-				.map(seva -> seva.getName() + " x " + seva.getQuantity() + " = ₹" + String.format("%.2f", seva.getTotalAmount()))
-				.collect(Collectors.joining(", "));
+				.map(seva -> String.join(":",
+						seva.getName(),
+						String.valueOf(seva.getAmount()), // Base amount per unit
+						String.valueOf(seva.getQuantity())
+				))
+				.collect(Collectors.joining(";"));
 	}
 }

@@ -40,22 +40,11 @@
                 </rowConstraints>
 
                 <Label fx:id="devoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-<!--                <Label  text="ಭಕ್ತರ ಹೆಸರು: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>-->
-
                 <Label fx:id="phoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-<!--                <Label  text="ದೂರವಾಣಿ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="1"/>-->
-
                 <Label fx:id="sevaDateLabel" styleClass="info-label" text="ದಿನಾಂಕ:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-<!--                <Label  text="ದಿನಾಂಕ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="2"/>-->
-
                 <Label fx:id="rashiLabel" styleClass="info-label" text="ರಾಶಿ:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-<!--                <Label  text="ರಾಶಿ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="3"/>-->
-
                 <Label fx:id="nakshatraLabel" styleClass="info-label" text="ನಕ್ಷತ್ರ:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-<!--                <Label  text="ನಕ್ಷತ್ರ: " styleClass="info-label" GridPane.columnIndex="1" GridPane.rowIndex="4"/>-->
-
                 <Label fx:id="addressText" styleClass="info-label" text="ವಿಳಾಸ:" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-<!--                <Text  text="ವಿಳಾಸ: " styleClass="address-text" wrappingWidth="400" GridPane.columnIndex="1" GridPane.rowIndex="5"/>-->
             </GridPane>
         </VBox>
 
@@ -68,7 +57,8 @@
 
             <TableView fx:id="sevaTableView" prefHeight="250.0" styleClass="details-table">
                 <columns>
-                    <TableColumn fx:id="sevaNameColumn" prefWidth="250.0" styleClass="seva-name-cell" text="ಸೇವೆ / ದೇಣಿಗೆ / ಇತರೆ ಸೇವೆ" />
+                    <!-- UPDATED the text for this column -->
+                    <TableColumn fx:id="sevaNameColumn" prefWidth="250.0" styleClass="seva-name-cell" text="ಸೇವೆ / ಇತರೆ ಸೇವೆ" />
                     <TableColumn fx:id="priceColumn" prefWidth="100.0" styleClass="price-cell" text="ಬೆಲೆ" />
                     <TableColumn fx:id="quantityColumn" prefWidth="80.0" styleClass="quantity-cell" text="ಪ್ರಮಾಣ" />
                     <TableColumn fx:id="totalColumn" prefWidth="120.0" styleClass="total-cell" text="ಒಟ್ಟು ಮೊತ್ತ" />

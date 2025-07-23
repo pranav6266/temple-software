@@ -37,7 +37,6 @@ public class DashboardController {
 	@FXML private TableColumn<DashboardStats, Integer> onlineCountColumn;
 	@FXML private TableColumn<DashboardStats, Double> totalAmountColumn;
 
-	// FXML fields for summary labels
 	@FXML private Label totalRecordsLabel;
 	@FXML private Label totalAmountLabel;
 
@@ -218,8 +217,9 @@ public class DashboardController {
 		int totalRecords = stats.stream().mapToInt(DashboardStats::getTotalCount).sum();
 		double totalAmount = stats.stream().mapToDouble(DashboardStats::getTotalAmount).sum();
 
-		totalRecordsLabel.setText("ಒಟ್ಟು ದಾಖಲೆಗಳು: " + totalRecords);
-		totalAmountLabel.setText("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", totalAmount));
+		// Added Unicode icons for better visual appeal
+		totalRecordsLabel.setText("📋 ಒಟ್ಟು ದಾಖಲೆಗಳು: " + totalRecords);
+		totalAmountLabel.setText("💰 ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", totalAmount));
 	}
 
 	private String getIdFromName(String itemName, List<String> fullList) {

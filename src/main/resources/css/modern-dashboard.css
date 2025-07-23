@@ -39,7 +39,7 @@
    BUTTON STYLING
    ============================================ */
 
-.primary-button, .secondary-button {
+.secondary-button {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-padding: 10 20;
@@ -47,9 +47,6 @@
     -fx-border-radius: 8;
     -fx-cursor: hand;
     -fx-transition: all 0.2s ease;
-}
-
-.secondary-button {
     -fx-background-color: linear-gradient(to bottom, #ffffff, #f5f5f5);
     -fx-text-fill: #424242;
     -fx-border-color: #e0e0e0;
@@ -63,33 +60,41 @@
 }
 
 /* ============================================
-   NEW SUMMARY LABEL STYLES
+   IMPROVED SUMMARY CARD STYLES
    ============================================ */
 .summary-container {
-    -fx-background-color: white;
-    -fx-padding: 12 18;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-border-color: #e2e8f0;
+    -fx-background-color: linear-gradient(to bottom right, #f3f8ff, #ffffff);
+    -fx-padding: 15 25;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #dee2e6;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 3);
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+.summary-container:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0, 0, 4);
+    -fx-border-color: #1976d2;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
 }
 
 .summary-label {
     -fx-font-size: 14px;
     -fx-font-weight: 600;
-    -fx-text-fill: #475569;
+    -fx-text-fill: #475569; /* A professional gray */
 }
 
 .summary-amount {
-    -fx-font-size: 16px;
+    -fx-font-size: 18px; /* Larger font for the number */
     -fx-font-weight: bold;
-    -fx-text-fill: #059669; /* Green for amount */
+    -fx-text-fill: #1e3a8a; /* A deep, rich blue */
 }
 
 
 /* ============================================
-   MODERN TABLE STYLES (Copied from history)
+   MODERN TABLE STYLES
    ============================================ */
 
 .table-container {
