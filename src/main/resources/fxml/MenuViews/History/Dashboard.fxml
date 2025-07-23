@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController">
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController"
+            stylesheets="@../../../css/modern-dashboard.css">
     <top>
         <VBox styleClass="header-section">
             <HBox alignment="CENTER" styleClass="title-bar">
@@ -21,7 +31,6 @@
                     <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
                 </padding>
 
-
                 <Button onAction="#openFilterWindow" styleClass="secondary-button" text="ಫಿಲ್ಟರ್ ಆಯ್ಕೆಗಳು">
                     <font>
                         <Font size="14.0" />
@@ -36,17 +45,10 @@
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <VBox alignment="CENTER_RIGHT" spacing="5.0">
-                    <Label fx:id="totalRecordsLabel" styleClass="summary-label" text="ಒಟ್ಟು ದಾಖಲೆಗಳು: 0">
-                        <font>
-                            <Font name="System Bold" size="13.0" />
-                        </font>
-                    </Label>
-                    <Label fx:id="totalAmountLabel" styleClass="summary-amount" text="ಒಟ್ಟು ಮೊತ್ತ: ₹0.00">
-                        <font>
-                            <Font name="System Bold" size="13.0" />
-                        </font>
-                    </Label>
+                <!-- Reverted back to summary labels with new styling -->
+                <VBox alignment="CENTER_RIGHT" spacing="8.0" styleClass="summary-container">
+                    <Label fx:id="totalRecordsLabel" styleClass="summary-label" text="ಒಟ್ಟು ದಾಖಲೆಗಳು: 0" />
+                    <Label fx:id="totalAmountLabel" styleClass="summary-amount" text="ಒಟ್ಟು ಮೊತ್ತ: ₹0.00" />
                 </VBox>
             </HBox>
         </VBox>

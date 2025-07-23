@@ -2,11 +2,7 @@ package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.DashboardStats;
 import com.pranav.temple_software.repositories.DashboardRepository;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -20,8 +16,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
-
+import java.util.stream.Collectors;
 
 public class DashboardController {
 
@@ -41,6 +36,8 @@ public class DashboardController {
 	@FXML private TableColumn<DashboardStats, Integer> cashCountColumn;
 	@FXML private TableColumn<DashboardStats, Integer> onlineCountColumn;
 	@FXML private TableColumn<DashboardStats, Double> totalAmountColumn;
+
+	// FXML fields for summary labels
 	@FXML private Label totalRecordsLabel;
 	@FXML private Label totalAmountLabel;
 
@@ -51,8 +48,6 @@ public class DashboardController {
 		setupComboBoxes();
 		setupTableColumns();
 		setupEventHandlers();
-
-		// Load initial data
 		generateReport();
 	}
 
@@ -70,7 +65,6 @@ public class DashboardController {
 			scene.getStylesheets().add(getClass().getResource("/css/modern-dashboard.css").toExternalForm());
 			filterStage.setScene(scene);
 
-			// Get the filter controller and set up the filter components
 			FilterPopupController filterController = loader.getController();
 			filterController.initializeWithCurrentFilters(
 					typeComboBox.getValue(),
@@ -83,7 +77,6 @@ public class DashboardController {
 			);
 
 			filterController.setFilterApplyHandler(() -> {
-				// Copy filter values back to main controller
 				typeComboBox.setValue(filterController.getTypeValue());
 				itemComboBox.setValue(filterController.getItemValue());
 				fromDatePicker.setValue(filterController.getFromDateValue());
@@ -91,10 +84,7 @@ public class DashboardController {
 				monthComboBox.setValue(filterController.getMonthValue());
 				yearComboBox.setValue(filterController.getYearValue());
 				paymentModeComboBox.setValue(filterController.getPaymentModeValue());
-
-				// Generate report with new filters
 				generateReport();
-
 				filterStage.close();
 			});
 
@@ -106,35 +96,21 @@ public class DashboardController {
 		}
 	}
 
-	public void showAlert(String title, String message) { //
-		Alert alert = new Alert(Alert.AlertType.WARNING); //
-		alert.setTitle(title); //
-		alert.setHeaderText(null); //
-		alert.setContentText(message); //
-		alert.showAndWait(); //
+	public void showAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 
 	private void setupComboBoxes() {
-		// Type ComboBox
-		typeComboBox.setItems(FXCollections.observableArrayList(
-				"ಎಲ್ಲಾ", "ಸೇವೆ", "ಇತರೆ ಸೇವೆ", "ದೇಣಿಗೆ"
-		));
+		typeComboBox.setItems(FXCollections.observableArrayList("ಎಲ್ಲಾ", "ಸೇವೆ", "ಇತರೆ ಸೇವೆ", "ದೇಣಿಗೆ"));
 		typeComboBox.setValue("ಎಲ್ಲಾ");
-
-		// Payment Mode ComboBox
-		paymentModeComboBox.setItems(FXCollections.observableArrayList(
-				"All", "Cash", "Online"
-		));
+		paymentModeComboBox.setItems(FXCollections.observableArrayList("All", "Cash", "Online"));
 		paymentModeComboBox.setValue("All");
-
-		// Month ComboBox
-		monthComboBox.setItems(FXCollections.observableArrayList(
-				"All", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-				"JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
-		));
+		monthComboBox.setItems(FXCollections.observableArrayList("All", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"));
 		monthComboBox.setValue("All");
-
-		// Year ComboBox
 		List<String> years = new ArrayList<>();
 		years.add("");
 		int currentYear = LocalDate.now().getYear();
@@ -143,84 +119,46 @@ public class DashboardController {
 		}
 		yearComboBox.setItems(FXCollections.observableArrayList(years));
 		yearComboBox.setValue("");
-
-		// Item ComboBox (initially empty, populated based on type selection)
 		itemComboBox.setItems(FXCollections.observableArrayList("ಎಲ್ಲಾ"));
 		itemComboBox.setValue("ಎಲ್ಲಾ");
 	}
 
 	private void setupTableColumns() {
 		itemNameColumn.setCellValueFactory(new PropertyValueFactory<>("itemName"));
-		itemTypeColumn.setCellValueFactory(cellData -> {
-			String type = cellData.getValue().getItemType();
-			String kannada = switch (type) {
-				case "SEVA" -> "ಸೇವೆ";
-				case "OTHER_SEVA" -> "ಇತರೆ ಸೇವೆ";
-				case "DONATION" -> "ದೇಣಿಗೆ";
-				default -> type;
-			};
-			return new SimpleStringProperty(kannada);
-		});
-
+		itemTypeColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
+				switch (cellData.getValue().getItemType()) {
+					case "SEVA" -> "ಸೇವೆ";
+					case "OTHER_SEVA" -> "ಇತರೆ ಸೇವೆ";
+					case "DONATION" -> "ದೇಣಿಗೆ";
+					default -> cellData.getValue().getItemType();
+				}
+		));
 		totalCountColumn.setCellValueFactory(new PropertyValueFactory<>("totalCount"));
-		totalCountColumn.setCellFactory(column -> new TableCell<DashboardStats, Integer>() {
-			@Override
-			protected void updateItem(Integer count, boolean empty) {
-				super.updateItem(count, empty);
-				if (empty || count == null) {
-					setText(null);
-				} else {
-					setText(count.toString());
-					setAlignment(Pos.CENTER);
-				}
-			}
-		});
-
 		cashCountColumn.setCellValueFactory(new PropertyValueFactory<>("cashCount"));
-		cashCountColumn.setCellFactory(column -> new TableCell<DashboardStats, Integer>() {
-			@Override
-			protected void updateItem(Integer count, boolean empty) {
-				super.updateItem(count, empty);
-				if (empty || count == null) {
-					setText(null);
-				} else {
-					setText(count.toString());
-					setAlignment(Pos.CENTER);
-				}
-			}
-		});
-
 		onlineCountColumn.setCellValueFactory(new PropertyValueFactory<>("onlineCount"));
-		onlineCountColumn.setCellFactory(column -> new TableCell<DashboardStats, Integer>() {
-			@Override
-			protected void updateItem(Integer count, boolean empty) {
-				super.updateItem(count, empty);
-				if (empty || count == null) {
-					setText(null);
-				} else {
-					setText(count.toString());
-					setAlignment(Pos.CENTER);
-				}
-			}
-		});
-
 		totalAmountColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
-		totalAmountColumn.setCellFactory(column -> new TableCell<DashboardStats, Double>() {
-			@Override
-			protected void updateItem(Double amount, boolean empty) {
-				super.updateItem(amount, empty);
-				if (empty || amount == null) {
-					setText(null);
-				} else {
-					setText(String.format("₹%.2f", amount));
-					setAlignment(Pos.CENTER);
+
+		for (TableColumn<DashboardStats, ?> col : List.of(totalCountColumn, cashCountColumn, onlineCountColumn, totalAmountColumn)) {
+			col.setCellFactory(column -> new TableCell() {
+				@Override
+				protected void updateItem(Object item, boolean empty) {
+					super.updateItem(item, empty);
+					if (empty || item == null) {
+						setText(null);
+					} else {
+						if (item instanceof Double) {
+							setText(String.format("₹%.2f", (Double) item));
+						} else {
+							setText(item.toString());
+						}
+						setAlignment(Pos.CENTER);
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	private void setupEventHandlers() {
-		// Type selection change handler
 		typeComboBox.setOnAction(e -> updateItemComboBox());
 		clearFiltersButton.setOnAction(e -> clearAllFilters());
 	}
@@ -231,33 +169,9 @@ public class DashboardController {
 		items.add("ಎಲ್ಲಾ");
 
 		switch (selectedType) {
-			case "ಸೇವೆ":
-				List<String> sevaNames = dashboardRepository.getAllSevaNames();
-				for (String seva : sevaNames) {
-					String[] parts = seva.split(":");
-					if (parts.length == 2) {
-						items.add(parts[1]); // Add name only
-					}
-				}
-				break;
-			case "ಇತರೆ ಸೇವೆ":
-				List<String> otherSevaNames = dashboardRepository.getAllOtherSevaNames();
-				for (String otherSeva : otherSevaNames) {
-					String[] parts = otherSeva.split(":");
-					if (parts.length == 2) {
-						items.add(parts[1]); // Add name only
-					}
-				}
-				break;
-			case "ದೇಣಿಗೆ":
-				List<String> donationNames = dashboardRepository.getAllDonationNames();
-				for (String donation : donationNames) {
-					String[] parts = donation.split(":");
-					if (parts.length == 2) {
-						items.add(parts[1]); // Add name only
-					}
-				}
-				break;
+			case "ಸೇವೆ" -> items.addAll(dashboardRepository.getAllSevaNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
+			case "ಇತರೆ ಸೇವೆ" -> items.addAll(dashboardRepository.getAllOtherSevaNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
+			case "ದೇಣಿಗೆ" -> items.addAll(dashboardRepository.getAllDonationNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
 		}
 
 		itemComboBox.setItems(FXCollections.observableArrayList(items));
@@ -266,7 +180,6 @@ public class DashboardController {
 
 	@FXML
 	private void generateReport() {
-		// Get filter values
 		String selectedType = typeComboBox.getValue();
 		String selectedItem = itemComboBox.getValue();
 		LocalDate fromDate = fromDatePicker.getValue();
@@ -275,74 +188,30 @@ public class DashboardController {
 		String selectedYear = yearComboBox.getValue();
 		String paymentMode = paymentModeComboBox.getValue();
 
-		// Handle date/month/year logic
 		if (fromDate == null && selectedMonth != null && !selectedMonth.equals("All")) {
-			int year = selectedYear != null && !selectedYear.isEmpty() ?
-					Integer.parseInt(selectedYear) : LocalDate.now().getYear();
+			int year = (selectedYear != null && !selectedYear.isEmpty()) ? Integer.parseInt(selectedYear) : LocalDate.now().getYear();
 			int monthValue = getMonthValue(selectedMonth);
 			fromDate = LocalDate.of(year, monthValue, 1);
-			toDate = fromDate.plusMonths(1).minusDays(1);
+			toDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth());
 		} else if (fromDate == null && selectedYear != null && !selectedYear.isEmpty()) {
 			int year = Integer.parseInt(selectedYear);
 			fromDate = LocalDate.of(year, 1, 1);
 			toDate = LocalDate.of(year, 12, 31);
 		}
 
-		// Fetch data based on type
 		List<DashboardStats> allStats = new ArrayList<>();
-
-		if (selectedType.equals("ಎಲ್ಲಾ") || selectedType.equals("ಸೇವೆ")) {
-			String sevaId = getIdFromName(selectedItem, dashboardRepository.getAllSevaNames());
-			allStats.addAll(dashboardRepository.getSevaStatistics(fromDate, toDate, paymentMode, sevaId));
+		if ("ಎಲ್ಲಾ".equals(selectedType) || "ಸೇವೆ".equals(selectedType)) {
+			allStats.addAll(dashboardRepository.getSevaStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllSevaNames())));
+		}
+		if ("ಎಲ್ಲಾ".equals(selectedType) || "ಇತರೆ ಸೇವೆ".equals(selectedType)) {
+			allStats.addAll(dashboardRepository.getOtherSevaStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllOtherSevaNames())));
+		}
+		if ("ಎಲ್ಲಾ".equals(selectedType) || "ದೇಣಿಗೆ".equals(selectedType)) {
+			allStats.addAll(dashboardRepository.getDonationStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllDonationNames())));
 		}
 
-		if (selectedType.equals("ಎಲ್ಲಾ") || selectedType.equals("ಇತರೆ ಸೇವೆ")) {
-			String otherSevaId = getIdFromName(selectedItem, dashboardRepository.getAllOtherSevaNames());
-			allStats.addAll(dashboardRepository.getOtherSevaStatistics(fromDate, toDate, paymentMode, otherSevaId));
-		}
-
-		if (selectedType.equals("ಎಲ್ಲಾ") || selectedType.equals("ದೇಣಿಗೆ")) {
-			String donationId = getIdFromName(selectedItem, dashboardRepository.getAllDonationNames());
-			allStats.addAll(dashboardRepository.getDonationStatistics(fromDate, toDate, paymentMode, donationId));
-		}
-
-		// Update table
 		dashboardTable.setItems(FXCollections.observableArrayList(allStats));
-
-		// Update summary labels
 		updateSummaryLabels(allStats);
-	}
-
-	private String getIdFromName(String itemName, List<String> fullList) {
-		if (itemName == null || itemName.equals("ಎಲ್ಲಾ")) {
-			return null;
-		}
-
-		for (String item : fullList) {
-			String[] parts = item.split(":");
-			if (parts.length == 2 && parts[1].equals(itemName)) {
-				return parts[0];
-			}
-		}
-		return null;
-	}
-
-	private int getMonthValue(String monthName) {
-		return switch (monthName) {
-			case "JANUARY" -> 1;
-			case "FEBRUARY" -> 2;
-			case "MARCH" -> 3;
-			case "APRIL" -> 4;
-			case "MAY" -> 5;
-			case "JUNE" -> 6;
-			case "JULY" -> 7;
-			case "AUGUST" -> 8;
-			case "SEPTEMBER" -> 9;
-			case "OCTOBER" -> 10;
-			case "NOVEMBER" -> 11;
-			case "DECEMBER" -> 12;
-			default -> 1;
-		};
 	}
 
 	private void updateSummaryLabels(List<DashboardStats> stats) {
@@ -351,6 +220,24 @@ public class DashboardController {
 
 		totalRecordsLabel.setText("ಒಟ್ಟು ದಾಖಲೆಗಳು: " + totalRecords);
 		totalAmountLabel.setText("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", totalAmount));
+	}
+
+	private String getIdFromName(String itemName, List<String> fullList) {
+		if (itemName == null || "ಎಲ್ಲಾ".equals(itemName)) return null;
+		return fullList.stream()
+				.filter(item -> item.split(":")[1].equals(itemName))
+				.map(item -> item.split(":")[0])
+				.findFirst().orElse(null);
+	}
+
+	private int getMonthValue(String monthName) {
+		return switch (monthName) {
+			case "JANUARY" -> 1; case "FEBRUARY" -> 2; case "MARCH" -> 3;
+			case "APRIL" -> 4; case "MAY" -> 5; case "JUNE" -> 6;
+			case "JULY" -> 7; case "AUGUST" -> 8; case "SEPTEMBER" -> 9;
+			case "OCTOBER" -> 10; case "NOVEMBER" -> 11; case "DECEMBER" -> 12;
+			default -> 1;
+		};
 	}
 
 	@FXML
@@ -362,15 +249,11 @@ public class DashboardController {
 		monthComboBox.setValue("All");
 		yearComboBox.setValue("");
 		paymentModeComboBox.setValue("All");
-
-		// Regenerate report with cleared filters
 		generateReport();
 	}
 
 	public void closeWindow() {
 		Stage stage = (Stage) dashboardTable.getScene().getWindow();
-		if (stage != null) {
-			stage.close();
-		}
+		if (stage != null) stage.close();
 	}
 }
