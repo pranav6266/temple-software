@@ -11,6 +11,10 @@ import javafx.stage.StageStyle;
 import java.io.IOException;
 
 public class Launcher extends Application {
+	public static void main(String[] args) {
+		launch(args);
+	}
+
 	@Override
 	public void start(Stage stage) throws IOException {
 		new DatabaseManager();
@@ -24,8 +28,7 @@ public class Launcher extends Application {
 //		stage.setMinHeight(350);
 //		stage.setMinWidth(450);
 		stage.setMaximized(true);
-		stage.setResizable(false);
-		stage.initStyle(StageStyle.UNDECORATED);
+//		stage.initStyle(StageStyle.UNDECORATED);
 		stage.show();
 	}
 }

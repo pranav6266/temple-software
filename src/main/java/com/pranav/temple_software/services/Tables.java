@@ -53,7 +53,7 @@ public class Tables {
 	}
 
 	private void setupPrintStatusColumn() {
-		TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn = new TableColumn<>("Print Status");
+		TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn = new TableColumn<>("Status");
 		statusColumn.setPrefWidth(120);
 		statusColumn.setCellValueFactory(cellData -> cellData.getValue().printStatusProperty());
 

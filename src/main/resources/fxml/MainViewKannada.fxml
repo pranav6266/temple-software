@@ -25,34 +25,32 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
-    <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1086.0" prefWidth="1920.0" styleClass="root" stylesheets="@../css/modern-main.css">
+<AnchorPane fx:id="mainPane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.MainController">
+    <BorderPane styleClass="root" stylesheets="@../css/modern-main.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
         <!-- Top Section with Header -->
         <top>
             <VBox styleClass="header-container">
-
-                <!-- Temple Title -->
                 <VBox styleClass="title-container">
-                   <!-- Navigation and Close Button Row -->
-                   <HBox styleClass="nav-bar">
-                  <MenuButton fx:id="menuButton" prefHeight="60.0" prefWidth="153.0" styleClass="menu-button" text="☰ ಮೆನು">
-                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" text="📋 ಇತಿಹಾಸ" />
-                        <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" text="🛠️ ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
-                        <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" text="💰 ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
-                        <MenuItem mnemonicParsing="false" onAction="#handleOtherSevaManagerButton" text="⚙️ ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ" />
-                     </items>
-                  </MenuButton>
-                       <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="50.0" prefWidth="1609.0" styleClass="temple-title" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ" />
-   
-                       <Button fx:id="closeButton" onAction="#handleCloseApp" prefHeight="40.0" prefWidth="84.0" styleClass="close-button" text="✕">
-                           <effect>
-                               <DropShadow blurType="GAUSSIAN" color="#ff0000" radius="3.0" spread="0.2" />
-                           </effect>
-                       </Button>
-                   </HBox>
-                    <Label prefHeight="43.0" prefWidth="136.0" styleClass="temple-subtitle" text="ಚೇರ್ಕಬೆ, ಪಡ್ರೆ" />
+                    <HBox styleClass="nav-bar">
+                        <MenuButton fx:id="menuButton" styleClass="menu-button" text="☰ ಮೆನು">
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" text="📋 ಇತಿಹಾಸ" />
+                                <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" text="🛠️ ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
+                                <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" text="💰 ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
+                                <MenuItem mnemonicParsing="false" onAction="#handleOtherSevaManagerButton" text="⚙️ ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ" />
+                            </items>
+                        </MenuButton>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label alignment="CENTER" styleClass="temple-title" text="ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="closeButton" onAction="#handleCloseApp" styleClass="close-button" text="✕">
+                            <effect>
+                                <DropShadow blurType="GAUSSIAN" color="#ff0000" radius="3.0" spread="0.2" />
+                            </effect>
+                        </Button>
+                    </HBox>
+                    <Label styleClass="temple-subtitle" text="ಚೇರ್ಕಬೆ, ಪಡ್ರೆ" />
                     <Label styleClass="temple-contact" text="ಅಂಚೆ: 671552 | ದೂರವಾಣಿ: 6282525216, 9526431593" />
                     <Label styleClass="receipt-title" text="ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ" />
                 </VBox>
@@ -63,36 +61,28 @@
         <center>
             <HBox styleClass="main-content" BorderPane.alignment="CENTER">
                 <!-- Left Panel - Form Inputs -->
-                <VBox maxHeight="-Infinity" maxWidth="461.0" prefHeight="616.0" prefWidth="461.0" styleClass="form-panel">
-                    <Label prefHeight="50.0" prefWidth="149.0" styleClass="panel-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
-
-                    <GridPane hgap="12" prefHeight="464.0" prefWidth="381.0" styleClass="form-grid" vgap="15">
+                <!-- Set a minimum width but allow it to be flexible -->
+                <VBox minWidth="400" styleClass="form-panel" HBox.hgrow="NEVER">
+                    <Label styleClass="panel-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
+                    <GridPane hgap="12" styleClass="form-grid" vgap="15" VBox.vgrow="ALWAYS">
                         <columnConstraints>
-                            <ColumnConstraints hgrow="NEVER" minWidth="140" prefWidth="140" />
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="220" prefWidth="250" />
+                            <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
                         </columnConstraints>
-
-                        <!-- Devotee Details -->
                         <Label styleClass="form-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="0" />
                         <TextField fx:id="devoteeNameField" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-
                         <Label styleClass="form-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1" />
                         <TextField fx:id="contactField" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-
                         <Label styleClass="form-label" text="ಸೇವಾ ದಿನಾಂಕ:" GridPane.rowIndex="2" />
                         <DatePicker fx:id="sevaDatePicker" promptText="ದಿನಾಂಕ" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-
                         <Label styleClass="form-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.rowIndex="3" />
                         <ComboBox fx:id="raashiComboBox" promptText="ರಾಶಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-
                         <Label styleClass="form-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="4" />
                         <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-
                         <Label styleClass="form-label" text="ವಿಳಾಸ:" GridPane.rowIndex="5" />
-                        <TextArea fx:id="addressField" prefHeight="109.0" prefRowCount="2" prefWidth="226.0" styleClass="form-textarea" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-
+                        <TextArea fx:id="addressField" prefRowCount="2" styleClass="form-textarea" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                         <Label styleClass="form-label" text="ಪಾವತಿ ವಿಧಾನ:" GridPane.rowIndex="6" />
-                        <HBox prefHeight="39.0" prefWidth="226.0" styleClass="radio-container" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                        <HBox styleClass="radio-container" GridPane.columnIndex="1" GridPane.rowIndex="6">
                             <RadioButton fx:id="cashRadio" styleClass="radio-button" text="💵 ನಗದು">
                                 <toggleGroup>
                                     <ToggleGroup fx:id="paymentGroup" />
@@ -100,79 +90,72 @@
                             </RadioButton>
                             <RadioButton fx:id="onlineRadio" styleClass="radio-button" text="💳 ಆನ್ಲೈನ್" toggleGroup="$paymentGroup" />
                         </HBox>
-                  <rowConstraints>
-                     <RowConstraints />
-                     <RowConstraints />
-                     <RowConstraints />
-                     <RowConstraints />
-                     <RowConstraints />
-                     <RowConstraints maxHeight="100.0" minHeight="70.0" prefHeight="100.0" />
-                     <RowConstraints maxHeight="18.0" minHeight="5.0" prefHeight="20.0" />
-                  </rowConstraints>
+                        <rowConstraints>
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints minHeight="70.0" prefHeight="100.0" vgrow="SOMETIMES" />
+                            <RowConstraints />
+                        </rowConstraints>
                     </GridPane>
                 </VBox>
 
                 <!-- Center Panel - Services Selection -->
-                <VBox maxWidth="582.0" minWidth="550.0" prefHeight="666.0" prefWidth="582.0" styleClass="service-panel">
-                    <Label prefHeight="38.0" prefWidth="262.0" styleClass="panel-title" text="ಸೇವೆಗಳು ಮತ್ತು ದೇಣಿಗೆಗಳು" />
-
-                    <!-- Seva Services -->
-                    <VBox prefHeight="490.0" prefWidth="508.0" styleClass="service-section">
-                        <ScrollPane fitToWidth="true" maxHeight="392.0" minHeight="160.0" prefHeight="213.0" prefWidth="508.0" styleClass="seva-scroll">
+                <!-- Set a minimum width but allow it to be flexible -->
+                <VBox minWidth="400" styleClass="service-panel" HBox.hgrow="NEVER">
+                    <Label styleClass="panel-title" text="ಸೇವೆಗಳು ಮತ್ತು ದೇಣಿಗೆಗಳು" />
+                    <VBox styleClass="service-section" VBox.vgrow="ALWAYS">
+                        <ScrollPane fitToWidth="true" styleClass="seva-scroll" VBox.vgrow="ALWAYS">
                             <VBox fx:id="sevaCheckboxContainer" styleClass="seva-container" />
                         </ScrollPane>
                     </VBox>
-
-                    <!-- Other Services -->
-                    <VBox prefHeight="115.0" prefWidth="508.0" styleClass="service-section">
-                        <Label prefHeight="37.0" prefWidth="132.0" styleClass="section-title" text="⚙️ ಇತರೆ ಸೇವೆಗಳು" />
+                    <VBox styleClass="service-section">
+                        <Label styleClass="section-title" text="⚙️ ಇತರೆ ಸೇವೆಗಳು" />
                         <HBox styleClass="other-seva-row">
-                            <ComboBox fx:id="otherServicesComboBox" prefHeight="50.0" prefWidth="245.0" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" HBox.hgrow="ALWAYS" />
-                            <Button fx:id="addDonationButton1" prefHeight="43.0" prefWidth="84.0" styleClass="add-button" text="➕ ಸೇರಿಸಿ" />
+                            <ComboBox fx:id="otherServicesComboBox" promptText="ಇತರೆ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" HBox.hgrow="ALWAYS" />
+                            <Button fx:id="addDonationButton1" styleClass="add-button" text="➕ ಸೇರಿಸಿ" />
                         </HBox>
                     </VBox>
-
-                    <!-- Donations -->
-                    <VBox prefHeight="154.0" prefWidth="508.0" styleClass="service-section">
-                        <Label prefHeight="37.0" prefWidth="105.0" styleClass="section-title" text="💰 ದೇಣಿಗೆಗಳು" />
+                    <VBox styleClass="service-section">
+                        <Label styleClass="section-title" text="💰 ದೇಣಿಗೆಗಳು" />
                         <HBox styleClass="donation-row">
                             <CheckBox fx:id="donationCheck" styleClass="donation-checkbox" text="ಸಕ್ರಿಯಗೊಳಿಸಿ" />
                             <TextField fx:id="donationField" promptText="ಮೊತ್ತ" styleClass="amount-input" />
                         </HBox>
-                  <HBox maxHeight="40.0" maxWidth="-Infinity" minHeight="60.0" minWidth="40.0" prefHeight="40.0" prefWidth="508.0" spacing="30.0">
-                     <children>
-                              <ComboBox fx:id="donationComboBox" minHeight="65.0" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" />
-                              <Button fx:id="addDonationButton" prefHeight="43.0" prefWidth="128.0" styleClass="add-button" text="💰 ದೇಣಿಗೆ ಸೇರಿಸಿ">
-                           <HBox.margin>
-                              <Insets top="7.0" />
-                           </HBox.margin>
-                        </Button>
-                     </children>
-                  </HBox>
+                        <HBox spacing="10.0">
+                            <children>
+                                <ComboBox fx:id="donationComboBox" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" visibleRowCount="10" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="addDonationButton" styleClass="add-button" text="💰 ದೇಣಿಗೆ ಸೇರಿಸಿ" />
+                            </children>
+                            <padding>
+                                <Insets top="5.0" />
+                            </padding>
+                        </HBox>
                     </VBox>
                 </VBox>
 
                 <!-- Right Panel - Selected Items Table -->
-                <VBox maxWidth="802.0" minWidth="850.0" prefHeight="666.0" prefWidth="802.0" styleClass="table-panel">
-                    <Label prefHeight="50.0" prefWidth="199.0" styleClass="panel-title" text="ಆಯ್ಕೆಯಾದ ಸೇವೆಗಳು" />
-
-                    <TableView fx:id="sevaTableView" prefHeight="400" prefWidth="726.0" styleClass="modern-table">
+                <!-- *** KEY CHANGE: Set HBox.hgrow="ALWAYS" on this panel *** -->
+                <!-- This tells the panel to take up all remaining horizontal space -->
+                <VBox minWidth="800.0" prefWidth="600.0" styleClass="table-panel" HBox.hgrow="ALWAYS">
+                    <Label styleClass="panel-title" text="ಆಯ್ಕೆಯಾದ ಸೇವೆಗಳು" />
+                    <TableView fx:id="sevaTableView" styleClass="modern-table" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="slNoColumn" maxWidth="139.5" minWidth="70" prefWidth="97.0" resizable="false" text="ಕ್ರ.ಸಂ" />
-                            <TableColumn fx:id="sevaNameColumn" minWidth="140" prefWidth="201.0" resizable="false" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
-                            <TableColumn fx:id="quantityColumn" minWidth="50" prefWidth="88.0" resizable="false" text="ಪ್ರಮಾಣ " />
-
-                            <TableColumn fx:id="amountColumn" minWidth="42.0" resizable="false" text="ಮೊತ್ತ " />
-
-                            <TableColumn fx:id="totalAmountColumn" minWidth="60.0" prefWidth="96.0" resizable="false" text="ಒಟ್ಟು ಮೊತ್ತ " />
-
-                            <TableColumn fx:id="actionColumn" minWidth="70" resizable="false" text="ಕ್ರಿಯೆಗಳು" />
+                            <TableColumn fx:id="slNoColumn" minWidth="50" prefWidth="66.0" resizable="false" text="ಕ್ರ.ಸಂ" />
+                            <TableColumn fx:id="sevaNameColumn" minWidth="150" prefWidth="268.0" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
+                            <TableColumn fx:id="quantityColumn" minWidth="80" prefWidth="80.0" resizable="false" text="ಪ್ರಮಾಣ " />
+                            <TableColumn fx:id="amountColumn" minWidth="100" prefWidth="100.0" resizable="false" text="ಮೊತ್ತ " />
+                            <TableColumn fx:id="totalAmountColumn" minWidth="120" prefWidth="120.0" resizable="false" text="ಒಟ್ಟು ಮೊತ್ತ " />
+                            <TableColumn fx:id="actionColumn" minWidth="100" prefWidth="120.0" resizable="false" text="ಕ್ರಿಯೆಗಳು" />
                         </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
                     </TableView>
-
-                    <!-- Total Amount Display -->
                     <HBox styleClass="total-container">
-                        <Label prefHeight="46.0" prefWidth="140.0" styleClass="total-label-text" text="ಒಟ್ಟು ಮೊತ್ತ:" />
+                        <Label styleClass="total-label-text" text="ಒಟ್ಟು ಮೊತ್ತ:" />
                         <Region HBox.hgrow="ALWAYS" />
                         <Label fx:id="totalLabel" styleClass="total-amount" text="₹೦.೦೦" />
                     </HBox>
@@ -183,18 +166,14 @@
         <!-- Bottom Section - Action Buttons -->
         <bottom>
             <VBox styleClass="action-panel">
-                <!-- Status Display -->
                 <HBox styleClass="status-container">
                     <Label fx:id="statusLabel" styleClass="status-label" text="ಬಾಕಿ: 0 | ಯಶಸ್ವಿ: 0 | ವಿಫಲ: 0" />
                 </HBox>
-
-                <!-- Main Action Buttons -->
                 <HBox styleClass="button-container">
                     <Button fx:id="smartActionButton" onAction="#handleSmartAction" styleClass="primary-button" text="ಐಟಂಗಳನ್ನು ಸೇರಿಸಿ" />
                     <Button fx:id="clearFormButton" disable="true" onAction="#clearFormAfterChk" styleClass="secondary-button" text="🗑️ ಫಾರ್ಮ್ ತೆರವುಮಾಡಿ" />
                 </HBox>
             </VBox>
         </bottom>
-
     </BorderPane>
 </AnchorPane>
