@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" prefHeight="760.0" prefWidth="1360.0" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController"
             stylesheets="@../../../css/modern-dashboard.css">
     <top>

@@ -7,12 +7,12 @@ module com.pranav.temple_software {
 	// Standard Java Modules
 	requires java.sql;
 	requires java.desktop;
-	requires java.logging;
+	requires java.logging; // Replaced SLF4J with the standard logger
 
 	// External Library Modules
-	requires org.slf4j; // SLF4J logging API
-	requires com.h2database; // H2 Database
-	requires org.xerial.sqlitejdbc; // SQLite JDBC
+	// requires org.slf4j; // This line has been removed
+	requires com.h2database;
+	requires org.xerial.sqlitejdbc;
 
 	// Export packages for FXML access
 	exports com.pranav.temple_software;

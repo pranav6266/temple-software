@@ -53,7 +53,7 @@ public class DashboardController {
 	@FXML
 	public void openFilterWindow() {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/FilterWindow.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DashboardView/FilterWindow.fxml"));
 			Stage filterStage = new Stage();
 			filterStage.setTitle("ಫಿಲ್ಟರ್ ಆಯ್ಕೆಗಳು");
 			filterStage.initModality(Modality.WINDOW_MODAL);
@@ -137,25 +137,34 @@ public class DashboardController {
 		onlineCountColumn.setCellValueFactory(new PropertyValueFactory<>("onlineCount"));
 		totalAmountColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
 
-		for (TableColumn<DashboardStats, ?> col : List.of(totalCountColumn, cashCountColumn, onlineCountColumn, totalAmountColumn)) {
-			col.setCellFactory(column -> new TableCell() {
-				@Override
-				protected void updateItem(Object item, boolean empty) {
-					super.updateItem(item, empty);
-					if (empty || item == null) {
-						setText(null);
-					} else {
-						if (item instanceof Double) {
-							setText(String.format("₹%.2f", (Double) item));
-						} else {
-							setText(item.toString());
-						}
-						setAlignment(Pos.CENTER);
-					}
-				}
-			});
-		}
+		// Use the helper method to create a type-safe cell factory for each numeric column
+		totalCountColumn.setCellFactory(this::createNumericCell);
+		cashCountColumn.setCellFactory(this::createNumericCell);
+		onlineCountColumn.setCellFactory(this::createNumericCell);
+		totalAmountColumn.setCellFactory(this::createNumericCell);
 	}
+
+	private <T extends Number> TableCell<DashboardStats, T> createNumericCell(TableColumn<DashboardStats, T> column) {
+		return new TableCell<>() {
+			@Override
+			protected void updateItem(T item, boolean empty) {
+				super.updateItem(item, empty);
+				if (empty || item == null) {
+					setText(null);
+				} else {
+					// Check if the item is a Double to format it as currency
+					if (item instanceof Double) {
+						setText(String.format("₹%.2f", item.doubleValue()));
+					} else {
+						// Otherwise, just convert it to a string (for Integers)
+						setText(item.toString());
+					}
+					setAlignment(Pos.CENTER);
+				}
+			}
+		};
+	}
+
 
 	private void setupEventHandlers() {
 		typeComboBox.setOnAction(e -> updateItemComboBox());

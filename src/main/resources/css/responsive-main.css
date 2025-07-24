@@ -1,0 +1,68 @@
+/* ============================================
+   RESPONSIVE OVERRIDE STYLES
+   ============================================
+   This file is loaded AFTER modern-main.css to make the UI adapt to smaller screens.
+   It uses smaller font sizes and padding for key elements.
+*/
+
+/* --- Header Section --- */
+.header-container {
+    -fx-padding: 5px 8px; /* Reduced padding */
+}
+
+.temple-title {
+    -fx-font-size: 1.5em; /* Was 36px, now relative and smaller */
+}
+
+.temple-subtitle {
+    -fx-font-size: 1em; /* Was 24px */
+}
+
+.temple-contact {
+    -fx-font-size: 0.8em; /* Was 16px */
+}
+
+.receipt-title {
+    -fx-font-size: 1.3em; /* Was 26px */
+
+}
+
+.menu-button {
+    -fx-font-size: 14px;
+    -fx-padding: 8px 15px;
+}
+
+/* --- Main Content Panels --- */
+.main-content {
+    -fx-padding: 10px; /* Reduced padding around the main content */
+}
+
+.form-panel, .table-panel {
+    -fx-padding: 10px; /* Reduced padding inside panels */
+}
+
+.panel-title {
+    -fx-font-size: 1.3em; /* Was 22px */
+}
+
+/* --- Footer / Action Panel --- */
+.action-panel {
+    -fx-padding: 12px; /* Reduced padding */
+    -fx-spacing: 10px;
+}
+
+.status-label {
+    -fx-font-size: 1.1em; /* Was 18px */
+}
+
+.primary-button {
+    -fx-font-size: 1.2em; /* Was 19px */
+    -fx-padding: 10px 25px;
+    -fx-min-width: 200px;
+}
+
+.secondary-button {
+    -fx-font-size: 1.1em; /* Was 18px */
+    -fx-padding: 8px 18px;
+    -fx-min-width: 150px;
+}

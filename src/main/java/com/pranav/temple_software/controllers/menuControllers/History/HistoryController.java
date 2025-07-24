@@ -10,7 +10,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -21,7 +20,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryController {
@@ -138,7 +136,7 @@ public class HistoryController {
 
 	private void showDonationDetails(DonationReceiptData donationData) {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/DonationDetailsView.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/DonationReceiptDetailsView.fxml"));
 			Stage detailsStage = new Stage();
 			detailsStage.setTitle("ದೇಣಿಗೆ ರಶೀದಿ ವಿವರಗಳು");
 			detailsStage.initModality(Modality.WINDOW_MODAL);
@@ -168,7 +166,7 @@ public class HistoryController {
 
 	private void showReceiptDetails(ReceiptData receiptData) {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/ReceiptDetailsView.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/SevaReceiptDetailsView.fxml"));
 			Stage detailsStage = new Stage();
 			detailsStage.setTitle("ರಶೀದಿ ವಿವರಗಳು");
 			detailsStage.initModality(Modality.WINDOW_MODAL);
@@ -244,7 +242,7 @@ public class HistoryController {
 	@FXML
 	public void handleDashboardButton() {
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/Dashboard.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DashboardView/Dashboard.fxml"));
 			Stage dashboardStage = new Stage();
 			dashboardStage.setTitle("ಸೇವಾ/ದೇಣಿಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್");
 			dashboardStage.setScene(new Scene(loader.load()));

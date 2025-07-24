@@ -28,7 +28,7 @@ public class Launcher extends Application {
 //		stage.setMinHeight(350);
 //		stage.setMinWidth(450);
 		stage.setMaximized(true);
-//		stage.initStyle(StageStyle.UNDECORATED);
+		stage.initStyle(StageStyle.UNDECORATED);
 		stage.show();
 	}
 }
