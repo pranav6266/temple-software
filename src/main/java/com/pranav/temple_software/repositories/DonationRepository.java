@@ -5,7 +5,7 @@ import java.sql.*;
 import java.util.*;
 
 public class DonationRepository {
-	private static final String DB_URL = "jdbc:h2:./temple_data";
+	private static final String DB_URL = "jdbc:h2:~/temple_software/db/temple_data";
 	private static final String USER = "sa";
 	private static final String PASS = "";
 

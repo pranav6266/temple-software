@@ -7,7 +7,7 @@ import java.util.*;
 
 public class SevaRepository {
 
-	private static final String DB_URL = "jdbc:h2:./temple_data";
+	private static final String DB_URL = "jdbc:h2:~/temple_software/db/temple_data";
 	private static final String USER = "sa";
 	private static final String PASS = "";
 
