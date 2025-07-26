@@ -4,7 +4,12 @@ import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class DatabaseManager {
 	// *** KEY CHANGE: Using a stable path in the user's AppData/Roaming directory ***
@@ -15,18 +20,88 @@ public class DatabaseManager {
 	private static final String PASS = "";
 
 	public DatabaseManager() {
-		// Ensure the directory exists before trying to connect
-		new File(DB_FOLDER_PATH).mkdirs();
+		try {
+			String logDir = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware" + File.separator + "logs";
+			File logDirFile = new File(logDir);
+			if (!logDirFile.exists()) {
+				logDirFile.mkdirs();
+			}
 
-		createReceiptTableIfNotExists();
-		createSevaTableIfNotExists();
-		createDonationsTableIfNotExists();
-		createOtherSevaTableIfNotExists();
-		createDonationReceiptTableIfNotExists();
-		SevaRepository.getInstance().loadSevasFromDB();
-		DonationRepository.getInstance().loadDonationsFromDB();
-		OtherSevaRepository.getInstance().loadOtherSevasFromDB();
+			// Create log files with timestamp
+			String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+			File outputLog = new File(logDir, "temple_app_" + timestamp + ".log");
+			File errorLog = new File(logDir, "temple_error_" + timestamp + ".log");
+
+			PrintStream fileOut = new PrintStream(new FileOutputStream(outputLog));
+			PrintStream fileErr = new PrintStream(new FileOutputStream(errorLog));
+
+			// Tee output - print to both console and file
+			System.setOut(new PrintStream(new TeeOutputStream(System.out, fileOut)));
+			System.setErr(new PrintStream(new TeeOutputStream(System.err, fileErr)));
+
+			System.out.println("🚀 Application started at: " + LocalDateTime.now());
+			System.out.println("📁 Database path: " + DB_FOLDER_PATH);
+			System.out.println("🔗 Database URL: " + DB_URL);
+
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not set up logging: " + e.getMessage());
+		}
+		try {
+			// Ensure the directory exists before trying to connect
+			File dbDir = new File(DB_FOLDER_PATH);
+			if (!dbDir.exists()) {
+				boolean created = dbDir.mkdirs();
+				System.out.println("📁 Database directory created: " + created + " at " + DB_FOLDER_PATH);
+			}
+
+			System.out.println("🔗 Attempting database connection to: " + DB_URL);
+
+			createSevaTableIfNotExists();
+			createDonationsTableIfNotExists();
+			createOtherSevaTableIfNotExists();
+			createReceiptTableIfNotExists();
+			createDonationReceiptTableIfNotExists();
+
+			System.out.println("📊 Loading initial data...");
+
+			// *** Add connection test ***
+			testConnection();
+
+			// *** SOLUTION 1: Force loading with debug info ***
+			SevaRepository.getInstance().loadSevasFromDB();
+			DonationRepository.getInstance().loadDonationsFromDB();
+			OtherSevaRepository.loadOtherSevasFromDB();
+
+			System.out.println("✅ Database initialization complete!");
+
+
+
+		} catch (Exception e) {
+			System.err.println("❌ Database initialization failed: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
+
+	public static void testConnection() {
+		try (Connection conn = getConnection()) {
+			System.out.println("✅ Database connection successful!");
+
+			// Test if tables exist and have data
+			String[] tables = {"Sevas", "Donations", "OtherSevas"};
+			for (String table : tables) {
+				try (Statement stmt = conn.createStatement();
+				     ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + table)) {
+					if (rs.next()) {
+						int count = rs.getInt(1);
+						System.out.println("📊 " + table + " table has " + count + " records");
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("❌ Database connection failed: " + e.getMessage());
+		}
+	}
+
 
 	public static Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(DB_URL, USER, PASS);

@@ -30,11 +30,10 @@ public class SevaRepository {
 	}
 
 	public synchronized void loadSevasFromDB() {
-		// Only load if data hasn't been loaded yet.
-		if (isDataLoaded) {
-			return;
-		}
+		// *** SOLUTION 1: Force reload regardless of flag ***
 		sevaList.clear();
+		isDataLoaded = false;
+
 		String sql = "SELECT seva_id, seva_name, amount, display_order FROM Sevas ORDER BY display_order";
 
 		try (Connection conn = getConnection();
@@ -48,13 +47,15 @@ public class SevaRepository {
 				int order = rs.getInt("display_order");
 				sevaList.add(new Seva(id, name, amount, order));
 			}
-			isDataLoaded = true; // Mark data as loaded
-			System.out.println("Loaded " + sevaList.size() + " sevas from database.");
+			isDataLoaded = true;
+			System.out.println("✅ Loaded " + sevaList.size() + " sevas from database.");
 
 		} catch (SQLException e) {
-			System.err.println("Error loading Sevas from database: " + e.getMessage());
+			System.err.println("❌ Error loading Sevas from database: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
+
 
 	public List<Seva> getAllSevas() {
 		// *** KEY CHANGE ***
@@ -64,7 +65,7 @@ public class SevaRepository {
 		}
 		// Return a new list containing copies or an unmodifiable view
 		sevaList.sort(Comparator.comparingInt(Seva::getDisplayOrder));
-		return Collections.unmodifiableList(new ArrayList<>(sevaList));
+		return List.copyOf(sevaList);
 	}
 
 	// ... The rest of your SevaRepository methods (add, delete, update, etc.) remain the same ...

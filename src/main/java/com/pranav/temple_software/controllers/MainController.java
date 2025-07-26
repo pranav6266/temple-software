@@ -486,16 +486,21 @@ public class MainController {
 	public void refreshSevaCheckboxes() {
 		System.out.println("DEBUG: MainController refreshSevaCheckboxes() called.");
 		if (sevaListener != null && sevaCheckboxContainer != null) {
-			// Optional: Add error handling or checks if needed
 			try {
+				// *** SOLUTION 1: Force repository reload before refreshing ***
+				sevaRepository.loadSevasFromDB(); // Force reload
+
 				// Clear container before regenerating checkboxes
 				sevaCheckboxContainer.getChildren().clear();
+				sevaCheckboxMap.clear(); // Clear the map too
+
 				// Ask the listener to rebuild checkboxes based on current repo data
 				sevaListener.setupSevaCheckboxes();
-				System.out.println("DEBUG: Seva checkboxes refreshed.");
+				System.out.println("DEBUG: Seva checkboxes refreshed with " +
+						sevaRepository.getAllSevas().size() + " sevas.");
 			} catch (Exception e) {
 				System.err.println("Error during refreshSevaCheckboxes: " + e.getMessage());
-				e.printStackTrace(); // Log detailed error
+				e.printStackTrace();
 				showAlert("Refresh Error", "Could not refresh Seva list in main view.");
 			}
 		} else {
@@ -503,25 +508,29 @@ public class MainController {
 			if(sevaListener == null) System.err.println("sevaListener is null");
 			if(sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
 		}
-
-
 	}
+
 
 
 
 	// ... inside MainController class:
 	public void refreshDonationComboBox() {
+		// *** SOLUTION 1: Force repository reload before refreshing ***
+		DonationRepository.getInstance().loadDonationsFromDB(); // Force reload
+
 		List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
 		ObservableList<String> donationNames = FXCollections.observableArrayList(
 				donationEntries.stream().map(Donations::getName).collect(Collectors.toList())
 		);
 		donationNames.add(0, "ಆಯ್ಕೆ");  // Optional default prompt
 		donationComboBox.setItems(donationNames);
+		System.out.println("DEBUG: Donation ComboBox refreshed with " + donationEntries.size() + " donations.");
 	}
 
+
 	public void refreshOtherSevaComboBox() {
-		// Reload from DB if necessary
-		OtherSevaRepository.loadOtherSevasFromDB();
+		// *** SOLUTION 1: Force repository reload before refreshing ***
+		OtherSevaRepository.loadOtherSevasFromDB(); // Force reload
 
 		// Get all Other Sevas (name + amount)
 		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
@@ -538,7 +547,9 @@ public class MainController {
 
 		// Set items in the combo box
 		otherServicesComboBox.setItems(otherSevaNames);
+		System.out.println("DEBUG: Other Seva ComboBox refreshed with " + otherSevaEntries.size() + " other sevas.");
 	}
+
 
 
 	private void setupFocusTraversal() {

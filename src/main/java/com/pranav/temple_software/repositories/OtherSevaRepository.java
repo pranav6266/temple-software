@@ -27,13 +27,16 @@ public class OtherSevaRepository {
 
 	// *** KEY CHANGE: Made this method static again ***
 	public static synchronized void loadOtherSevasFromDB() {
-		// Use the instance to manage the loaded state and list
-		if (instance.isDataLoaded) {
-			return;
-		}
+		// *** SOLUTION 1: Force reload regardless of flag ***
 		instance.otherSevaList.clear();
+		instance.isDataLoaded = false;
+
 		String sql = "SELECT * FROM OtherSevas ORDER BY display_order";
-		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(sql)) {
+
 			while (rs.next()) {
 				String name = rs.getString("other_seva_name");
 				double amount = rs.getDouble("other_seva_amount");
@@ -44,11 +47,14 @@ public class OtherSevaRepository {
 				instance.otherSevaList.add(entry);
 			}
 			instance.isDataLoaded = true;
-			System.out.println("Loaded " + instance.otherSevaList.size() + " other sevas from DB.");
+			System.out.println("✅ Loaded " + instance.otherSevaList.size() + " other sevas from database.");
+
 		} catch (SQLException e) {
-			System.err.println("Failed to load Other Sevas: " + e.getMessage());
+			System.err.println("❌ Error loading Other Sevas from database: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
+
 
 	// *** KEY CHANGE: Made this method static again ***
 	public static List<SevaEntry> getAllOtherSevas() {

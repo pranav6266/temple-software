@@ -27,27 +27,31 @@ public class DonationRepository {
 	}
 
 	public synchronized void loadDonationsFromDB() {
-		// Only load if data hasn't been loaded yet.
-		if (isDataLoaded) {
-			return;
-		}
+		// *** SOLUTION 1: Force reload regardless of flag ***
 		donationList.clear();
+		isDataLoaded = false;
+
 		String sql = "SELECT donation_id, donation_name, display_order FROM Donations ORDER BY display_order";
+
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
+
 			while (rs.next()) {
 				String id = rs.getString("donation_id");
 				String name = rs.getString("donation_name");
 				int order = rs.getInt("display_order");
 				donationList.add(new Donations(id, name, order));
 			}
-			isDataLoaded = true; // Mark data as loaded
-			System.out.println("Loaded " + donationList.size() + " donations from DB.");
+			isDataLoaded = true;
+			System.out.println("✅ Loaded " + donationList.size() + " donations from database.");
+
 		} catch (SQLException e) {
-			System.err.println("Error loading Donations from database: " + e.getMessage());
+			System.err.println("❌ Error loading Donations from database: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
+
 
 	public List<Donations> getAllDonations() {
 		// *** KEY CHANGE ***
