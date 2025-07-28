@@ -1,11 +1,13 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.utils.DatabaseManager;
+
 import java.sql.*;
 import java.util.*;
 
 public class OtherSevaRepository {
-	private static final String DB_URL = "jdbc:h2:~/temple_software/db/temple_data";
+	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
 

@@ -15,7 +15,7 @@ public class DatabaseManager {
 	// *** KEY CHANGE: Using a stable path in the user's AppData/Roaming directory ***
 	// This is the standard and most reliable location for application data on Windows.
 	private static final String DB_FOLDER_PATH = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware" + File.separator + "db";
-	private static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH + File.separator + "temple_data";
+	public static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH + File.separator + "temple_data";
 	private static final String USER = "sa";
 	private static final String PASS = "";
 

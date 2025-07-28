@@ -4,6 +4,7 @@ import com.pranav.temple_software.models.DashboardStats;
 import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.models.Donations;
+import com.pranav.temple_software.utils.DatabaseManager;
 
 import java.sql.*;
 import java.sql.Date;
@@ -11,7 +12,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class DashboardRepository {
-	private static final String DB_URL = "jdbc:h2:~/temple_software/db/temple_data";
+	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
 

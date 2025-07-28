@@ -1,13 +1,15 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.DonationReceiptData;
+import com.pranav.temple_software.utils.DatabaseManager;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DonationReceiptRepository {
-	private static final String DB_URL = "jdbc:h2:~/temple_software/db/temple_data";
+	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
 	private static final String H2_PK_VIOLATION_STATE = "23505";
