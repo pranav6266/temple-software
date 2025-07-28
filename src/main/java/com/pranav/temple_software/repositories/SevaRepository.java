@@ -46,9 +46,9 @@ public class SevaRepository {
 			while (rs.next()) {
 				count++;
 				Seva seva = new Seva(
-						rs.getString("id"),
-						rs.getString("name"),
-						rs.getDouble("price")
+						rs.getString("seva_id"),
+						rs.getString("seva_name"),
+						rs.getDouble("amount")
 				);
 				sevaList.add(seva);
 				System.out.println("DEBUG: Loaded seva " + count + ": " + seva.getName());
@@ -56,6 +56,8 @@ public class SevaRepository {
 
 			System.out.println("DEBUG: Total sevas loaded from DB: " + count);
 			System.out.println("DEBUG: SevasList size after loading: " + sevaList.size());
+
+			isDataLoaded = true;
 
 		} catch (SQLException e) {
 			System.err.println("❌ Error loading sevas from database: " + e.getMessage());

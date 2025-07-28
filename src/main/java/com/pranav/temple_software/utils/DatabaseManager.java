@@ -126,7 +126,7 @@ public class DatabaseManager {
 			try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM SEVAS LIMIT 5");
 			     ResultSet rs = pstmt.executeQuery()) {
 				while (rs.next()) {
-					System.out.println("DEBUG: Sample seva: " + rs.getString("name") + " - " + rs.getDouble("price"));
+					System.out.println("DEBUG: Sample seva: " + rs.getString("seva_name") + " - " + rs.getDouble("amount"));
 				}
 			}
 

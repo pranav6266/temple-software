@@ -496,7 +496,7 @@ public class ReceiptPrinter {
 
 		Node receiptNode = createReceiptNode(data);
 
-		double scaleFactor = 2;
+		double scaleFactor = 1.3;
 		receiptNode.setScaleX(scaleFactor);
 		receiptNode.setScaleY(scaleFactor);
 
@@ -507,7 +507,7 @@ public class ReceiptPrinter {
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
-		scrollPane.setPrefViewportHeight(600);
+		scrollPane.setPrefViewportHeight(450);
 
 		Button printButton = new Button("ಮುದ್ರಿಸು");
 		printButton.setOnAction(e -> {
@@ -535,7 +535,7 @@ public class ReceiptPrinter {
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);
 
-		Scene scene = new Scene(layout, 700, 1000);
+		Scene scene = new Scene(layout, 450, 600);
 		previewStage.setScene(scene);
 		previewStage.show();
 	}
@@ -548,7 +548,7 @@ public class ReceiptPrinter {
 
 		Node receiptNode = createDonationReceiptNode(data);
 
-		double scaleFactor = 2;
+		double scaleFactor = 1.3;
 		receiptNode.setScaleX(scaleFactor);
 		receiptNode.setScaleY(scaleFactor);
 
@@ -559,7 +559,7 @@ public class ReceiptPrinter {
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
-		scrollPane.setPrefViewportHeight(600);
+		scrollPane.setPrefViewportHeight(450);
 
 		Button printButton = new Button("ಮುದ್ರಿಸು");
 		printButton.setOnAction(e -> {
@@ -587,7 +587,7 @@ public class ReceiptPrinter {
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);
 
-		Scene scene = new Scene(layout, 700, 1000);
+		Scene scene = new Scene(layout, 450, 600);
 		previewStage.setScene(scene);
 		previewStage.show();
 	}

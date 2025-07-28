@@ -32,7 +32,7 @@
         <!-- Top Section with Header - Now fully responsive -->
         <top>
             <VBox styleClass="header-container">
-                <VBox styleClass="title-container" maxWidth="1.7976931348623157E308">
+                <VBox maxWidth="1.7976931348623157E308" styleClass="title-container">
                     <HBox styleClass="nav-bar">
                         <MenuButton fx:id="menuButton" styleClass="menu-button" text="☰ ಮೆನು">
                             <items>
@@ -62,14 +62,14 @@
             <HBox styleClass="main-content" BorderPane.alignment="CENTER">
 
                 <!-- Left Column: Scrollable Pane for All Inputs -->
-                <ScrollPane fitToWidth="true" prefWidth="480.0" minWidth="450.0" styleClass="form-panel">
+                <ScrollPane fitToWidth="true" minWidth="500.0" prefWidth="480.0" styleClass="form-panel">
                     <VBox spacing="15.0">
                         <!-- Panel 1: Devotee Details -->
                         <VBox>
                             <Label styleClass="panel-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
                             <GridPane hgap="12" styleClass="form-grid" vgap="15">
                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                                    <ColumnConstraints hgrow="NEVER" minWidth="130.0" />
                                     <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
                                 </columnConstraints>
                                 <Label styleClass="form-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="0" />
@@ -93,6 +93,15 @@
                                     </RadioButton>
                                     <RadioButton fx:id="onlineRadio" styleClass="radio-button" text="💳 ಆನ್ಲೈನ್" toggleGroup="$paymentGroup" />
                                 </HBox>
+                        <rowConstraints>
+                           <RowConstraints />
+                           <RowConstraints />
+                           <RowConstraints />
+                           <RowConstraints />
+                           <RowConstraints />
+                           <RowConstraints />
+                           <RowConstraints />
+                        </rowConstraints>
                             </GridPane>
                         </VBox>
 
@@ -132,11 +141,11 @@
                 </ScrollPane>
 
                 <!-- Right Column: Flexible Table View -->
-                <VBox styleClass="table-panel" HBox.hgrow="ALWAYS" minWidth="880">
+                <VBox minWidth="880" styleClass="table-panel" HBox.hgrow="ALWAYS">
                     <Label styleClass="panel-title" text="ಆಯ್ಕೆಯಾದ ಸೇವೆಗಳು" />
                     <TableView fx:id="sevaTableView" styleClass="modern-table" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="slNoColumn" minWidth="60"  resizable="false" text="ಕ್ರ.ಸಂ" />
+                            <TableColumn fx:id="slNoColumn" minWidth="60" resizable="false" text="ಕ್ರ.ಸಂ" />
                             <TableColumn fx:id="sevaNameColumn" minWidth="200.0" prefWidth="250.0" text="ಆಯ್ಕೆಯಾದ ಸೇವೆ / ದೇಣಿಗೆ" />
                             <TableColumn fx:id="quantityColumn" minWidth="80" prefWidth="80.0" resizable="false" text="ಪ್ರಮಾಣ " />
                             <TableColumn fx:id="amountColumn" minWidth="100" prefWidth="100.0" resizable="false" text="ಮೊತ್ತ " />
@@ -159,10 +168,10 @@
         <!-- Bottom Section - Action Buttons - Now fully responsive -->
         <bottom>
             <VBox styleClass="action-panel">
-                <HBox alignment="CENTER" styleClass="status-container" maxWidth="1.7976931348623157E308">
+                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="status-container">
                     <Label fx:id="statusLabel" styleClass="status-label" text="ಬಾಕಿ: 0 | ಯಶಸ್ವಿ: 0 | ವಿಫಲ: 0" />
                 </HBox>
-                <HBox alignment="CENTER" styleClass="button-container" maxWidth="1.7976931348623157E308">
+                <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="button-container">
                     <Button fx:id="smartActionButton" onAction="#handleSmartAction" styleClass="primary-button" text="ಐಟಂಗಳನ್ನು ಸೇರಿಸಿ" />
                     <Button fx:id="clearFormButton" disable="true" onAction="#clearFormAfterChk" styleClass="secondary-button" text="🗑️ ಫಾರ್ಮ್ ತೆರವುಮಾಡಿ" />
                 </HBox>
