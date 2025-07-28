@@ -29,32 +29,38 @@ public class SevaRepository {
 		return DriverManager.getConnection(DB_URL, USER, PASS);
 	}
 
-	public synchronized void loadSevasFromDB() {
-		// *** SOLUTION 1: Force reload regardless of flag ***
+	public void loadSevasFromDB() {
+		System.out.println("DEBUG: SevaRepository.loadSevasFromDB() called");
 		sevaList.clear();
-		isDataLoaded = false;
 
-		String sql = "SELECT seva_id, seva_name, amount, display_order FROM Sevas ORDER BY display_order";
+		String sql = "SELECT * FROM SEVAS";
+		System.out.println("DEBUG: Executing SQL: " + sql);
 
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
+		try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		     PreparedStatement pstmt = conn.prepareStatement(sql);
+		     ResultSet rs = pstmt.executeQuery()) {
 
+			int count = 0;
 			while (rs.next()) {
-				String id = rs.getString("seva_id");
-				String name = rs.getString("seva_name");
-				double amount = rs.getDouble("amount");
-				int order = rs.getInt("display_order");
-				sevaList.add(new Seva(id, name, amount, order));
+				count++;
+				Seva seva = new Seva(
+						rs.getString("id"),
+						rs.getString("name"),
+						rs.getDouble("price")
+				);
+				sevaList.add(seva);
+				System.out.println("DEBUG: Loaded seva " + count + ": " + seva.getName());
 			}
-			isDataLoaded = true;
-			System.out.println("✅ Loaded " + sevaList.size() + " sevas from database.");
+
+			System.out.println("DEBUG: Total sevas loaded from DB: " + count);
+			System.out.println("DEBUG: SevasList size after loading: " + sevaList.size());
 
 		} catch (SQLException e) {
-			System.err.println("❌ Error loading Sevas from database: " + e.getMessage());
+			System.err.println("❌ Error loading sevas from database: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
+
 
 
 	public List<Seva> getAllSevas() {

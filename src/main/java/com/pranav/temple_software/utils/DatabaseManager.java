@@ -62,11 +62,18 @@ public class DatabaseManager {
 			createReceiptTableIfNotExists();
 			createDonationReceiptTableIfNotExists();
 
-			System.out.println("📊 Loading initial data...");
 
 			// *** Add connection test ***
 			testConnection();
+			// ✅ VERIFY TABLES EXIST BEFORE LOADING
+			if (!verifyTablesExist()) {
+				throw new RuntimeException("Required database tables could not be created or verified.");
+			}
+			// ✅ ADD A SMALL DELAY TO ENSURE TABLES ARE READY
+			Thread.sleep(100);
 
+			testDatabaseData();
+			System.out.println("📊 Loading initial data...");
 			// *** SOLUTION 1: Force loading with debug info ***
 			SevaRepository.getInstance().loadSevasFromDB();
 			DonationRepository.getInstance().loadDonationsFromDB();
@@ -81,6 +88,53 @@ public class DatabaseManager {
 			e.printStackTrace();
 		}
 	}
+	private boolean verifyTablesExist() {
+		String[] tableNames = {"SEVAS", "DONATIONS", "OTHERSEVAS", "RECEIPTS", "DONATIONRECEIPTS"};
+
+		try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
+			DatabaseMetaData meta = conn.getMetaData();
+
+			for (String tableName : tableNames) {
+				try (ResultSet rs = meta.getTables(null, null, tableName, new String[]{"TABLE"})) {
+					if (!rs.next()) {
+						System.err.println("❌ Table " + tableName + " does not exist!");
+						return false;
+					}
+				}
+			}
+			System.out.println("✅ All required tables verified to exist.");
+			return true;
+		} catch (SQLException e) {
+			System.err.println("❌ Error verifying tables: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public void testDatabaseData() {
+		System.out.println("DEBUG: Testing direct database queries...");
+
+		try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
+			// Test Sevas
+			try (PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) FROM SEVAS");
+			     ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					System.out.println("DEBUG: Direct SEVAS count: " + rs.getInt(1));
+				}
+			}
+
+			// Test sample seva data
+			try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM SEVAS LIMIT 5");
+			     ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					System.out.println("DEBUG: Sample seva: " + rs.getString("name") + " - " + rs.getDouble("price"));
+				}
+			}
+
+		} catch (SQLException e) {
+			System.err.println("❌ Error testing database data: " + e.getMessage());
+		}
+	}
+
 
 	public static void testConnection() {
 		try (Connection conn = getConnection()) {
