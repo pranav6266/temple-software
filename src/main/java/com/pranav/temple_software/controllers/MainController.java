@@ -29,9 +29,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,7 +103,88 @@ public class MainController {
 	@FXML private Label statusLabel;
 
 
-	{
+	@FXML
+	public void initialize() {
+
+		sevaDatePicker.setValue(LocalDate.now());
+		// Configure date format to DD-MM-YYYY
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+		sevaDatePicker.setConverter(new StringConverter<>() {
+			@Override
+			public String toString(LocalDate date) {
+				if (date != null) {
+					return dateFormatter.format(date);
+				} else {
+					return "";
+				}
+			}
+
+			@Override
+			public LocalDate fromString(String string) {
+				if (string != null && !string.isEmpty()) {
+					try {
+						return LocalDate.parse(string, dateFormatter);
+					} catch (DateTimeParseException e) {
+						return null;
+					}
+				} else {
+					return null;
+				}
+			}
+		});
+
+		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+		sevaTableView.setItems(selectedSevas);
+		table.setupTableView();
+		validationServices.initializeTotalCalculation();
+		smartActionButton.setOnAction(e -> handleSmartAction());
+		addDonationButton1.setOnAction(e -> otherSevas.handleAddOtherSeva());
+		donation.setDisable();
+		donationField.setDisable(true);
+		donationComboBox.setDisable(true);
+		addDonationButton.setDisable(true);
+		sevaListener.initiateSevaListener();
+		table.donationListener();
+		validationServices.calenderChecker();
+		validationServices.radioCheck();
+		validationServices.threeNakshatraForARashi();
+		validationServices.setupNameValidation();
+		validationServices.setupPhoneValidation();
+		validationServices.setupAmountValidation();
+		sevaListener.rashiNakshatraMap();
+		refreshSevaCheckboxes();
+		populateRashiComboBox();
+		refreshDonationComboBox();
+		refreshOtherSevaComboBox();
+
+		Platform.runLater(() -> devoteeNameField.requestFocus());
+
+		setupFocusTraversal();
+		setupFocusLostHandlers();
+		setupBlankAreaFocusHandler();
+
+		// Force uppercase for Name field
+		devoteeNameField.setTextFormatter(new TextFormatter<String>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+
+		// Force uppercase for Address field
+		addressField.setTextFormatter(new TextFormatter<String>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+
+
+		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
+			while (change.next()) {
+				for (SevaEntry entry : change.getAddedSubList()) {
+					entry.totalAmountProperty().addListener((obs, oldVal, newVal) ->
+							validationServices.initializeTotalCalculation()
+					);
+				}
+			}
+		});
 
 	}
 
@@ -219,6 +303,7 @@ public class MainController {
 			historyStage.initModality(Modality.WINDOW_MODAL);
 			historyStage.initOwner(mainStage);
 			historyStage.setMaximized(true);
+
 			historyStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -243,8 +328,8 @@ public class MainController {
 		    }
 			donationStage.initModality(Modality.WINDOW_MODAL);
 		    donationStage.initOwner(mainStage);
-		    donationStage.setMaxHeight(800);
-		    donationStage.setMaxWidth(950);
+		    donationStage.setMaxHeight(650);
+		    donationStage.setMaxWidth(800);
 		    donationStage.show();
 	    } catch (Exception e) { // Catch broader exceptions
 		    e.printStackTrace();
@@ -274,8 +359,8 @@ public class MainController {
 
 			sevaStage.initModality(Modality.WINDOW_MODAL);
 			sevaStage.initOwner(mainStage);
-			sevaStage.setMaxHeight(800);
-			sevaStage.setMaxWidth(950);
+			sevaStage.setMaxHeight(650);
+			sevaStage.setMaxWidth(800);
 			sevaStage.show();
 		} catch (Exception e) { // Catch broader exceptions
 			e.printStackTrace();
@@ -304,8 +389,8 @@ public class MainController {
 			}
 			otherSevaStage.initOwner(mainStage);
 			otherSevaStage.initModality(Modality.WINDOW_MODAL);
-			otherSevaStage.setMaxWidth(950);
-			otherSevaStage.setMaxHeight(800);
+			otherSevaStage.setMaxWidth(800);
+			otherSevaStage.setMaxHeight(650);
 			otherSevaStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -374,64 +459,7 @@ public class MainController {
 	}
 
 
-	@FXML
-	public void initialize() {
 
-		sevaDatePicker.setValue(LocalDate.now());
-		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-		sevaTableView.setItems(selectedSevas);
-		table.setupTableView();
-		validationServices.initializeTotalCalculation();
-		smartActionButton.setOnAction(e -> handleSmartAction());
-		addDonationButton1.setOnAction(e -> otherSevas.handleAddOtherSeva());
-		donation.setDisable();
-		donationField.setDisable(true);
-		donationComboBox.setDisable(true);
-		addDonationButton.setDisable(true);
-		sevaListener.initiateSevaListener();
-		table.donationListener();
-		validationServices.calenderChecker();
-		validationServices.radioCheck();
-		validationServices.threeNakshatraForARashi();
-		validationServices.setupNameValidation();
-		validationServices.setupPhoneValidation();
-		validationServices.setupAmountValidation();
-		sevaListener.rashiNakshatraMap();
-		refreshSevaCheckboxes();
-		populateRashiComboBox();
-		refreshDonationComboBox();
-		refreshOtherSevaComboBox();
-
-		Platform.runLater(() -> devoteeNameField.requestFocus());
-
-		setupFocusTraversal();
-		setupFocusLostHandlers();
-		setupBlankAreaFocusHandler();
-
-		// Force uppercase for Name field
-		devoteeNameField.setTextFormatter(new TextFormatter<String>(change -> {
-			change.setText(change.getText().toUpperCase());
-			return change;
-		}));
-
-	// Force uppercase for Address field
-		addressField.setTextFormatter(new TextFormatter<String>(change -> {
-			change.setText(change.getText().toUpperCase());
-			return change;
-		}));
-
-
-		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
-			while (change.next()) {
-				for (SevaEntry entry : change.getAddedSubList()) {
-					entry.totalAmountProperty().addListener((obs, oldVal, newVal) ->
-							validationServices.initializeTotalCalculation()
-					);
-				}
-			}
-		});
-
-	}
 
 	private void populateRashiComboBox() {
 		ObservableList<String> rashiOptions = FXCollections.observableArrayList();

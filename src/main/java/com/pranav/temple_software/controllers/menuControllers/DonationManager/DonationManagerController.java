@@ -73,7 +73,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	@Override
 	protected void refreshGridPane() {
 		itemGridPane.getChildren().clear();
-		Label indexHeader = new Label("Sl. Number");
+		Label indexHeader = new Label("Sl. No.");
 		Label nameHeader = new Label("Donation Name");
 
 		indexHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
@@ -91,7 +91,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 			orderLabel.setAlignment(Pos.CENTER);
 			nameLabel.setAlignment(Pos.CENTER_LEFT);
-
+			itemGridPane.autosize();
 			itemGridPane.add(orderLabel, 0, rowIndex);
 			itemGridPane.add(nameLabel, 1, rowIndex);
 		}
