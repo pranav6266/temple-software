@@ -7,7 +7,6 @@ import com.pranav.temple_software.controllers.menuControllers.OtherSevaManager.O
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.Donations;
-import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
@@ -25,10 +24,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -400,7 +396,7 @@ public class MainController {
 		validationServices.setupNameValidation();
 		validationServices.setupPhoneValidation();
 		validationServices.setupAmountValidation();
-		sevaListener.raashiNakshatraMap();
+		sevaListener.rashiNakshatraMap();
 		refreshSevaCheckboxes();
 		populateRashiComboBox();
 		refreshDonationComboBox();

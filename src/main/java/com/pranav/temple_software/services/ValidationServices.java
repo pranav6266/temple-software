@@ -100,7 +100,7 @@ MainController controller;
 	//This below is to select only the 3 nakshatras for a given raashi
 	public void threeNakshatraForARashi() {
 		controller.nakshatraComboBox.setDisable(true);
-		controller.sevaListener.raashiNakshatraMap();
+		controller.sevaListener.rashiNakshatraMap();
 		controller.raashiComboBox.getSelectionModel().selectedItemProperty().addListener(
 				(obs, oldVal, newVal) -> {
 					if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
