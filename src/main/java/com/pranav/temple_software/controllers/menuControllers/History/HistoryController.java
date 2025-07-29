@@ -1,11 +1,11 @@
 package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.DonationReceiptData;
-import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationReceiptRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
-import com.pranav.temple_software.repositories.ReceiptRepository;
+import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -23,17 +23,17 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class HistoryController {
-	@FXML public TableColumn<ReceiptData, String> paymentMode;
+	@FXML public TableColumn<SevaReceiptData, String> paymentMode;
 	@FXML public Button dashboardButton;
-	@FXML private TableView<ReceiptData> historyTable;
-	@FXML public TableColumn<ReceiptData, String> otherSevaColumn;
-	@FXML public TableColumn<ReceiptData, String> sevaColumn;
-	@FXML public TableColumn<ReceiptData, Double> totalAmountColumn;
-	public TableColumn<ReceiptData, Void> detailsColumn;
+	@FXML private TableView<SevaReceiptData> historyTable;
+	@FXML public TableColumn<SevaReceiptData, String> otherSevaColumn;
+	@FXML public TableColumn<SevaReceiptData, String> sevaColumn;
+	@FXML public TableColumn<SevaReceiptData, Double> totalAmountColumn;
+	public TableColumn<SevaReceiptData, Void> detailsColumn;
 
-	@FXML private TableColumn<ReceiptData, Integer> receiptIdColumn;
-	@FXML private TableColumn<ReceiptData, String> devoteeNameColumn;
-	@FXML private TableColumn<ReceiptData, String> sevaDateColumn;
+	@FXML private TableColumn<SevaReceiptData, Integer> receiptIdColumn;
+	@FXML private TableColumn<SevaReceiptData, String> devoteeNameColumn;
+	@FXML private TableColumn<SevaReceiptData, String> sevaDateColumn;
 
 	@FXML private Button toggleViewButton;
 	@FXML private Label currentViewLabel;
@@ -47,7 +47,7 @@ public class HistoryController {
 	@FXML public TableColumn<DonationReceiptData, Void> donationDetailsColumn;
 	private boolean isShowingDonations = false;
 
-	private final ReceiptRepository receiptRepository = new ReceiptRepository();
+	private final SevaReceiptRepository sevaReceiptRepository = new SevaReceiptRepository();
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private LocalDate savedDate = null;
 	private String savedMonth = "All";
@@ -101,7 +101,7 @@ public class HistoryController {
 			private final Button viewButton = new Button("ವಿವರ ನೋಡಿ");
 			{
 				viewButton.setOnAction(event -> {
-					ReceiptData selectedReceipt = getTableView().getItems().get(getIndex());
+					SevaReceiptData selectedReceipt = getTableView().getItems().get(getIndex());
 					showReceiptDetails(selectedReceipt);
 				});
 			}
@@ -164,7 +164,7 @@ public class HistoryController {
 		}
 	}
 
-	private void showReceiptDetails(ReceiptData receiptData) {
+	private void showReceiptDetails(SevaReceiptData sevaReceiptData) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/SevaReceiptDetailsView.fxml"));
 			Stage detailsStage = new Stage();
@@ -174,7 +174,7 @@ public class HistoryController {
 			Scene scene = new Scene(loader.load());
 			detailsStage.setScene(scene);
 			ReceiptDetailsController detailsController = loader.getController();
-			detailsController.initializeDetails(receiptData);
+			detailsController.initializeDetails(sevaReceiptData);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -236,7 +236,7 @@ public class HistoryController {
 	}
 
 	private void loadHistory() {
-		historyTable.setItems(FXCollections.observableArrayList(receiptRepository.getAllReceipts()));
+		historyTable.setItems(FXCollections.observableArrayList(sevaReceiptRepository.getAllReceipts()));
 	}
 
 	@FXML

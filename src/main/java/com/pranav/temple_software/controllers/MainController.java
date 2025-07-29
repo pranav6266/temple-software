@@ -10,7 +10,7 @@ import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
-import com.pranav.temple_software.repositories.ReceiptRepository;
+import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
 import com.pranav.temple_software.utils.ReceiptPrinter;
@@ -356,7 +356,7 @@ public class MainController {
 		this.mainStage = stage;
 	}
 
-	public ReceiptRepository receiptRepository = new ReceiptRepository();
+	public SevaReceiptRepository sevaReceiptRepository = new SevaReceiptRepository();
 	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
 	public ReceiptServices receiptServices = new ReceiptServices(this);

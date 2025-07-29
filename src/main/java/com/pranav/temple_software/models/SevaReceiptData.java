@@ -4,7 +4,7 @@ import javafx.collections.ObservableList;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class ReceiptData {
+public class SevaReceiptData {
 
 	private final String devoteeName;
 	private final String phoneNumber;
@@ -18,8 +18,8 @@ public class ReceiptData {
 	private final String donationStatus;
 	private final String address;
 
-	public ReceiptData(int receiptId, String devoteeName, String phoneNumber,String address, String rashi, String nakshatra,
-	                   LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount,String paymentMode, String donationStatus) {
+	public SevaReceiptData(int receiptId, String devoteeName, String phoneNumber, String address, String rashi, String nakshatra,
+	                       LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount, String paymentMode, String donationStatus) {
 		this.receiptId = receiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;

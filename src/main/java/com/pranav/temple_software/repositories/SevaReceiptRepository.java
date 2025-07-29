@@ -1,6 +1,6 @@
 package com.pranav.temple_software.repositories;
 
-import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.collections.FXCollections;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ReceiptRepository {
+public class SevaReceiptRepository {
 	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
@@ -119,8 +119,8 @@ public class ReceiptRepository {
 		return generatedId;
 	}
 
-	public List<ReceiptData> getAllReceipts() {
-		List<ReceiptData> receipts = new ArrayList<>();
+	public List<SevaReceiptData> getAllReceipts() {
+		List<SevaReceiptData> receipts = new ArrayList<>();
 		String query = "SELECT * FROM receipts ORDER BY receipt_id DESC";
 
 		try (Connection conn = getConnection();
@@ -141,7 +141,7 @@ public class ReceiptRepository {
 				boolean hasDonation = sevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
 				String donationStatus = hasDonation ? "ಹೌದು" : "ಇಲ್ಲ";
 				String paymentMode = rs.getString("payment_mode");
-				ReceiptData receipt = new ReceiptData(
+				SevaReceiptData receipt = new SevaReceiptData(
 						receiptId, devoteeName, phoneNumber, address, rashi, nakshatra,
 						sevaDate, sevas, totalAmount, paymentMode, donationStatus
 				);

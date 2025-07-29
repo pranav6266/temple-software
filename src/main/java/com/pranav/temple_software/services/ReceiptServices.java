@@ -2,7 +2,7 @@ package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.DonationReceiptData;
-import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationReceiptRepository;
 import javafx.application.Platform;
@@ -181,14 +181,14 @@ public class ReceiptServices {
 	                                                 String raashi, String nakshatra, LocalDate date,
 	                                                 List<SevaEntry> sevaEntries, String paymentMode) {
 
-		int sevaReceiptId = controller.receiptRepository.getNextReceiptId();
+		int sevaReceiptId = controller.sevaReceiptRepository.getNextReceiptId();
 		if (sevaReceiptId <= 0) {
 			markItemsAsFailed(sevaEntries, "Could not generate receipt ID");
 			return;
 		}
 
 		double sevaTotal = sevaEntries.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-		ReceiptData sevaReceiptData = new ReceiptData(
+		SevaReceiptData sevaReceiptData = new SevaReceiptData(
 				sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode, "ಇಲ್ಲ"
 		);
@@ -196,7 +196,7 @@ public class ReceiptServices {
 		Consumer<Boolean> sevaAfterPrintAction = (printSuccess) -> {
 			if (printSuccess) {
 				String sevasDetailsString = formatSevasForDatabase(FXCollections.observableArrayList(sevaEntries));
-				int actualSavedId = controller.receiptRepository.saveSpecificReceipt(
+				int actualSavedId = controller.sevaReceiptRepository.saveSpecificReceipt(
 						sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
 						date, sevasDetailsString, sevaTotal, paymentMode
 				);

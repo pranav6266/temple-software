@@ -1,14 +1,12 @@
 package com.pranav.temple_software.controllers.menuControllers.History;
 
-import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.collections.FXCollections;
-import javafx.scene.control.TextArea;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class ReceiptDetailsController {
@@ -27,7 +25,7 @@ public class ReceiptDetailsController {
 	@FXML private TableColumn<SevaEntry, Number> totalColumn;
 	@FXML private Label addressText;
 
-	public void initializeDetails(ReceiptData data) {
+	public void initializeDetails(SevaReceiptData data) {
 		if (data == null) return;
 
 		receiptIdLabel.setText("Receipt ID: " + data.getReceiptId());

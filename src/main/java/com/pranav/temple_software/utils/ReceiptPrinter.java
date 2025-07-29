@@ -2,7 +2,7 @@ package com.pranav.temple_software.utils;
 
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.models.ReceiptData;
+import com.pranav.temple_software.models.SevaReceiptData;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.print.*;
@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import com.pranav.temple_software.models.DonationReceiptData;
 
@@ -25,19 +26,21 @@ import com.pranav.temple_software.models.DonationReceiptData;
 public class ReceiptPrinter {
 
 	// --- Constants for Thermal Printer (Approximate - Adjust based on testing) ---
-	private static final double RECEIPT_WIDTH_MM = 50;
-	private static final double POINTS_PER_MM = 2.83464; // 72 points per inch / 25.4 mm per inch
-	private static final double RECEIPT_WIDTH_POINTS = RECEIPT_WIDTH_MM * POINTS_PER_MM;
+	private static final double RECEIPT_WIDTH_MM = 80;
+	private static final double POINTS_PER_MM = 2.83465;
+	private static final double RECEIPT_WIDTH_POINTS = RECEIPT_WIDTH_MM * POINTS_PER_MM; // ≈ 227
+
 
 	MainController controller;
 	public ReceiptPrinter(MainController controller){
 		this.controller = controller;
 	}
 	// --- Method to Create the Receipt Layout as a JavaFX Node ---
-	public Node createReceiptNode(ReceiptData data) {
+	public Node createReceiptNode(SevaReceiptData data) {
 		VBox receiptBox = new VBox(1);
-		receiptBox.setStyle("-fx-padding: 10;");  // Left margin (adds padding to whole receipt)
-		receiptBox.setMaxWidth(10);
+		receiptBox.setStyle("-fx-padding: 7;");  // Left margin (adds padding to whole receipt)
+		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
+		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 
 		// Temple Name (Main Heading) - Left Aligned
 		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
@@ -82,18 +85,17 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text("")); // Spacer
 
 		// Seva Header Row (Fixed Column Widths + Bold Labels)
-		HBox headerRow = new HBox(20); // spacing 20
+		HBox headerRow = new HBox(8); // spacing 20
 
-		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
-		sevaLabel.setMinWidth(150);
+		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು"); sevaLabel.setPrefWidth(105);
 		sevaLabel.setStyle("-fx-font-weight: bold;");
 
 		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
-		pramanaLabel.setMinWidth(50);
+		pramanaLabel.setPrefWidth(65);
 		pramanaLabel.setStyle("-fx-font-weight: bold;");
 
 		Label mottaLabel = new Label("ಮೊತ್ತ");
-		mottaLabel.setMinWidth(70);
+		mottaLabel.setPrefWidth(60);
 		mottaLabel.setStyle("-fx-font-weight: bold;");
 
 		headerRow.getChildren().addAll(sevaLabel, pramanaLabel, mottaLabel);
@@ -143,7 +145,7 @@ public class ReceiptPrinter {
 
 
 	// --- Method for Print Preview ---
-	public void showPrintPreview(ReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
+	public void showPrintPreview(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
@@ -286,7 +288,7 @@ public class ReceiptPrinter {
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
 				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
 				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
 				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
 		);
 
@@ -358,7 +360,7 @@ public class ReceiptPrinter {
 		return printSucceeded; // Return the final status
 	}
 	// --- Method to Save as PDF ---
-//	public void saveReceiptAsPdf(ReceiptData data, Stage ownerStage) throws IOException {
+//	public void saveReceiptAsPdf(SevaReceiptData data, Stage ownerStage) throws IOException {
 //		javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
 //		fileChooser.setTitle("Save Receipt as PDF");
 //		fileChooser.setInitialFileName("Receipt_" + data.getDevoteeName().replace(" ", "_") + ".pdf");
@@ -488,7 +490,7 @@ public class ReceiptPrinter {
 //		}
 //	}
 
-	public void showPrintPreviewWithCancelCallback(ReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+	public void showPrintPreviewWithCancelCallback(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
