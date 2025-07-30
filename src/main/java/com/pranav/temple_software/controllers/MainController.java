@@ -6,6 +6,7 @@ import com.pranav.temple_software.controllers.menuControllers.DonationManager.Do
 import com.pranav.temple_software.controllers.menuControllers.OtherSevaManager.OtherSevaManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
+import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.CredentialsRepository;
@@ -697,5 +698,36 @@ public class MainController {
 			e.printStackTrace();
 			showAlert("Error", "Failed to load the In-Kind Donation view: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * NEW METHOD: Populates the form fields with details from a DevoteeDetails object.
+	 * This is called by ValidationServices after a successful database lookup.
+	 * @param details The devotee details retrieved from the database.
+	 */
+	public void populateDevoteeDetails(DevoteeDetails details) {
+		if (details == null) return;
+
+		// Set simple text fields
+		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
+		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
+
+		// Set Rashi ComboBox
+		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
+			raashiComboBox.setValue(details.getRashi());
+		} else {
+			raashiComboBox.getSelectionModel().selectFirst(); // Default to "ಆಯ್ಕೆ"
+		}
+
+		// Set Nakshatra ComboBox
+		// A brief delay ensures the Rashi listener has populated the Nakshatra list first
+		Platform.runLater(() -> {
+			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
+				// Check if the Nakshatra is a valid option for the selected Rashi
+				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
+					nakshatraComboBox.setValue(details.getNakshatra());
+				}
+			}
+		});
 	}
 }

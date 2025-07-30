@@ -1,6 +1,9 @@
 package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
+import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.DevoteeRepository;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.collections.FXCollections;
@@ -9,9 +12,11 @@ import javafx.scene.control.TextFormatter;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public class ValidationServices {
 MainController controller;
+	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 
 	public ValidationServices(MainController controller) {
 		this.controller = controller;
@@ -20,21 +25,32 @@ MainController controller;
 	public void setupPhoneValidation() {
 		controller.contactField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue != null) {
-				// Allow only digits and limit to 10 characters
 				if (!newValue.matches("\\d*")) {
 					controller.contactField.setText(newValue.replaceAll("[^\\d]", ""));
 				}
 				if (newValue.length() > 10) {
 					controller.contactField.setText(newValue.substring(0, 10));
-				} else if (newValue.length() < 10) {
 				}
 			}
 		});
 
-		// Add phone number validation on focus loss
+		// **MODIFIED: Add focus listener to trigger auto-fill**
 		controller.contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (!newVal) { // When focus is lost
-				validatePhoneNumber();
+				String phoneNumber = controller.contactField.getText();
+				// Proceed only if it's a valid 10-digit number
+				if (phoneNumber != null && phoneNumber.length() == 10) {
+					// Search for devotee details in the database
+					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
+					// If details are found, populate the form
+					detailsOpt.ifPresent(details -> {
+						// Use Platform.runLater to ensure UI updates happen on the JavaFX Application Thread
+						Platform.runLater(() -> controller.populateDevoteeDetails(details));
+					});
+				} else if (phoneNumber != null && !phoneNumber.isEmpty()) {
+					// Show validation alert if the number is incomplete
+					validatePhoneNumber();
+				}
 			}
 		});
 	}
@@ -45,6 +61,7 @@ MainController controller;
 			controller.showAlert("Invalid Phone Number", "Phone number must contain at least 10 digits");
 		}
 	}
+
 
 	public void setupAmountValidation() {
 		controller.donationField.textProperty().addListener((observable, oldValue, newValue) -> {
