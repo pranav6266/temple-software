@@ -40,6 +40,7 @@
                                 <MenuItem mnemonicParsing="false" onAction="#handleSevaManagerButton" text="🛠️ ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
                                 <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" text="💰 ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
                                 <MenuItem mnemonicParsing="false" onAction="#handleOtherSevaManagerButton" text="⚙️ ಇತರೆ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ" />
+                                <MenuItem mnemonicParsing="false" onAction="#handleInKindDonationMenuItem" text="🎁 ವಸ್ತು ದೇಣಿಗೆ" />
                             </items>
                         </MenuButton>
                         <Region HBox.hgrow="ALWAYS" />

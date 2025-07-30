@@ -37,4 +37,5 @@ module com.pranav.temple_software {
 	opens com.pranav.temple_software.controllers.menuControllers.SevaManager to javafx.fxml;
 	opens com.pranav.temple_software.controllers.menuControllers.DonationManager to javafx.fxml;
 	opens com.pranav.temple_software.controllers.menuControllers.OtherSevaManager to javafx.fxml;
+	opens com.pranav.temple_software.controllers.menuControllers.InKindDonationManager to javafx.fxml;
 }

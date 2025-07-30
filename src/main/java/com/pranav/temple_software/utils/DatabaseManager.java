@@ -61,7 +61,7 @@ public class DatabaseManager {
 			createOtherSevaTableIfNotExists();
 			createReceiptTableIfNotExists();
 			createDonationReceiptTableIfNotExists();
-
+			createInKindDonationTableIfNotExists();
 
 			// *** Add connection test ***
 			testConnection();
@@ -88,6 +88,27 @@ public class DatabaseManager {
 			e.printStackTrace();
 		}
 	}
+
+	private void createInKindDonationTableIfNotExists() {
+		String sql = "CREATE TABLE IF NOT EXISTS InKindDonations(" +
+				"in_kind_receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"devotee_name VARCHAR(255), " +
+				"phone_number VARCHAR(20), " +
+				"address VARCHAR(255), " +
+				"rashi VARCHAR(50), " +
+				"nakshatra VARCHAR(50), " +
+				"donation_date DATE, " +
+				"item_description TEXT, " +
+				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("InKindDonations table checked/created successfully.");
+		} catch (SQLException e) {
+			System.err.println("Error creating InKindDonations table: " + e.getMessage());
+		}
+	}
+
+
 	private boolean verifyTablesExist() {
 		String[] tableNames = {"SEVAS", "DONATIONS", "OTHERSEVAS", "RECEIPTS", "DONATIONRECEIPTS"};
 

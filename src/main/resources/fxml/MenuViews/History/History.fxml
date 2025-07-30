@@ -10,7 +10,10 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1360.0" styleClass="history-root" stylesheets="@../../../css/modern-history.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
+<BorderPane prefHeight="760.0" prefWidth="1360.0" styleClass="history-root"
+            stylesheets="@../../../css/modern-history.css"
+            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
 
     <!-- Header Section -->
     <top>
@@ -57,6 +60,16 @@
                     <TableColumn fx:id="donationAmountColumn" prefWidth="140.0" styleClass="amount-column" text="ದೇಣಿಗೆ ಮೊತ್ತ (₹)" />
                     <TableColumn fx:id="donationPaymentModeColumn" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ" />
                     <TableColumn fx:id="donationDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                </columns>
+            </TableView>
+
+            <TableView fx:id="inKindDonationHistoryTable" styleClass="modern-history-table" visible="false">
+                <columns>
+                    <TableColumn fx:id="inKindReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="inKindDevoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="inKindDonationDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ" />
+                    <TableColumn fx:id="itemDescriptionColumn" prefWidth="350.0" styleClass="service-column" text="ವಸ್ತುವಿನ ವಿವರಣೆ" />
+                    <TableColumn fx:id="inKindDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
             </TableView>
         </StackPane>

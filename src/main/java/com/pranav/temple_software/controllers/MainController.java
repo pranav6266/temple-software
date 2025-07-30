@@ -20,6 +20,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -595,6 +596,28 @@ public class MainController {
 					formControls.get(nextIndex).requestFocus();
 				}
 			});
+		}
+	}
+
+
+	@FXML
+	public void handleInKindDonationMenuItem() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/InKindDonationManager/InKindDonationView.fxml"));
+			Stage inKindStage = new Stage();
+			inKindStage.setTitle("ವಸ್ತು ದೇಣಿಗೆಯನ್ನು ಸೇರಿಸಿ");
+			Scene scene = new Scene(loader.load());
+			inKindStage.setScene(scene);
+
+			// Setup stage properties
+			inKindStage.initModality(Modality.WINDOW_MODAL);
+			inKindStage.initOwner(mainStage);
+			inKindStage.setResizable(false);
+			inKindStage.show();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Failed to load the In-Kind Donation view: " + e.getMessage());
 		}
 	}
 }
