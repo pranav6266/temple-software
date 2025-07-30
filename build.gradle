@@ -15,10 +15,12 @@ repositories {
 }
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(23) // Ensure this matches your JDK version
-    }
+    sourceCompatibility = 23
+    targetCompatibility = 23
+    modularity.inferModulePath = true
 }
+
+
 
 javafx {
     version = "21"

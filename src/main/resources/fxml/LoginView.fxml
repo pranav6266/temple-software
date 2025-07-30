@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #f0f2f5;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.pranav.temple_software.controllers.LoginController">
+    <children>
+        <VBox alignment="CENTER" layoutX="149.0" layoutY="66.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Label text="Temple Software Login">
+                    <font>
+                        <Font name="System Bold" size="28.0" />
+                    </font>
+                </Label>
+                <VBox alignment="CENTER_LEFT" maxWidth="350.0" spacing="8.0">
+                    <children>
+                        <Label text="Password">
+                            <font>
+                                <Font size="14.0" />
+                            </font>
+                        </Label>
+                        <PasswordField fx:id="passwordField" onAction="#handleLogin" promptText="Enter password" style="-fx-font-size: 16px; -fx-padding: 10px;">
+                            <VBox.margin>
+                                <Insets />
+                            </VBox.margin>
+                        </PasswordField>
+                        <Label fx:id="errorLabel" textFill="RED" />
+                    </children>
+                </VBox>
+                <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" prefHeight="45.0" prefWidth="350.0" style="-fx-background-color: #1877f2; -fx-text-fill: white; -fx-font-weight: bold;" text="Login">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Button>
+                <HBox alignment="CENTER" spacing="5.0">
+                    <children>
+                        <Hyperlink onAction="#handleAdminLoginLink" text="Admin Panel Login" />
+                    </children>
+                </HBox>
+            </children>
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+        </VBox>
+    </children>
+</AnchorPane>

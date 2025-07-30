@@ -56,25 +56,27 @@ public class DatabaseManager {
 
 			System.out.println("🔗 Attempting database connection to: " + DB_URL);
 
+			// --- Create all application tables ---
 			createSevaTableIfNotExists();
 			createDonationsTableIfNotExists();
 			createOtherSevaTableIfNotExists();
 			createReceiptTableIfNotExists();
 			createDonationReceiptTableIfNotExists();
 			createInKindDonationTableIfNotExists();
+			createCredentialsTableIfNotExists(); // <-- ADDED
 
-			// *** Add connection test ***
+			// --- Verify connection and seed initial data ---
 			testConnection();
-			// ✅ VERIFY TABLES EXIST BEFORE LOADING
 			if (!verifyTablesExist()) {
 				throw new RuntimeException("Required database tables could not be created or verified.");
 			}
-			// ✅ ADD A SMALL DELAY TO ENSURE TABLES ARE READY
 			Thread.sleep(100);
 
+			seedInitialCredentials(); // <-- ADDED
+
+			// --- Load Repositories ---
 			testDatabaseData();
 			System.out.println("📊 Loading initial data...");
-			// *** SOLUTION 1: Force loading with debug info ***
 			SevaRepository.getInstance().loadSevasFromDB();
 			DonationRepository.getInstance().loadDonationsFromDB();
 			OtherSevaRepository.loadOtherSevasFromDB();
@@ -86,6 +88,70 @@ public class DatabaseManager {
 		} catch (Exception e) {
 			System.err.println("❌ Database initialization failed: " + e.getMessage());
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Creates the Credentials table if it doesn't already exist.
+	 * This table will store hashed passwords and other security-related key-value pairs.
+	 */
+	private void createCredentialsTableIfNotExists() {
+		String sql = "CREATE TABLE IF NOT EXISTS Credentials (" +
+				"credential_key VARCHAR(255) PRIMARY KEY, " +
+				"credential_value VARCHAR(255) NOT NULL)";
+		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("✅ Credentials table checked/created successfully.");
+		} catch (SQLException e) {
+			System.err.println("❌ Error creating Credentials table: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Seeds the Credentials table with default values if it is empty.
+	 * This ensures the application has default passwords on its first-ever run.
+	 * Passwords are HASHED before being stored.
+	 */
+	private void seedInitialCredentials() {
+		String checkSql = "SELECT COUNT(*) FROM Credentials";
+		try (Connection conn = getConnection();
+		     Statement checkStmt = conn.createStatement();
+		     ResultSet rs = checkStmt.executeQuery(checkSql)) {
+
+			// Only seed if the table is empty
+			if (rs.next() && rs.getInt(1) == 0) {
+				System.out.println("🔑 Credentials table is empty. Seeding initial default passwords...");
+				String insertSql = "INSERT INTO Credentials (credential_key, credential_value) VALUES (?, ?)";
+				try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+					// Hash default passwords before inserting
+					String defaultNormalPass = PasswordUtils.hashPassword("user123");
+					String defaultSpecialPass = PasswordUtils.hashPassword("special123");
+					String defaultAdminUser = "admin"; // Username is not hashed
+					String defaultAdminPass = PasswordUtils.hashPassword("admin123");
+
+					// Batch insert for efficiency
+					pstmt.setString(1, "NORMAL_PASSWORD");
+					pstmt.setString(2, defaultNormalPass);
+					pstmt.addBatch();
+
+					pstmt.setString(1, "SPECIAL_PASSWORD");
+					pstmt.setString(2, defaultSpecialPass);
+					pstmt.addBatch();
+
+					pstmt.setString(1, "ADMIN_USERNAME");
+					pstmt.setString(2, defaultAdminUser);
+					pstmt.addBatch();
+
+					pstmt.setString(1, "ADMIN_PASSWORD");
+					pstmt.setString(2, defaultAdminPass);
+					pstmt.addBatch();
+
+					pstmt.executeBatch();
+					System.out.println("✅ Default credentials have been seeded successfully.");
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("❌ Error during credential seeding: " + e.getMessage());
 		}
 	}
 
@@ -110,13 +176,13 @@ public class DatabaseManager {
 
 
 	private boolean verifyTablesExist() {
-		String[] tableNames = {"SEVAS", "DONATIONS", "OTHERSEVAS", "RECEIPTS", "DONATIONRECEIPTS"};
+		String[] tableNames = {"SEVAS", "DONATIONS", "OTHERSEVAS", "RECEIPTS", "DONATIONRECEIPTS", "CREDENTIALS"}; // Added CREDENTIALS
 
 		try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
 			DatabaseMetaData meta = conn.getMetaData();
 
 			for (String tableName : tableNames) {
-				try (ResultSet rs = meta.getTables(null, null, tableName, new String[]{"TABLE"})) {
+				try (ResultSet rs = meta.getTables(null, null, tableName.toUpperCase(), new String[]{"TABLE"})) {
 					if (!rs.next()) {
 						System.err.println("❌ Table " + tableName + " does not exist!");
 						return false;

@@ -6,6 +6,7 @@ import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationReceiptRepository;
+import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,6 +14,7 @@ import javafx.collections.ObservableList;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -97,7 +99,7 @@ public class ReceiptServices {
 
 	public void retryIndividualItem(SevaEntry item) {
 		Platform.runLater(() -> item.setPrintStatus(SevaEntry.PrintStatus.PENDING));
-		processSelectedItems(Arrays.asList(item), ActionType.PRINT);
+		processSelectedItems(Collections.singletonList(item), ActionType.PRINT);
 	}
 
 	// MODIFIED: Added ActionType parameter
@@ -211,7 +213,7 @@ public class ReceiptServices {
 	                                                 String raashi, String nakshatra, LocalDate date,
 	                                                 List<SevaEntry> sevaEntries, String paymentMode, ActionType actionType) {
 
-		int sevaReceiptId = controller.sevaReceiptRepository.getNextReceiptId();
+		int sevaReceiptId = SevaReceiptRepository.getNextReceiptId();
 		if (sevaReceiptId <= 0) {
 			markItemsAsFailed(sevaEntries, "Could not generate receipt ID");
 			return;

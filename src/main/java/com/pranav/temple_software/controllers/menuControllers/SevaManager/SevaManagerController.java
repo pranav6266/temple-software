@@ -47,8 +47,8 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	@FXML private TextField sevaIdField; // Keep specific fields if needed
 
 	private final SevaRepository sevaRepository = SevaRepository.getInstance();
-	private Map<String, Double> originalAmounts = new HashMap<>(); // Can be part of originalState
-	private Map<String, Integer> originalOrder = new HashMap<>(); // Can be part of originalState
+	private final Map<String, Double> originalAmounts = new HashMap<>(); // Can be part of originalState
+	private final Map<String, Integer> originalOrder = new HashMap<>(); // Can be part of originalState
 
 	// Override abstract methods
 

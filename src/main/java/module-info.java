@@ -16,6 +16,8 @@ module com.pranav.temple_software {
 	requires org.xerial.sqlitejdbc;
 	requires org.apache.pdfbox;
 
+
+
 	// Export packages for FXML access
 	exports com.pranav.temple_software;
 	exports com.pranav.temple_software.controllers;

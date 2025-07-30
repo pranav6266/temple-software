@@ -1,6 +1,5 @@
 package com.pranav.temple_software;
 
-import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,18 +16,19 @@ public class Launcher extends Application {
 
 	@Override
 	public void start(Stage stage) throws IOException {
+		// Initialize the database first. This is crucial.
 		new DatabaseManager();
+
+		// --- MODIFIED STARTUP FLOW ---
+		// Instead of loading the main view, we now load the LoginView first.
 		FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource(
-				"/fxml/MainViewKannada.fxml"));
+				"/fxml/LoginView.fxml")); // <-- CHANGED
 		Scene scene = new Scene(fxmlLoader.load());
-		MainController controller = fxmlLoader.getController(); // Get controller instance
-		controller.setMainStage(stage);
-		stage.setTitle("Temple Software");
+
+		stage.setTitle("Temple Software - Login"); // <-- CHANGED
 		stage.setScene(scene);
-//		stage.setMinHeight(350);
-//		stage.setMinWidth(450);
-		stage.setMaximized(true);
-		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setResizable(false); // Login window should not be resizable
+		stage.initStyle(StageStyle.DECORATED); // Use a standard window for the login
 		stage.show();
 	}
 }

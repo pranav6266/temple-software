@@ -8,11 +8,13 @@ import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaMa
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.CredentialsRepository;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
+import com.pranav.temple_software.utils.PasswordUtils;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -23,9 +25,12 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -339,83 +344,156 @@ public class MainController {
 
 	@FXML
 	public void handleDonationManagerButton(){
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
-			Stage donationStage = new Stage();
-			donationStage.setTitle("ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
-			Scene scene = new Scene(loader.load());
-			donationStage.setScene(scene);
-			DonationManagerController donationManagerController = loader.getController();
-			if (donationManagerController != null) {
-				donationManagerController.setMainController(this); // Pass this instance
-			} else {
-				System.err.println("Error: Could not get DonationManagerView instance.");
-				return;
+		// Wrap the original logic in a Runnable to pass to the password prompt
+		Runnable openDonationManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
+				Stage donationStage = new Stage();
+				donationStage.setTitle("ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
+				Scene scene = new Scene(loader.load());
+				donationStage.setScene(scene);
+				DonationManagerController donationManagerController = loader.getController();
+				if (donationManagerController != null) {
+					donationManagerController.setMainController(this); // Pass this instance
+				} else {
+					System.err.println("Error: Could not get DonationManagerView instance.");
+					return;
+				}
+				donationStage.initModality(Modality.WINDOW_MODAL);
+				donationStage.initOwner(mainStage);
+				donationStage.setMaxHeight(650);
+				donationStage.setMaxWidth(800);
+				donationStage.show();
+			} catch (Exception e) { // Catch broader exceptions
+				e.printStackTrace();
+				showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
 			}
-			donationStage.initModality(Modality.WINDOW_MODAL);
-			donationStage.initOwner(mainStage);
-			donationStage.setMaxHeight(650);
-			donationStage.setMaxWidth(800);
-			donationStage.show();
-		} catch (Exception e) { // Catch broader exceptions
-			e.printStackTrace();
-			showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
-		}
+		};
+
+		// Show the password prompt before executing the above logic
+		promptForSpecialPassword(openDonationManager);
 	}
 
 	@FXML
 	public void handleSevaManagerButton() {
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/SevaManager/SevaManagerView.fxml"));
-			Stage sevaStage = new Stage();
-			sevaStage.setTitle("ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
-			Scene scene = new Scene(loader.load());
-			sevaStage.setScene(scene);
+		Runnable openSevaManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/SevaManager/SevaManagerView.fxml"));
+				Stage sevaStage = new Stage();
+				sevaStage.setTitle("ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
+				Scene scene = new Scene(loader.load());
+				sevaStage.setScene(scene);
 
-			SevaManagerController sevaManagerController = loader.getController();
-			if (sevaManagerController != null) {
-				sevaManagerController.setMainController(this);
-			} else {
-				System.err.println("Error: Could not get SevaManagerController instance.");
-				return;
+				SevaManagerController sevaManagerController = loader.getController();
+				if (sevaManagerController != null) {
+					sevaManagerController.setMainController(this);
+				} else {
+					System.err.println("Error: Could not get SevaManagerController instance.");
+					return;
+				}
+
+				sevaStage.initModality(Modality.WINDOW_MODAL);
+				sevaStage.initOwner(mainStage);
+				sevaStage.setMaxHeight(650);
+				sevaStage.setMaxWidth(800);
+				sevaStage.show();
+			} catch (Exception e) {
+				e.printStackTrace();
+				showAlert("Error", "Failed to load Seva Manager view: " + e.getMessage());
 			}
-
-			sevaStage.initModality(Modality.WINDOW_MODAL);
-			sevaStage.initOwner(mainStage);
-			sevaStage.setMaxHeight(650);
-			sevaStage.setMaxWidth(800);
-			sevaStage.show();
-		} catch (Exception e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load Seva Manager view: " + e.getMessage());
-		}
+		};
+		promptForSpecialPassword(openSevaManager);
 	}
 
 	@FXML
 	public void handleOtherSevaManagerButton() {
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/OtherSevaManager/OtherSevaManagerView.fxml"));
-			Stage otherSevaStage = new Stage();
-			otherSevaStage.setTitle("ಇತರೆ ಸೇವೆಗಳ ನಿರ್ವಹಣೆ");
-			Scene scene = new Scene(loader.load());
-			otherSevaStage.setScene(scene);
+		Runnable openOtherSevaManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/OtherSevaManager/OtherSevaManagerView.fxml"));
+				Stage otherSevaStage = new Stage();
+				otherSevaStage.setTitle("ಇತರೆ ಸೇವೆಗಳ ನಿರ್ವಹಣೆ");
+				Scene scene = new Scene(loader.load());
+				otherSevaStage.setScene(scene);
 
-			OtherSevaManagerController otherSevaManagerController = loader.getController();
-			if (otherSevaManagerController != null) {
-				otherSevaManagerController.setMainController(this);
-			} else {
-				System.err.println("Error: Could not get SevaManagerController instance.");
+				OtherSevaManagerController otherSevaManagerController = loader.getController();
+				if (otherSevaManagerController != null) {
+					otherSevaManagerController.setMainController(this);
+				} else {
+					System.err.println("Error: Could not get SevaManagerController instance.");
+					return;
+				}
+				otherSevaStage.initOwner(mainStage);
+				otherSevaStage.initModality(Modality.WINDOW_MODAL);
+				otherSevaStage.setMaxWidth(800);
+				otherSevaStage.setMaxHeight(650);
+				otherSevaStage.show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				showAlert("Error", "Unable to load Other Seva Manager: " + e.getMessage());
+			}
+		};
+		promptForSpecialPassword(openOtherSevaManager);
+	}
+
+	/**
+	 * Displays a dialog prompting for the special password. If the password is correct,
+	 * it executes the provided action.
+	 *
+	 * @param onPasswordSuccess The action to run if authentication is successful.
+	 */
+	private void promptForSpecialPassword(Runnable onPasswordSuccess) {
+		Dialog<String> dialog = new Dialog<>();
+		dialog.setTitle("Access Required");
+		dialog.setHeaderText("Please enter the special password to access manager views.");
+		dialog.initOwner(mainStage);
+
+		// Set the button types
+		ButtonType loginButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+		dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+
+		// Create the password field
+		GridPane grid = new GridPane();
+		grid.setHgap(10);
+		grid.setVgap(10);
+		grid.setPadding(new Insets(20, 150, 10, 10));
+
+		PasswordField password = new PasswordField();
+		password.setPromptText("Password");
+
+		grid.add(new Label("Password:"), 0, 0);
+		grid.add(password, 1, 0);
+
+		dialog.getDialogPane().setContent(grid);
+
+		// Request focus on the password field by default
+		Platform.runLater(password::requestFocus);
+
+		// Convert the result to the password string when the login button is clicked
+		dialog.setResultConverter(dialogButton -> {
+			if (dialogButton == loginButtonType) {
+				return password.getText();
+			}
+			return null;
+		});
+
+		Optional<String> result = dialog.showAndWait();
+
+		result.ifPresent(enteredPassword -> {
+			CredentialsRepository credentialsRepo = new CredentialsRepository();
+			Optional<String> storedHashOpt = credentialsRepo.getCredential("SPECIAL_PASSWORD");
+
+			if (storedHashOpt.isEmpty()) {
+				showAlert("Security Error", "Could not find special password in the database.");
 				return;
 			}
-			otherSevaStage.initOwner(mainStage);
-			otherSevaStage.initModality(Modality.WINDOW_MODAL);
-			otherSevaStage.setMaxWidth(800);
-			otherSevaStage.setMaxHeight(650);
-			otherSevaStage.show();
-		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Unable to load Other Seva Manager: " + e.getMessage());
-		}
+
+			if (PasswordUtils.checkPassword(enteredPassword, storedHashOpt.get())) {
+				// If password is correct, run the provided action
+				onPasswordSuccess.run();
+			} else {
+				showAlert("Access Denied", "The special password you entered is incorrect.");
+			}
+		});
 	}
 
 
