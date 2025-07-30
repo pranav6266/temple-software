@@ -28,7 +28,6 @@ public class LoginController {
 
 	@FXML
 	public void initialize() {
-		// Request focus on the password field upon showing the scene
 		Platform.runLater(() -> passwordField.requestFocus());
 	}
 
@@ -40,7 +39,6 @@ public class LoginController {
 			return;
 		}
 
-		// Fetch the stored hashed password from the database
 		Optional<String> storedHashOpt = credentialsRepository.getCredential("NORMAL_PASSWORD");
 
 		if (storedHashOpt.isEmpty()) {
@@ -48,14 +46,11 @@ public class LoginController {
 			return;
 		}
 
-		// Check if the entered password matches the stored hash
 		if (PasswordUtils.checkPassword(enteredPassword, storedHashOpt.get())) {
-			// On successful login, close the login stage and open the main application
 			System.out.println("✅ Normal login successful.");
 			closeCurrentStage();
 			launchMainApplication();
 		} else {
-			// On failure, show an error message
 			errorLabel.setText("Incorrect password. Please try again.");
 			passwordField.clear();
 		}
@@ -63,9 +58,20 @@ public class LoginController {
 
 	@FXML
 	void handleAdminLoginLink(ActionEvent event) {
-		// This will be implemented in Phase 4
-		System.out.println("Admin login link clicked. To be implemented in Phase 4.");
-		errorLabel.setText("Admin login is not yet implemented.");
+		System.out.println("Redirecting to Admin Login screen.");
+		closeCurrentStage();
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("/fxml/AdminLoginView.fxml"));
+			Scene scene = new Scene(fxmlLoader.load());
+			Stage adminLoginStage = new Stage();
+			adminLoginStage.setTitle("Temple Software - Admin Login");
+			adminLoginStage.setScene(scene);
+			adminLoginStage.setResizable(false);
+			adminLoginStage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			errorLabel.setText("Error: Could not load the admin login screen.");
+		}
 	}
 
 	private void launchMainApplication() {

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="720.0" prefWidth="1080.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.AdminPanelController">
+    <children>
+        <VBox style="-fx-background-color: #f4f4f4;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" style="-fx-background-color: #333; -fx-padding: 15;">
+                    <children>
+                        <Label text="Administrator Control Panel" textFill="WHITE">
+                            <font>
+                                <Font name="System Bold" size="24.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </HBox>
+                <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                    <tabs>
+                        <Tab text="Password Management">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                    <children>
+                                        <VBox alignment="TOP_CENTER" spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+                                            <children>
+                                                <Label fx:id="statusLabel" textFill="#2196f3">
+                                                    <font>
+                                                        <Font name="System Bold" size="16.0" />
+                                                    </font>
+                                                </Label>
+                                                <VBox maxWidth="600.0" spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5;">
+                                                    <children>
+                                                        <Label text="Change Normal User Password">
+                                                            <font>
+                                                                <Font name="System Bold" size="18.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <GridPane hgap="10.0" vgap="10.0">
+                                                            <columnConstraints>
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="284.0" minWidth="10.0" prefWidth="194.0" />
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="418.0" minWidth="10.0" prefWidth="366.0" />
+                                                            </columnConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                            </rowConstraints>
+                                                            <children>
+                                                                <Label text="New Normal Password:" />
+                                                                <Label text="Confirm Normal Password:" GridPane.rowIndex="1" />
+                                                                <PasswordField fx:id="normalPassField" GridPane.columnIndex="1" />
+                                                                <PasswordField fx:id="normalPassConfirmField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                            </children>
+                                                        </GridPane>
+                                                        <Button mnemonicParsing="false" onAction="#handleChangeNormalPassword" text="Update Normal Password" />
+                                                    </children>
+                                                </VBox>
+                                                <Separator prefWidth="200.0" />
+                                                <VBox maxWidth="600.0" spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5;">
+                                                    <children>
+                                                        <Label text="Change Special (Manager) Password">
+                                                            <font>
+                                                                <Font name="System Bold" size="18.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <GridPane hgap="10.0" vgap="10.0">
+                                                            <columnConstraints>
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="284.0" minWidth="10.0" prefWidth="194.0" />
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="418.0" minWidth="10.0" prefWidth="366.0" />
+                                                            </columnConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                            </rowConstraints>
+                                                            <children>
+                                                                <Label text="New Special Password:" />
+                                                                <Label text="Confirm Special Password:" GridPane.rowIndex="1" />
+                                                                <PasswordField fx:id="specialPassField" GridPane.columnIndex="1" />
+                                                                <PasswordField fx:id="specialPassConfirmField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                            </children>
+                                                        </GridPane>
+                                                        <Button mnemonicParsing="false" onAction="#handleChangeSpecialPassword" text="Update Special Password" />
+                                                    </children>
+                                                </VBox>
+                                                <Separator prefWidth="200.0" />
+                                                <VBox maxWidth="600.0" spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5;">
+                                                    <children>
+                                                        <Label text="Change Admin Credentials">
+                                                            <font>
+                                                                <Font name="System Bold" size="18.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <GridPane hgap="10.0" vgap="10.0">
+                                                            <columnConstraints>
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="284.0" minWidth="10.0" prefWidth="194.0" />
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="418.0" minWidth="10.0" prefWidth="366.0" />
+                                                            </columnConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                            </rowConstraints>
+                                                            <children>
+                                                                <Label text="New Admin Username:" />
+                                                                <Label text="New Admin Password:" GridPane.rowIndex="1" />
+                                                                <Label text="Confirm Admin Password:" GridPane.rowIndex="2" />
+                                                                <TextField fx:id="adminUserField" GridPane.columnIndex="1" />
+                                                                <PasswordField fx:id="adminPassField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                                <PasswordField fx:id="adminPassConfirmField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                            </children>
+                                                        </GridPane>
+                                                        <Button mnemonicParsing="false" onAction="#handleChangeAdminCredentials" text="Update Admin Credentials" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </AnchorPane>
+                            </content>
+                        </Tab>
+                        <Tab text="Log Viewer">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                    <children>
+                                        <VBox spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                    <children>
+                                                        <Label text="Select Log File:">
+                                                            <font>
+                                                                <Font name="System Bold" size="14.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <ComboBox fx:id="logFilesComboBox" prefWidth="300.0" />
+                                                        <Button mnemonicParsing="false" onAction="#handleRefreshLogs" text="Refresh List" />
+                                                    </children>
+                                                </HBox>
+                                                <TextArea fx:id="logContentArea" editable="false" prefHeight="200.0" prefWidth="200.0" wrapText="true" VBox.vgrow="ALWAYS">
+                                                    <font>
+                                                        <Font name="Consolas" size="12.0" />
+                                                    </font>
+                                                </TextArea>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </AnchorPane>
+                            </content>
+                        </Tab>
+                        <Tab text="Database Editor">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                    <children>
+                                        <VBox spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                            <children>
+                                                <Label style="-fx-text-fill: red; -fx-font-weight: bold;" text="WARNING: Direct database editing is dangerous and can corrupt your application. Proceed with extreme caution." wrapText="true" />
+                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                    <children>
+                                                        <Label text="Select Table to Edit:">
+                                                            <font>
+                                                                <Font name="System Bold" size="14.0" />
+                                                            </font>
+                                                        </Label>
+                                                        <ComboBox fx:id="tablesComboBox" prefWidth="250.0" />
+                                                    </children>
+                                                </HBox>
+                                                <TableView fx:id="databaseTableView" editable="true" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                                                <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                                                    <children>
+                                                        <Button mnemonicParsing="false" onAction="#handleSaveChanges" style="-fx-background-color: #4CAF50;" text="Save Changes" textFill="WHITE" />
+                                                        <Button mnemonicParsing="false" onAction="#handleDeleteRow" style="-fx-background-color: #f44336;" text="Delete Selected Row" textFill="WHITE" />
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </AnchorPane>
+                            </content>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>
