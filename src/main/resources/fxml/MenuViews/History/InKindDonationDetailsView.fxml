@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<AnchorPane prefHeight="600.0" prefWidth="700.0" styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.InKindDonationDetailsController">
+<ScrollPane styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.InKindDonationDetailsController">
     <VBox styleClass="details-container" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
         <Label styleClass="details-header" text="ವಸ್ತು ದೇಣಿಗೆ ವಿವರಗಳು" />
 
@@ -33,4 +33,4 @@
             <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
         </HBox>
     </VBox>
-</AnchorPane>
+</ScrollPane>

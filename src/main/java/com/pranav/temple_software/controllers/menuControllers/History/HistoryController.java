@@ -219,6 +219,7 @@ public class HistoryController {
 			detailsStage.setScene(scene);
 			ReceiptDetailsController detailsController = loader.getController();
 			detailsController.initializeDetails(sevaReceiptData);
+			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -237,6 +238,7 @@ public class HistoryController {
 			detailsStage.setScene(scene);
 			DonationDetailsController detailsController = loader.getController();
 			detailsController.initializeDonationDetails(donationData);
+			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -255,6 +257,7 @@ public class HistoryController {
 			detailsStage.setScene(scene);
 			InKindDonationDetailsController detailsController = loader.getController();
 			detailsController.initializeDetails(donationData);
+			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();

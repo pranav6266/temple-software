@@ -90,6 +90,11 @@ public class MainController {
 	public TableColumn<SevaEntry, Number> amountColumn;
 	@FXML
 	public TableColumn<SevaEntry, Number> totalAmountColumn;
+
+	// ADDED FXML annotation for the new static column
+	@FXML
+	public TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn;
+
 	@FXML
 	public TableColumn<SevaEntry, Void> actionColumn;
 	@FXML
@@ -101,10 +106,6 @@ public class MainController {
 
 	@FXML private AnchorPane mainPane;
 
-
-
-
-	// Replace existing print buttons with these
 	@FXML private Button smartActionButton;
 	@FXML private Button clearFormButton;
 	@FXML private Label statusLabel;
@@ -192,8 +193,9 @@ public class MainController {
 				}
 			}
 		});
-
 	}
+
+	// ... (rest of the MainController.java file remains exactly the same) ...
 
 	public void updatePrintStatusLabel() {
 		long pendingCount = selectedSevas.stream()
@@ -211,16 +213,12 @@ public class MainController {
 			statusLabel.setText(String.format("ಬಾಕಿ: %d | ಯಶಸ್ವಿ: %d | ವಿಫಲ: %d",
 					pendingCount, successCount, failedCount));
 
-			// **FIXED: Check auto-clear condition FIRST**
 			if (successCount > 0 && pendingCount == 0 && failedCount == 0) {
-				// **NEW: Check if ALL processing is truly complete**
-				// Only auto-clear if no items are currently in PRINTING status
 				long printingCount = selectedSevas.stream()
 						.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING ? 1 : 0)
 						.sum();
 
 				if (printingCount == 0) {
-					// All items successful AND no items currently printing - safe to auto-clear
 					smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
 					smartActionButton.setDisable(true);
 					smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
@@ -231,7 +229,6 @@ public class MainController {
 					timeline.play();
 				}
 			}
-			// Dynamic main button text and state for other conditions
 			else if (pendingCount > 0) {
 				smartActionButton.setText("ಮುದ್ರಿಸಿ (" + pendingCount + " ಐಟಂಗಳು)");
 				smartActionButton.setDisable(false);
@@ -241,24 +238,18 @@ public class MainController {
 				smartActionButton.setDisable(false);
 				smartActionButton.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 			} else if (successCount > 0) {
-				// This handles partial success (some successful, but also some pending/failed)
 				smartActionButton.setText("ಯಶಸ್ವಿಯಾದವುಗಳನ್ನು ತೆರವುಮಾಡಿ (" + successCount + ")");
 				smartActionButton.setDisable(false);
 				smartActionButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 			} else {
-				// No items or all cleared
 				smartActionButton.setText("ಐಟಂಗಳನ್ನು ಸೇರಿಸಿ");
 				smartActionButton.setDisable(selectedSevas.isEmpty());
 				smartActionButton.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 			}
-
-			// Clear form button state
 			clearFormButton.setDisable(selectedSevas.isEmpty());
 		});
 	}
 
-
-	// MODIFIED: This method now shows a choice dialog before processing.
 	@FXML
 	public void handleSmartAction() {
 		long pendingCount = selectedSevas.stream()
@@ -272,19 +263,15 @@ public class MainController {
 				.count();
 
 		if (pendingCount > 0 || failedCount > 0) {
-			// NEW: Show choice dialog for pending/failed items
 			showPrintOrSaveDialog();
 		} else if (successCount > 0) {
-			// Clear successful items
 			receiptServices.handleClearSuccessful();
 		} else {
-			// Focus on adding items
 			Platform.runLater(() -> devoteeNameField.requestFocus());
 			showAlert("Add Items", "Please add seva items to the table to proceed.");
 		}
 	}
 
-	// NEW: Method to display the choice dialog.
 	private void showPrintOrSaveDialog() {
 		List<String> choices = new ArrayList<>();
 		choices.add("Save as PDF");
@@ -298,10 +285,8 @@ public class MainController {
 		Optional<String> result = dialog.showAndWait();
 		result.ifPresent(selected -> {
 			if ("Save as PDF".equals(selected)) {
-				// Call a new method in ReceiptServices for saving PDFs
 				receiptServices.handleSaveAllPendingAsPdf();
 			} else if ("Print as Receipt".equals(selected)) {
-				// Call the existing print logic
 				if (selectedSevas.stream().anyMatch(e -> e.getPrintStatus() == SevaEntry.PrintStatus.FAILED)) {
 					receiptServices.handleRetryFailed();
 				} else {
@@ -310,7 +295,6 @@ public class MainController {
 			}
 		});
 	}
-
 
 	@FXML
 	private void handleCloseApp() {
@@ -345,7 +329,6 @@ public class MainController {
 
 	@FXML
 	public void handleDonationManagerButton(){
-		// Wrap the original logic in a Runnable to pass to the password prompt
 		Runnable openDonationManager = () -> {
 			try {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
@@ -355,7 +338,7 @@ public class MainController {
 				donationStage.setScene(scene);
 				DonationManagerController donationManagerController = loader.getController();
 				if (donationManagerController != null) {
-					donationManagerController.setMainController(this); // Pass this instance
+					donationManagerController.setMainController(this);
 				} else {
 					System.err.println("Error: Could not get DonationManagerView instance.");
 					return;
@@ -365,13 +348,11 @@ public class MainController {
 				donationStage.setMaxHeight(650);
 				donationStage.setMaxWidth(800);
 				donationStage.show();
-			} catch (Exception e) { // Catch broader exceptions
+			} catch (Exception e) {
 				e.printStackTrace();
 				showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
 			}
 		};
-
-		// Show the password prompt before executing the above logic
 		promptForSpecialPassword(openDonationManager);
 	}
 
@@ -436,67 +417,44 @@ public class MainController {
 		promptForSpecialPassword(openOtherSevaManager);
 	}
 
-	/**
-	 * Displays a dialog prompting for the special password. If the password is correct,
-	 * it executes the provided action.
-	 *
-	 * @param onPasswordSuccess The action to run if authentication is successful.
-	 */
 	private void promptForSpecialPassword(Runnable onPasswordSuccess) {
 		Dialog<String> dialog = new Dialog<>();
 		dialog.setTitle("Access Required");
 		dialog.setHeaderText("Please enter the special password to access manager views.");
 		dialog.initOwner(mainStage);
-
-		// Set the button types
 		ButtonType loginButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
 		dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
-
-		// Create the password field
 		GridPane grid = new GridPane();
 		grid.setHgap(10);
 		grid.setVgap(10);
 		grid.setPadding(new Insets(20, 150, 10, 10));
-
 		PasswordField password = new PasswordField();
 		password.setPromptText("Password");
-
 		grid.add(new Label("Password:"), 0, 0);
 		grid.add(password, 1, 0);
-
 		dialog.getDialogPane().setContent(grid);
-
-		// Request focus on the password field by default
 		Platform.runLater(password::requestFocus);
-
-		// Convert the result to the password string when the login button is clicked
 		dialog.setResultConverter(dialogButton -> {
 			if (dialogButton == loginButtonType) {
 				return password.getText();
 			}
 			return null;
 		});
-
 		Optional<String> result = dialog.showAndWait();
-
 		result.ifPresent(enteredPassword -> {
 			CredentialsRepository credentialsRepo = new CredentialsRepository();
 			Optional<String> storedHashOpt = credentialsRepo.getCredential("SPECIAL_PASSWORD");
-
 			if (storedHashOpt.isEmpty()) {
 				showAlert("Security Error", "Could not find special password in the database.");
 				return;
 			}
-
 			if (PasswordUtils.checkPassword(enteredPassword, storedHashOpt.get())) {
-				// If password is correct, run the provided action
 				onPasswordSuccess.run();
 			} else {
 				showAlert("Access Denied", "The special password you entered is incorrect.");
 			}
 		});
 	}
-
 
 	@FXML
 	public void clearForm() {
@@ -517,19 +475,16 @@ public class MainController {
 		Platform.runLater(() -> devoteeNameField.requestFocus());
 	}
 
-
 	@FXML
 	public void clearFormAfterChk(){
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle("Confirmation");
 		alert.setHeaderText(null);
 		alert.setContentText("Are you sure you want to clear the form?");
-
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == ButtonType.OK) {
 			clearForm();
 		}
-
 	}
 
 	public final Map<String, CheckBox> sevaCheckboxMap = new HashMap<>();
@@ -600,16 +555,13 @@ public class MainController {
 		});
 	}
 
-
 	public void refreshSevaCheckboxes() {
 		System.out.println("DEBUG: MainController refreshSevaCheckboxes() called.");
 		if (sevaListener != null && sevaCheckboxContainer != null) {
 			try {
 				sevaRepository.loadSevasFromDB();
-
 				sevaCheckboxContainer.getChildren().clear();
 				sevaCheckboxMap.clear();
-
 				sevaListener.setupSevaCheckboxes();
 				System.out.println("DEBUG: Seva checkboxes refreshed with " +
 						sevaRepository.getAllSevas().size() + " sevas.");
@@ -627,7 +579,6 @@ public class MainController {
 
 	public void refreshDonationComboBox() {
 		DonationRepository.getInstance().loadDonationsFromDB();
-
 		List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
 		ObservableList<String> donationNames = FXCollections.observableArrayList(
 				donationEntries.stream().map(Donations::getName).collect(Collectors.toList())
@@ -637,18 +588,14 @@ public class MainController {
 		System.out.println("DEBUG: Donation ComboBox refreshed with " + donationEntries.size() + " donations.");
 	}
 
-
 	public void refreshOtherSevaComboBox() {
 		OtherSevaRepository.loadOtherSevasFromDB();
-
 		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
-
 		ObservableList<String> otherSevaNames = FXCollections.observableArrayList(
 				otherSevaEntries.stream()
 						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
 						.collect(Collectors.toList())
 		);
-
 		otherSevaNames.add(0, "ಆಯ್ಕೆ");
 		otherServicesComboBox.setItems(otherSevaNames);
 		System.out.println("DEBUG: Other Seva ComboBox refreshed with " + otherSevaEntries.size() + " other sevas.");
@@ -665,11 +612,9 @@ public class MainController {
 				donationField,
 				donationComboBox
 		);
-
 		for (int i = 0; i < formControls.size(); i++) {
 			Control current = formControls.get(i);
 			int nextIndex = i + 1;
-
 			current.setOnKeyPressed(e -> {
 				if (e.getCode().toString().equals("ENTER") && nextIndex < formControls.size()) {
 					formControls.get(nextIndex).requestFocus();
@@ -677,7 +622,6 @@ public class MainController {
 			});
 		}
 	}
-
 
 	@FXML
 	public void handleInKindDonationMenuItem() {
@@ -687,43 +631,27 @@ public class MainController {
 			inKindStage.setTitle("ವಸ್ತು ದೇಣಿಗೆಯನ್ನು ಸೇರಿಸಿ");
 			Scene scene = new Scene(loader.load());
 			inKindStage.setScene(scene);
-
-			// Setup stage properties
 			inKindStage.initModality(Modality.WINDOW_MODAL);
 			inKindStage.initOwner(mainStage);
 			inKindStage.setResizable(false);
 			inKindStage.show();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 			showAlert("Error", "Failed to load the In-Kind Donation view: " + e.getMessage());
 		}
 	}
 
-	/**
-	 * NEW METHOD: Populates the form fields with details from a DevoteeDetails object.
-	 * This is called by ValidationServices after a successful database lookup.
-	 * @param details The devotee details retrieved from the database.
-	 */
 	public void populateDevoteeDetails(DevoteeDetails details) {
 		if (details == null) return;
-
-		// Set simple text fields
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
 		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
-
-		// Set Rashi ComboBox
 		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
 			raashiComboBox.setValue(details.getRashi());
 		} else {
-			raashiComboBox.getSelectionModel().selectFirst(); // Default to "ಆಯ್ಕೆ"
+			raashiComboBox.getSelectionModel().selectFirst();
 		}
-
-		// Set Nakshatra ComboBox
-		// A brief delay ensures the Rashi listener has populated the Nakshatra list first
 		Platform.runLater(() -> {
 			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
-				// Check if the Nakshatra is a valid option for the selected Rashi
 				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
 					nakshatraComboBox.setValue(details.getNakshatra());
 				}
