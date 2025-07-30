@@ -1,4 +1,4 @@
-//MainController.java
+// MainController.java
 package com.pranav.temple_software.controllers;
 
 
@@ -91,7 +91,7 @@ public class MainController {
 	public Label totalLabel;
 	@FXML
 	private Button printPreviewButton;
-	
+
 	@FXML private AnchorPane mainPane;
 
 
@@ -251,25 +251,22 @@ public class MainController {
 	}
 
 
-
+	// MODIFIED: This method now shows a choice dialog before processing.
 	@FXML
 	public void handleSmartAction() {
 		long pendingCount = selectedSevas.stream()
-				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING ? 1 : 0)
-				.sum();
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
+				.count();
 		long failedCount = selectedSevas.stream()
-				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED ? 1 : 0)
-				.sum();
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED)
+				.count();
 		long successCount = selectedSevas.stream()
-				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS ? 1 : 0)
-				.sum();
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
+				.count();
 
-		if (pendingCount > 0) {
-			// Print pending items
-			receiptServices.handlePrintAllPending();
-		} else if (failedCount > 0) {
-			// Retry failed items
-			receiptServices.handleRetryFailed();
+		if (pendingCount > 0 || failedCount > 0) {
+			// NEW: Show choice dialog for pending/failed items
+			showPrintOrSaveDialog();
 		} else if (successCount > 0) {
 			// Clear successful items
 			receiptServices.handleClearSuccessful();
@@ -279,6 +276,34 @@ public class MainController {
 			showAlert("Add Items", "Please add seva items to the table to proceed.");
 		}
 	}
+
+	// NEW: Method to display the choice dialog.
+	private void showPrintOrSaveDialog() {
+		List<String> choices = new ArrayList<>();
+		choices.add("Save as PDF");
+		choices.add("Print as Receipt");
+
+		ChoiceDialog<String> dialog = new ChoiceDialog<>("Print as Receipt", choices);
+		dialog.setTitle("Choose Action");
+		dialog.setHeaderText("Select how you want to process the receipt(s).");
+		dialog.setContentText("Choose your option:");
+
+		Optional<String> result = dialog.showAndWait();
+		result.ifPresent(selected -> {
+			if ("Save as PDF".equals(selected)) {
+				// Call a new method in ReceiptServices for saving PDFs
+				receiptServices.handleSaveAllPendingAsPdf();
+			} else if ("Print as Receipt".equals(selected)) {
+				// Call the existing print logic
+				if (selectedSevas.stream().anyMatch(e -> e.getPrintStatus() == SevaEntry.PrintStatus.FAILED)) {
+					receiptServices.handleRetryFailed();
+				} else {
+					receiptServices.handlePrintAllPending();
+				}
+			}
+		});
+	}
+
 
 	@FXML
 	private void handleCloseApp() {
@@ -311,31 +336,31 @@ public class MainController {
 		}
 	}
 
-    @FXML
-    public void handleDonationManagerButton(){
-	    try {
-		    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
-		    Stage donationStage = new Stage();
-		    donationStage.setTitle("ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
-		    Scene scene = new Scene(loader.load());
-		    donationStage.setScene(scene);
-		    DonationManagerController donationManagerController = loader.getController();
-		    if (donationManagerController != null) {
-			    donationManagerController.setMainController(this); // Pass this instance
-		    } else {
-			    System.err.println("Error: Could not get DonationManagerView instance.");
-			    return;
-		    }
+	@FXML
+	public void handleDonationManagerButton(){
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
+			Stage donationStage = new Stage();
+			donationStage.setTitle("ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ");
+			Scene scene = new Scene(loader.load());
+			donationStage.setScene(scene);
+			DonationManagerController donationManagerController = loader.getController();
+			if (donationManagerController != null) {
+				donationManagerController.setMainController(this); // Pass this instance
+			} else {
+				System.err.println("Error: Could not get DonationManagerView instance.");
+				return;
+			}
 			donationStage.initModality(Modality.WINDOW_MODAL);
-		    donationStage.initOwner(mainStage);
-		    donationStage.setMaxHeight(650);
-		    donationStage.setMaxWidth(800);
-		    donationStage.show();
-	    } catch (Exception e) { // Catch broader exceptions
-		    e.printStackTrace();
-		    showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
-	    }
-    }
+			donationStage.initOwner(mainStage);
+			donationStage.setMaxHeight(650);
+			donationStage.setMaxWidth(800);
+			donationStage.show();
+		} catch (Exception e) { // Catch broader exceptions
+			e.printStackTrace();
+			showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
+		}
+	}
 
 	@FXML
 	public void handleSevaManagerButton() {
@@ -348,10 +373,7 @@ public class MainController {
 
 			SevaManagerController sevaManagerController = loader.getController();
 			if (sevaManagerController != null) {
-				// *** PASS both the repository (if needed) AND the MainController instance ***
-				// If using Singleton for repo, you only need to pass mainController
-				// sevaManagerController.setSevaRepository(this.sevaRepository); // Uncomment if using DI for repo
-				sevaManagerController.setMainController(this); // Pass this instance
+				sevaManagerController.setMainController(this);
 			} else {
 				System.err.println("Error: Could not get SevaManagerController instance.");
 				return;
@@ -362,7 +384,7 @@ public class MainController {
 			sevaStage.setMaxHeight(650);
 			sevaStage.setMaxWidth(800);
 			sevaStage.show();
-		} catch (Exception e) { // Catch broader exceptions
+		} catch (Exception e) {
 			e.printStackTrace();
 			showAlert("Error", "Failed to load Seva Manager view: " + e.getMessage());
 		}
@@ -379,10 +401,7 @@ public class MainController {
 
 			OtherSevaManagerController otherSevaManagerController = loader.getController();
 			if (otherSevaManagerController != null) {
-				// *** PASS both the repository (if needed) AND the MainController instance ***
-				// If using Singleton for repo, you only need to pass mainController
-				// sevaManagerController.setSevaRepository(this.sevaRepository); // Uncomment if using DI for repo
-				otherSevaManagerController.setMainController(this); // Pass this instance
+				otherSevaManagerController.setMainController(this);
 			} else {
 				System.err.println("Error: Could not get SevaManagerController instance.");
 				return;
@@ -401,13 +420,12 @@ public class MainController {
 
 	@FXML
 	public void clearForm() {
-		// Clear all fields EXCEPT bound labels
 		devoteeNameField.clear();
 		contactField.clear();
 		raashiComboBox.getSelectionModel().selectFirst();
 		nakshatraComboBox.getSelectionModel().clearSelection();
 		sevaDatePicker.setValue(LocalDate.now());
-		selectedSevas.clear(); // This will also clear print statuses
+		selectedSevas.clear();
 		donationCheck.setSelected(false);
 		donationField.clear();
 		donationComboBox.getSelectionModel().selectFirst();
@@ -415,7 +433,7 @@ public class MainController {
 		onlineRadio.setSelected(false);
 		otherServicesComboBox.getSelectionModel().selectFirst();
 		addressField.clear();
-		updatePrintStatusLabel(); // Update status after clearing
+		updatePrintStatusLabel();
 		Platform.runLater(() -> devoteeNameField.requestFocus());
 	}
 
@@ -450,16 +468,13 @@ public class MainController {
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 
-	public void showAlert(String title, String message) { //
-		Alert alert = new Alert(Alert.AlertType.WARNING); //
-		alert.setTitle(title); //
-		alert.setHeaderText(null); //
-		alert.setContentText(message); //
-		alert.showAndWait(); //
+	public void showAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
-
-
-
 
 	private void populateRashiComboBox() {
 		ObservableList<String> rashiOptions = FXCollections.observableArrayList();
@@ -474,7 +489,6 @@ public class MainController {
 
 	private void setupBlankAreaFocusHandler() {
 		mainPane.setOnMousePressed(event -> {
-			// If click target is not a text input, force focus to this pane
 			if (!(event.getTarget() instanceof TextInputControl) &&
 					!(event.getTarget() instanceof ComboBox) &&
 					!(event.getTarget() instanceof DatePicker)) {
@@ -511,14 +525,11 @@ public class MainController {
 		System.out.println("DEBUG: MainController refreshSevaCheckboxes() called.");
 		if (sevaListener != null && sevaCheckboxContainer != null) {
 			try {
-				// *** SOLUTION 1: Force repository reload before refreshing ***
-				sevaRepository.loadSevasFromDB(); // Force reload
+				sevaRepository.loadSevasFromDB();
 
-				// Clear container before regenerating checkboxes
 				sevaCheckboxContainer.getChildren().clear();
-				sevaCheckboxMap.clear(); // Clear the map too
+				sevaCheckboxMap.clear();
 
-				// Ask the listener to rebuild checkboxes based on current repo data
 				sevaListener.setupSevaCheckboxes();
 				System.out.println("DEBUG: Seva checkboxes refreshed with " +
 						sevaRepository.getAllSevas().size() + " sevas.");
@@ -534,47 +545,34 @@ public class MainController {
 		}
 	}
 
-
-
-
-	// ... inside MainController class:
 	public void refreshDonationComboBox() {
-		// *** SOLUTION 1: Force repository reload before refreshing ***
-		DonationRepository.getInstance().loadDonationsFromDB(); // Force reload
+		DonationRepository.getInstance().loadDonationsFromDB();
 
 		List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
 		ObservableList<String> donationNames = FXCollections.observableArrayList(
 				donationEntries.stream().map(Donations::getName).collect(Collectors.toList())
 		);
-		donationNames.add(0, "ಆಯ್ಕೆ");  // Optional default prompt
+		donationNames.add(0, "ಆಯ್ಕೆ");
 		donationComboBox.setItems(donationNames);
 		System.out.println("DEBUG: Donation ComboBox refreshed with " + donationEntries.size() + " donations.");
 	}
 
 
 	public void refreshOtherSevaComboBox() {
-		// *** SOLUTION 1: Force repository reload before refreshing ***
-		OtherSevaRepository.loadOtherSevasFromDB(); // Force reload
+		OtherSevaRepository.loadOtherSevasFromDB();
 
-		// Get all Other Sevas (name + amount)
 		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
 
-		// Format combo box entries to show: Name - ₹Amount
 		ObservableList<String> otherSevaNames = FXCollections.observableArrayList(
 				otherSevaEntries.stream()
 						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
 						.collect(Collectors.toList())
 		);
 
-		// Optional: add a default placeholder
 		otherSevaNames.add(0, "ಆಯ್ಕೆ");
-
-		// Set items in the combo box
 		otherServicesComboBox.setItems(otherSevaNames);
 		System.out.println("DEBUG: Other Seva ComboBox refreshed with " + otherSevaEntries.size() + " other sevas.");
 	}
-
-
 
 	private void setupFocusTraversal() {
 		List<Control> formControls = List.of(
@@ -599,11 +597,4 @@ public class MainController {
 			});
 		}
 	}
-
-
 }
-
-
-
-
-

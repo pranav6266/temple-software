@@ -1,3 +1,4 @@
+// ReceiptServices.java
 package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
@@ -19,6 +20,12 @@ import java.util.stream.Collectors;
 public class ReceiptServices {
 	private final MainController controller;
 
+	// NEW: Enum to define the action type
+	private enum ActionType {
+		PRINT,
+		SAVE_PDF
+	}
+
 	public ReceiptServices(MainController controller) {
 		this.controller = controller;
 	}
@@ -33,7 +40,21 @@ public class ReceiptServices {
 			return;
 		}
 
-		processSelectedItems(pendingItems);
+		processSelectedItems(pendingItems, ActionType.PRINT);
+	}
+
+	// NEW: Method to handle saving all pending items as PDFs
+	public void handleSaveAllPendingAsPdf() {
+		List<SevaEntry> pendingItems = controller.selectedSevas.stream()
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
+				.collect(Collectors.toList());
+
+		if (pendingItems.isEmpty()) {
+			controller.showAlert("No Pending Items", "All items have been processed.");
+			return;
+		}
+
+		processSelectedItems(pendingItems, ActionType.SAVE_PDF);
 	}
 
 	public void handleRetryFailed() {
@@ -51,7 +72,7 @@ public class ReceiptServices {
 			controller.updatePrintStatusLabel();
 		});
 
-		processSelectedItems(failedItems);
+		processSelectedItems(failedItems, ActionType.PRINT); // Default retry action is to print
 	}
 
 	public void handleClearSuccessful() {
@@ -76,10 +97,11 @@ public class ReceiptServices {
 
 	public void retryIndividualItem(SevaEntry item) {
 		Platform.runLater(() -> item.setPrintStatus(SevaEntry.PrintStatus.PENDING));
-		processSelectedItems(Arrays.asList(item));
+		processSelectedItems(Arrays.asList(item), ActionType.PRINT);
 	}
 
-	private void processSelectedItems(List<SevaEntry> itemsToProcess) {
+	// MODIFIED: Added ActionType parameter
+	private void processSelectedItems(List<SevaEntry> itemsToProcess, ActionType actionType) {
 		final String devoteeName = controller.devoteeNameField.getText();
 		final String phoneNumber = controller.contactField.getText();
 		final String address = controller.addressField.getText();
@@ -95,12 +117,13 @@ public class ReceiptServices {
 		String paymentMode = controller.cashRadio.isSelected() ? "Cash" : "Online";
 
 		processReceiptsWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
-				FXCollections.observableArrayList(itemsToProcess), paymentMode);
+				FXCollections.observableArrayList(itemsToProcess), paymentMode, actionType);
 	}
 
+	// MODIFIED: Added ActionType parameter
 	private void processReceiptsWithStatusTracking(String devoteeName, String phoneNumber, String address,
 	                                               String raashi, String nakshatra, LocalDate date,
-	                                               ObservableList<SevaEntry> items, String paymentMode) {
+	                                               ObservableList<SevaEntry> items, String paymentMode, ActionType actionType) {
 
 		List<SevaEntry> sevaEntries = new ArrayList<>();
 		List<SevaEntry> donationEntries = new ArrayList<>();
@@ -122,18 +145,19 @@ public class ReceiptServices {
 
 		if (!sevaEntries.isEmpty()) {
 			handleSevaReceiptWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
-					sevaEntries, paymentMode);
+					sevaEntries, paymentMode, actionType);
 		}
 
 		for (SevaEntry donation : donationEntries) {
 			handleDonationReceiptWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
-					donation, paymentMode);
+					donation, paymentMode, actionType);
 		}
 	}
 
+	// MODIFIED: Added ActionType parameter
 	private void handleDonationReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address,
 	                                                     String raashi, String nakshatra, LocalDate date,
-	                                                     SevaEntry donation, String paymentMode) {
+	                                                     SevaEntry donation, String paymentMode, ActionType actionType) {
 
 		int donationReceiptId = DonationReceiptRepository.getNextDonationReceiptId();
 		if (donationReceiptId <= 0) {
@@ -147,8 +171,8 @@ public class ReceiptServices {
 				date, donationName, donation.getTotalAmount(), paymentMode
 		);
 
-		Consumer<Boolean> donationAfterPrintAction = (printSuccess) -> {
-			if (printSuccess) {
+		Consumer<Boolean> afterActionCallback = (success) -> {
+			if (success) {
 				DonationReceiptRepository repo = new DonationReceiptRepository();
 				int actualSavedId = repo.saveSpecificDonationReceipt(
 						donationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
@@ -157,29 +181,35 @@ public class ReceiptServices {
 
 				if (actualSavedId != -1) {
 					markItemAsSuccess(donation);
+					String successMessage = actionType == ActionType.SAVE_PDF ? "saved" : "printed";
 					Platform.runLater(() -> controller.showAlert("Donation Receipt Success",
-							"Donation receipt for " + donationName + " printed and saved successfully with ID: " + actualSavedId));
+							"Donation receipt for " + donationName + " " + successMessage + " successfully with ID: " + actualSavedId));
 				} else {
 					markItemAsFailed(donation, "Failed to save to database");
 				}
 			} else {
-				markItemAsFailed(donation, "Print job was cancelled or failed");
+				String failureMessage = actionType == ActionType.SAVE_PDF ? "Save job failed" : "Print job was cancelled or failed";
+				markItemAsFailed(donation, failureMessage);
 			}
 			controller.updatePrintStatusLabel();
 		};
 
-		Runnable onDialogClosed = () -> {
-			if (donation.getPrintStatus() == SevaEntry.PrintStatus.PRINTING) {
-				markItemAsFailed(donation, "Print preview was cancelled");
-			}
-		};
-
-		controller.receiptPrinter.showDonationPrintPreviewWithCancelCallback(donationReceiptData, controller.mainStage, donationAfterPrintAction, onDialogClosed);
+		if (actionType == ActionType.PRINT) {
+			Runnable onDialogClosed = () -> {
+				if (donation.getPrintStatus() == SevaEntry.PrintStatus.PRINTING) {
+					markItemAsFailed(donation, "Print preview was cancelled");
+				}
+			};
+			controller.receiptPrinter.showDonationPrintPreviewWithCancelCallback(donationReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
+		} else { // SAVE_PDF
+			controller.receiptPrinter.saveDonationReceiptAsPdf(donationReceiptData, afterActionCallback);
+		}
 	}
 
+	// MODIFIED: Added ActionType parameter
 	private void handleSevaReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address,
 	                                                 String raashi, String nakshatra, LocalDate date,
-	                                                 List<SevaEntry> sevaEntries, String paymentMode) {
+	                                                 List<SevaEntry> sevaEntries, String paymentMode, ActionType actionType) {
 
 		int sevaReceiptId = controller.sevaReceiptRepository.getNextReceiptId();
 		if (sevaReceiptId <= 0) {
@@ -193,8 +223,8 @@ public class ReceiptServices {
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode, "ಇಲ್ಲ"
 		);
 
-		Consumer<Boolean> sevaAfterPrintAction = (printSuccess) -> {
-			if (printSuccess) {
+		Consumer<Boolean> afterActionCallback = (success) -> {
+			if (success) {
 				String sevasDetailsString = formatSevasForDatabase(FXCollections.observableArrayList(sevaEntries));
 				int actualSavedId = controller.sevaReceiptRepository.saveSpecificReceipt(
 						sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
@@ -203,34 +233,39 @@ public class ReceiptServices {
 
 				if (actualSavedId != -1) {
 					markItemsAsSuccess(sevaEntries);
+					String successMessage = actionType == ActionType.SAVE_PDF ? "saved" : "printed";
 					Platform.runLater(() -> controller.showAlert("Seva Receipt Success",
-							"Seva receipt printed and saved successfully with ID: " + actualSavedId));
+							"Seva receipt " + successMessage + " successfully with ID: " + actualSavedId));
 				} else {
 					markItemsAsFailed(sevaEntries, "Failed to save to database");
 				}
 			} else {
-				markItemsAsFailed(sevaEntries, "Print job was cancelled or failed");
+				String failureMessage = actionType == ActionType.SAVE_PDF ? "Save job failed" : "Print job was cancelled or failed";
+				markItemsAsFailed(sevaEntries, failureMessage);
 			}
 			controller.updatePrintStatusLabel();
 		};
 
-		Runnable onDialogClosed = () -> {
-			boolean stillPrinting = sevaEntries.stream()
-					.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
+		if (actionType == ActionType.PRINT) {
+			Runnable onDialogClosed = () -> {
+				boolean stillPrinting = sevaEntries.stream()
+						.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
 
-			if (stillPrinting) {
-				markItemsAsFailed(sevaEntries, "Print preview was cancelled");
-			}
-		};
-
-		controller.receiptPrinter.showPrintPreviewWithCancelCallback(sevaReceiptData, controller.mainStage, sevaAfterPrintAction, onDialogClosed);
+				if (stillPrinting) {
+					markItemsAsFailed(sevaEntries, "Print preview was cancelled");
+				}
+			};
+			controller.receiptPrinter.showPrintPreviewWithCancelCallback(sevaReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
+		} else { // SAVE_PDF
+			controller.receiptPrinter.saveSevaReceiptAsPdf(sevaReceiptData, afterActionCallback);
+		}
 	}
 
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {
 		Platform.runLater(() -> {
 			items.forEach(entry -> entry.setPrintStatus(SevaEntry.PrintStatus.FAILED));
 			controller.updatePrintStatusLabel();
-			Platform.runLater(() -> controller.showAlert("Print Failed", reason));
+			Platform.runLater(() -> controller.showAlert("Action Failed", reason));
 		});
 	}
 
@@ -252,21 +287,15 @@ public class ReceiptServices {
 		Platform.runLater(() -> {
 			item.setPrintStatus(SevaEntry.PrintStatus.FAILED);
 			controller.updatePrintStatusLabel();
-			Platform.runLater(() -> controller.showAlert("Print Failed", reason + " for: " + item.getName()));
+			Platform.runLater(() -> controller.showAlert("Action Failed", reason + " for: " + item.getName()));
 		});
 	}
 
-	/**
-	 * *** BUG FIX ***
-	 * Corrected the format to match what the parseSevas method expects.
-	 * It now uses ":" to separate parts and ";" to separate entries.
-	 * Format: "SevaName:BaseAmount:Quantity;AnotherSeva:BaseAmount:Quantity"
-	 */
 	private String formatSevasForDatabase(ObservableList<SevaEntry> sevas) {
 		return sevas.stream()
 				.map(seva -> String.join(":",
 						seva.getName(),
-						String.valueOf(seva.getAmount()), // Base amount per unit
+						String.valueOf(seva.getAmount()),
 						String.valueOf(seva.getQuantity())
 				))
 				.collect(Collectors.joining(";"));

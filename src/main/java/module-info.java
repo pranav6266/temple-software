@@ -3,6 +3,7 @@ module com.pranav.temple_software {
 	requires javafx.controls;
 	requires javafx.fxml;
 	requires javafx.graphics;
+	requires javafx.swing;
 
 	// Standard Java Modules
 	requires java.sql;
@@ -13,6 +14,7 @@ module com.pranav.temple_software {
 	// requires org.slf4j; // This line has been removed
 	requires com.h2database;
 	requires org.xerial.sqlitejdbc;
+	requires org.apache.pdfbox;
 
 	// Export packages for FXML access
 	exports com.pranav.temple_software;
