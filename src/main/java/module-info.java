@@ -15,7 +15,7 @@ module com.pranav.temple_software {
 	requires com.h2database;
 	requires org.xerial.sqlitejdbc;
 	requires org.apache.pdfbox;
-
+	requires java.net.http;
 
 
 	// Export packages for FXML access
