@@ -157,7 +157,7 @@ public class ReceiptPrinter {
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 
-		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", 16));
 		templeName.setStyle("-fx-font-weight: bold; -fx-underline: true;");
 		VBox heading =  new VBox(templeName);
@@ -167,9 +167,9 @@ public class ReceiptPrinter {
 		VBox subHeadings = new VBox(2);
 		subHeadings.setStyle("-fx-alignment: center;");
 		subHeadings.getChildren().addAll(
-				new Text("ಚೇರ್ಕಬೆ"),
-				new Text("ಅಂಚೆ : 671552"),
-				new Text("ದೂರವಾಣಿ: 6282525216, 9526431593")
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
 		);
 		receiptBox.getChildren().add(subHeadings);
 		receiptBox.getChildren().add(new Text(""));
@@ -246,7 +246,7 @@ public class ReceiptPrinter {
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 
 
-		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", 16));
 		templeName.setStyle("-fx-font-weight: bold; -fx-underline: true;");
 		VBox heading = new VBox(templeName);
@@ -256,9 +256,9 @@ public class ReceiptPrinter {
 		VBox subHeadings = new VBox(2);
 		subHeadings.setStyle("-fx-alignment: center;");
 		subHeadings.getChildren().addAll(
-				new Text("ಚೇರ್ಕಬೆ"),
-				new Text("ಅಂಚೆ : 671552"),
-				new Text("ದೂರವಾಣಿ: 6282525216, 9526431593")
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
 		);
 		receiptBox.getChildren().add(subHeadings);
 		receiptBox.getChildren().add(new Text(""));

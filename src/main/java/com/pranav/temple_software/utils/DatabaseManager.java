@@ -54,6 +54,7 @@ public class DatabaseManager {
 				System.out.println("📁 Database directory created: " + created + " at " + DB_FOLDER_PATH);
 			}
 
+			ConfigManager.getInstance();
 			System.out.println("🔗 Attempting database connection to: " + DB_URL);
 
 			// --- Create all application tables ---
