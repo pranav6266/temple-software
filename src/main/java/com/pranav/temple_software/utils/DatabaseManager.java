@@ -467,4 +467,20 @@ public class DatabaseManager {
 			System.err.println("Error during initial Seva data check/insertion: " + e.getMessage());
 		}
 	}
+
+	public static void closeConnection() {
+		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+			// Execute the SHUTDOWN command directly
+			stmt.execute("SHUTDOWN");
+			System.out.println("Database shutdown command issued.");
+		} catch (SQLException e) {
+			// A "database has been closed" exception (SQLState "08006") is expected.
+			// We only log an error if it's something different.
+			if (!"08006".equals(e.getSQLState())) {
+				System.err.println("Error during database shutdown: " + e.getMessage());
+			} else {
+				System.out.println("Database connection closed successfully.");
+			}
+		}
+	}
 }

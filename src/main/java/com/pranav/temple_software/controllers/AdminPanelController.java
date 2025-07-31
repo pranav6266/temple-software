@@ -154,7 +154,8 @@ public class AdminPanelController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			DatabaseMetaData metaData = conn.getMetaData();
 			ResultSet rs = metaData.getTables(null, "PUBLIC", "%", new String[]{"TABLE"});
-			ObservableList<String> tableNames = FXCollections.observableArrayList();
+			ObservableList<String>
+					tableNames = FXCollections.observableArrayList();
 			while (rs.next()) {
 				tableNames.add(rs.getString("TABLE_NAME"));
 			}

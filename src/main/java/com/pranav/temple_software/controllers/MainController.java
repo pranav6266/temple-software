@@ -15,6 +15,7 @@ import com.pranav.temple_software.repositories.OtherSevaRepository;
 import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.services.*;
+import com.pranav.temple_software.utils.BackupService;
 import com.pranav.temple_software.utils.PasswordUtils;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.animation.KeyFrame;
@@ -305,6 +306,11 @@ public class MainController {
 
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == ButtonType.OK) {
+			System.out.println("Application is closing. Performing automatic backup...");
+			BackupService.createAutomaticBackup();
+
+			Platform.exit();
+			System.exit(0);
 			Platform.exit();
 		}
 	}
@@ -657,5 +663,10 @@ public class MainController {
 				}
 			}
 		});
+	}
+
+	@FXML
+	public void handleBackupAndRestore(ActionEvent event) {
+		BackupService.showBackupRestoreDialog(mainStage);
 	}
 }

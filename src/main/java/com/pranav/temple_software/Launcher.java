@@ -1,7 +1,9 @@
 package com.pranav.temple_software;
 
+import com.pranav.temple_software.utils.BackupService;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -17,6 +19,7 @@ public class Launcher extends Application {
 	@Override
 	public void start(Stage stage) throws IOException {
 		// Initialize the database first. This is crucial.
+		BackupService.runStartupCheck();
 		new DatabaseManager();
 
 		// --- MODIFIED STARTUP FLOW ---
