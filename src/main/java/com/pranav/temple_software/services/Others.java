@@ -1,20 +1,20 @@
 package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.repositories.OtherSevaRepository;
+import com.pranav.temple_software.repositories.OthersRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public class OtherSevas {
+public class Others {
 	MainController controller ;
 
-	public OtherSevas(MainController mainController) {
+	public Others(MainController mainController) {
 		this.controller = mainController;
 	}
 
 	public void handleAddOtherSeva() {
-		String selected = controller.otherServicesComboBox.getValue();
+		String selected = controller.othersComboBox.getValue();
 
 		// **Step 1: Check if the user selected the default option**
 		if (selected == null || selected.equals("ಆಯ್ಕೆ")) {
@@ -36,7 +36,7 @@ public class OtherSevas {
 		}
 
 		// Always fetch the latest data from repository
-		List<SevaEntry> currentOtherSevas = OtherSevaRepository.getAllOtherSevas();
+		List<SevaEntry> currentOtherSevas = OthersRepository.getAllOthers();
 		Optional<SevaEntry> matched = currentOtherSevas.stream()
 				.filter(entry -> entry.getName().equals(nameOnly))
 				.findFirst();

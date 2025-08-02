@@ -4,7 +4,7 @@ import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
-import com.pranav.temple_software.repositories.OtherSevaRepository;
+import com.pranav.temple_software.repositories.OthersRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FilterPopupController {
 
@@ -202,8 +201,8 @@ public class FilterPopupController {
 				break;
 
 			case "ಇತರೆ ಸೇವೆ":
-				// Get all other sevas from OtherSevaRepository
-				List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
+				// Get all other sevas from OthersRepository
+				List<SevaEntry> otherSevaEntries = OthersRepository.getAllOthers();
 				items.addAll(otherSevaEntries.stream()
 						.map(SevaEntry::getName)
 						.toList());

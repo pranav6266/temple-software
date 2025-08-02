@@ -1,14 +1,13 @@
-package com.pranav.temple_software.controllers.menuControllers.OtherSevaManager;
+package com.pranav.temple_software.controllers.menuControllers.OthersManager;
 
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.repositories.OtherSevaRepository;
+import com.pranav.temple_software.repositories.OthersRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -24,9 +23,9 @@ import javafx.util.Pair;
 
 import java.util.*;
 
-public class OtherSevaManagerController extends BaseManagerController<SevaEntry> {
+public class OthersManagerController extends BaseManagerController<SevaEntry> {
 
-	private final OtherSevaRepository repository = OtherSevaRepository.getInstance();
+	private final OthersRepository repository = OthersRepository.getInstance();
 	public Button editButton;
 	public Button openAddOtherSevaButton;
 	public Button deleteOtherSeva;
@@ -35,8 +34,8 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 
 	@Override
 	protected void loadData() {
-		OtherSevaRepository.loadOtherSevasFromDB();
-		tempItemList.setAll(OtherSevaRepository.getAllOtherSevas());
+		OthersRepository.loadOthersFromDB();
+		tempItemList.setAll(OthersRepository.getAllOthers());
 	}
 
 	@Override
@@ -485,7 +484,7 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 				// New Seva
 				String newId = String.valueOf(repository.getMaxOtherSevaId() + 1);
 				repository.addOtherSevaToDB(newId, currentName, (int) currentAmount);
-				boolean orderUpdated = OtherSevaRepository.updateDisplayOrder(newId, desiredOrder);
+				boolean orderUpdated = OthersRepository.updateDisplayOrder(newId, desiredOrder);
 				summary.append("✅ Added: ").append(currentName)
 						.append(" (₹").append(currentAmount).append(")")
 						.append(orderUpdated ? (" at #" + desiredOrder) : " (Order update failed)")
@@ -507,7 +506,7 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 				boolean orderChanged = desiredOrder != originalOrder;
 
 				if (amountChanged) {
-					boolean updated = OtherSevaRepository.updateAmount(sevaId, currentAmount);
+					boolean updated = OthersRepository.updateAmount(sevaId, currentAmount);
 					if(updated) {
 						summary.append("✏️ Amount changed: ").append(currentName)
 								.append(" ₹").append(originalAmount)
@@ -519,7 +518,7 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 				}
 
 				if (orderChanged) {
-					boolean updated = OtherSevaRepository.updateDisplayOrder(sevaId, desiredOrder);
+					boolean updated = OthersRepository.updateDisplayOrder(sevaId, desiredOrder);
 					if(updated) {
 						summary.append("🔀 Order changed: ").append(currentName)
 								.append(" #").append(originalOrder)
@@ -538,7 +537,7 @@ public class OtherSevaManagerController extends BaseManagerController<SevaEntry>
 		itemsMarkedForDeletion.clear();
 		refreshGridPane();
 
-		mainControllerInstance.refreshOtherSevaComboBox();
+		mainControllerInstance.refreshOthersComboBox();
 
 		// 4. Show Summary
 		if (changesMade) {

@@ -1,19 +1,20 @@
-// MainController.java
+// FILE: src/main/java/com/pranav/temple_software/controllers/MainController.java
 package com.pranav.temple_software.controllers;
 
-
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
-import com.pranav.temple_software.controllers.menuControllers.OtherSevaManager.OtherSevaManagerController;
+import com.pranav.temple_software.controllers.menuControllers.OthersManager.OthersManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
+import com.pranav.temple_software.controllers.menuControllers.VisheshaPoojeManager.VisheshaPoojeManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.CredentialsRepository;
 import com.pranav.temple_software.repositories.DonationRepository;
-import com.pranav.temple_software.repositories.OtherSevaRepository;
+import com.pranav.temple_software.repositories.OthersRepository;
 import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
+import com.pranav.temple_software.repositories.VisheshaPoojeRepository;
 import com.pranav.temple_software.services.*;
 import com.pranav.temple_software.utils.BackupService;
 import com.pranav.temple_software.utils.PasswordUtils;
@@ -46,77 +47,46 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 public class MainController {
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
-
 	public ReceiptPrinter receiptPrinter = new ReceiptPrinter(this);
 	public Stage mainStage;
-	@FXML
-	public ComboBox<String> raashiComboBox;
-	@FXML
-	public ComboBox<String> nakshatraComboBox;
-	@FXML
-	public ComboBox<String> otherServicesComboBox;
-	@FXML
-	public ComboBox<String> donationComboBox;
-	@FXML
-	public TextField donationField;
-	@FXML
-	public CheckBox donationCheck;
-	@FXML
-	public RadioButton cashRadio;
-	@FXML
-	public RadioButton onlineRadio;
-	@FXML
-	public TextField devoteeNameField;
-	@FXML
-	public TextField contactField;
-	@FXML
-	public DatePicker sevaDatePicker;
-	@FXML
-	public VBox sevaCheckboxContainer;
-	@FXML
-	public TableView<SevaEntry> sevaTableView;
-	@FXML
-	public TableColumn<SevaEntry, String> slNoColumn;
-	@FXML
-	public TableColumn<SevaEntry, String> sevaNameColumn;
-	@FXML
-	public Button addDonationButton;
+
+	@FXML public ComboBox<String> raashiComboBox;
+	@FXML public ComboBox<String> nakshatraComboBox;
+	@FXML public ComboBox<String> othersComboBox;
+	@FXML public ComboBox<String> visheshaPoojeComboBox;
+	@FXML public ComboBox<String> donationComboBox;
+	@FXML public TextField donationField;
+	@FXML public CheckBox donationCheck;
+	@FXML public RadioButton cashRadio;
+	@FXML public RadioButton onlineRadio;
+	@FXML public TextField devoteeNameField;
+	@FXML public TextField contactField;
+	@FXML public DatePicker sevaDatePicker;
+	@FXML public VBox sevaCheckboxContainer;
+	@FXML public TableView<SevaEntry> sevaTableView;
+	@FXML public TableColumn<SevaEntry, String> slNoColumn;
+	@FXML public TableColumn<SevaEntry, String> sevaNameColumn;
+	@FXML public Button addDonationButton;
+	@FXML public Button addOthersButton;
+	@FXML public Button addVisheshaPoojeButton;
 	public TextArea addressField;
 	public Button closeButton;
 	public TableColumn<SevaEntry, Integer> quantityColumn;
-	@FXML
-	public TableColumn<SevaEntry, Number> amountColumn;
-	@FXML
-	public TableColumn<SevaEntry, Number> totalAmountColumn;
-
-	// ADDED FXML annotation for the new static column
-	@FXML
-	public TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn;
-
-	@FXML
-	public TableColumn<SevaEntry, Void> actionColumn;
-	@FXML
-	private Button addDonationButton1;
-	@FXML
-	public Label totalLabel;
-	@FXML
-	private Button printPreviewButton;
-
+	@FXML public TableColumn<SevaEntry, Number> amountColumn;
+	@FXML public TableColumn<SevaEntry, Number> totalAmountColumn;
+	@FXML public TableColumn<SevaEntry, SevaEntry.PrintStatus> statusColumn;
+	@FXML public TableColumn<SevaEntry, Void> actionColumn;
+	@FXML public Label totalLabel;
 	@FXML private AnchorPane mainPane;
-
 	@FXML private Button smartActionButton;
 	@FXML private Button clearFormButton;
 	@FXML private Label statusLabel;
 
-
 	@FXML
 	public void initialize() {
-
 		sevaDatePicker.setValue(LocalDate.now());
-		// Configure date format to DD-MM-YYYY
 		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 		sevaDatePicker.setConverter(new StringConverter<>() {
 			@Override
@@ -141,13 +111,13 @@ public class MainController {
 				}
 			}
 		});
-
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		sevaTableView.setItems(selectedSevas);
 		table.setupTableView();
 		validationServices.initializeTotalCalculation();
 		smartActionButton.setOnAction(e -> handleSmartAction());
-		addDonationButton1.setOnAction(e -> otherSevas.handleAddOtherSeva());
+		addOthersButton.setOnAction(e -> handleAddGeneric("Others", othersComboBox, OthersRepository.getAllOthers()));
+		addVisheshaPoojeButton.setOnAction(e -> handleAddGeneric("Vishesha Pooja", visheshaPoojeComboBox, VisheshaPoojeRepository.getAllVisheshaPooje()));
 		donation.setDisable();
 		donationField.setDisable(true);
 		donationComboBox.setDisable(true);
@@ -164,7 +134,8 @@ public class MainController {
 		refreshSevaCheckboxes();
 		populateRashiComboBox();
 		refreshDonationComboBox();
-		refreshOtherSevaComboBox();
+		refreshOthersComboBox();
+		refreshVisheshaPoojeComboBox();
 
 		Platform.runLater(() -> devoteeNameField.requestFocus());
 
@@ -172,19 +143,15 @@ public class MainController {
 		setupFocusLostHandlers();
 		setupBlankAreaFocusHandler();
 
-		// Force uppercase for Name field
-		devoteeNameField.setTextFormatter(new TextFormatter<String>(change -> {
+		devoteeNameField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
 
-		// Force uppercase for Address field
-		addressField.setTextFormatter(new TextFormatter<String>(change -> {
+		addressField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-
-
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
 			while (change.next()) {
 				for (SevaEntry entry : change.getAddedSubList()) {
@@ -196,28 +163,49 @@ public class MainController {
 		});
 	}
 
-	// ... (rest of the MainController.java file remains exactly the same) ...
+	public void handleAddGeneric(String type, ComboBox<String> comboBox, List<SevaEntry> repositoryList) {
+		String selected = comboBox.getValue();
+		if (selected == null || selected.equals("ಆಯ್ಕೆ")) {
+			showAlert("Invalid Selection", "Please select a valid " + type + ".");
+			return;
+		}
+
+		String nameOnly = selected.contains(" - ₹") ? selected.split(" - ₹")[0].trim() : selected;
+
+		boolean exists = selectedSevas.stream().anyMatch(entry -> entry.getName().equals(nameOnly));
+		if (exists) {
+			showAlert("Duplicate Entry", "The selected " + type + " is already added.");
+			return;
+		}
+
+		Optional<SevaEntry> matched = repositoryList.stream()
+				.filter(entry -> entry.getName().equals(nameOnly))
+				.findFirst();
+		matched.ifPresent(seva -> {
+			SevaEntry newEntry = new SevaEntry(seva.getName(), seva.getAmount());
+			selectedSevas.add(newEntry);
+			sevaTableView.refresh();
+		});
+	}
 
 	public void updatePrintStatusLabel() {
 		long pendingCount = selectedSevas.stream()
-				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING ? 1 : 0)
-				.sum();
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
+				.count();
 		long successCount = selectedSevas.stream()
-				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS ? 1 : 0)
-				.sum();
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
+				.count();
 		long failedCount = selectedSevas.stream()
-				.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED ? 1 : 0)
-				.sum();
-
+				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED)
+				.count();
 		Platform.runLater(() -> {
-			// Update status label
 			statusLabel.setText(String.format("ಬಾಕಿ: %d | ಯಶಸ್ವಿ: %d | ವಿಫಲ: %d",
 					pendingCount, successCount, failedCount));
 
 			if (successCount > 0 && pendingCount == 0 && failedCount == 0) {
 				long printingCount = selectedSevas.stream()
-						.mapToLong(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING ? 1 : 0)
-						.sum();
+						.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING)
+						.count();
 
 				if (printingCount == 0) {
 					smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
@@ -229,8 +217,7 @@ public class MainController {
 					}));
 					timeline.play();
 				}
-			}
-			else if (pendingCount > 0) {
+			} else if (pendingCount > 0) {
 				smartActionButton.setText("ಮುದ್ರಿಸಿ (" + pendingCount + " ಐಟಂಗಳು)");
 				smartActionButton.setDisable(false);
 				smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
@@ -262,7 +249,6 @@ public class MainController {
 		long successCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.count();
-
 		if (pendingCount > 0 || failedCount > 0) {
 			showPrintOrSaveDialog();
 		} else if (successCount > 0) {
@@ -277,7 +263,6 @@ public class MainController {
 		List<String> choices = new ArrayList<>();
 		choices.add("Save as PDF");
 		choices.add("Print as Receipt");
-
 		ChoiceDialog<String> dialog = new ChoiceDialog<>("Print as Receipt", choices);
 		dialog.setTitle("Choose Action");
 		dialog.setHeaderText("Select how you want to process the receipt(s).");
@@ -303,15 +288,12 @@ public class MainController {
 		alert.setTitle("Exit Confirmation");
 		alert.setHeaderText(null);
 		alert.setContentText("Are you sure you want to exit the application?");
-
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == ButtonType.OK) {
 			System.out.println("Application is closing. Performing automatic backup...");
 			BackupService.createAutomaticBackup();
-
 			Platform.exit();
 			System.exit(0);
-			Platform.exit();
 		}
 	}
 
@@ -325,7 +307,6 @@ public class MainController {
 			historyStage.initModality(Modality.WINDOW_MODAL);
 			historyStage.initOwner(mainStage);
 			historyStage.setMaximized(true);
-
 			historyStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -334,7 +315,7 @@ public class MainController {
 	}
 
 	@FXML
-	public void handleDonationManagerButton(){
+	public void handleDonationManagerButton() {
 		Runnable openDonationManager = () -> {
 			try {
 				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationManagerView.fxml"));
@@ -394,33 +375,63 @@ public class MainController {
 	}
 
 	@FXML
-	public void handleOtherSevaManagerButton() {
-		Runnable openOtherSevaManager = () -> {
+	public void handleOthersManagerButton() {
+		Runnable openManager = () -> {
 			try {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/OtherSevaManager/OtherSevaManagerView.fxml"));
-				Stage otherSevaStage = new Stage();
-				otherSevaStage.setTitle("ಇತರೆ ಸೇವೆಗಳ ನಿರ್ವಹಣೆ");
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/OthersManager/OthersManagerView.fxml"));
+				Stage stage = new Stage();
+				stage.setTitle("ಇತರೆ ನಿರ್ವಹಿಸಿ");
 				Scene scene = new Scene(loader.load());
-				otherSevaStage.setScene(scene);
+				stage.setScene(scene);
 
-				OtherSevaManagerController otherSevaManagerController = loader.getController();
-				if (otherSevaManagerController != null) {
-					otherSevaManagerController.setMainController(this);
+				OthersManagerController controller = loader.getController();
+				if (controller != null) {
+					controller.setMainController(this);
 				} else {
-					System.err.println("Error: Could not get SevaManagerController instance.");
+					System.err.println("Error: Could not get OthersManagerController instance.");
 					return;
 				}
-				otherSevaStage.initOwner(mainStage);
-				otherSevaStage.initModality(Modality.WINDOW_MODAL);
-				otherSevaStage.setMaxWidth(800);
-				otherSevaStage.setMaxHeight(650);
-				otherSevaStage.show();
+				stage.initOwner(mainStage);
+				stage.initModality(Modality.WINDOW_MODAL);
+				stage.setMaxWidth(800);
+				stage.setMaxHeight(650);
+				stage.show();
 			} catch (IOException e) {
 				e.printStackTrace();
-				showAlert("Error", "Unable to load Other Seva Manager: " + e.getMessage());
+				showAlert("Error", "Unable to load Others Manager: " + e.getMessage());
 			}
 		};
-		promptForSpecialPassword(openOtherSevaManager);
+		promptForSpecialPassword(openManager);
+	}
+
+	@FXML
+	public void handleVisheshaPoojeManagerButton() {
+		Runnable openManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/VisheshaPoojeManager/VisheshaPoojeManagerView.fxml"));
+				Stage stage = new Stage();
+				stage.setTitle("ವಿಶೇಷ ಪೂಜೆ ನಿರ್ವಹಿಸಿ");
+				Scene scene = new Scene(loader.load());
+				stage.setScene(scene);
+
+				VisheshaPoojeManagerController controller = loader.getController();
+				if (controller != null) {
+					controller.setMainController(this);
+				} else {
+					System.err.println("Error: Could not get VisheshaPoojeManagerController instance.");
+					return;
+				}
+				stage.initOwner(mainStage);
+				stage.initModality(Modality.WINDOW_MODAL);
+				stage.setMaxWidth(800);
+				stage.setMaxHeight(650);
+				stage.show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				showAlert("Error", "Unable to load Vishesha Pooja Manager: " + e.getMessage());
+			}
+		};
+		promptForSpecialPassword(openManager);
 	}
 
 	private void promptForSpecialPassword(Runnable onPasswordSuccess) {
@@ -475,14 +486,15 @@ public class MainController {
 		donationComboBox.getSelectionModel().selectFirst();
 		cashRadio.setSelected(false);
 		onlineRadio.setSelected(false);
-		otherServicesComboBox.getSelectionModel().selectFirst();
+		othersComboBox.getSelectionModel().selectFirst();
+		visheshaPoojeComboBox.getSelectionModel().selectFirst();
 		addressField.clear();
 		updatePrintStatusLabel();
 		Platform.runLater(() -> devoteeNameField.requestFocus());
 	}
 
 	@FXML
-	public void clearFormAfterChk(){
+	public void clearFormAfterChk() {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle("Confirmation");
 		alert.setHeaderText(null);
@@ -504,7 +516,7 @@ public class MainController {
 	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
 	public ReceiptServices receiptServices = new ReceiptServices(this);
-	OtherSevas otherSevas = new OtherSevas(this);
+	Others others = new Others(this);
 	public Donation donation = new Donation(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
@@ -547,7 +559,6 @@ public class MainController {
 				}
 			}
 		});
-
 		donationField.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (!newVal) {
 				try {
@@ -578,8 +589,8 @@ public class MainController {
 			}
 		} else {
 			System.err.println("Cannot refresh checkboxes: SevaListener or Container is null.");
-			if(sevaListener == null) System.err.println("sevaListener is null");
-			if(sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
+			if (sevaListener == null) System.err.println("sevaListener is null");
+			if (sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
 		}
 	}
 
@@ -594,17 +605,30 @@ public class MainController {
 		System.out.println("DEBUG: Donation ComboBox refreshed with " + donationEntries.size() + " donations.");
 	}
 
-	public void refreshOtherSevaComboBox() {
-		OtherSevaRepository.loadOtherSevasFromDB();
-		List<SevaEntry> otherSevaEntries = OtherSevaRepository.getAllOtherSevas();
-		ObservableList<String> otherSevaNames = FXCollections.observableArrayList(
-				otherSevaEntries.stream()
+	public void refreshOthersComboBox() {
+		OthersRepository.loadOthersFromDB();
+		List<SevaEntry> entries = OthersRepository.getAllOthers();
+		ObservableList<String> names = FXCollections.observableArrayList(
+				entries.stream()
 						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
 						.collect(Collectors.toList())
 		);
-		otherSevaNames.add(0, "ಆಯ್ಕೆ");
-		otherServicesComboBox.setItems(otherSevaNames);
-		System.out.println("DEBUG: Other Seva ComboBox refreshed with " + otherSevaEntries.size() + " other sevas.");
+		names.add(0, "ಆಯ್ಕೆ");
+		othersComboBox.setItems(names);
+		System.out.println("DEBUG: Others ComboBox refreshed with " + entries.size() + " items.");
+	}
+
+	public void refreshVisheshaPoojeComboBox() {
+		VisheshaPoojeRepository.loadVisheshaPoojeFromDB();
+		List<SevaEntry> entries = VisheshaPoojeRepository.getAllVisheshaPooje();
+		ObservableList<String> names = FXCollections.observableArrayList(
+				entries.stream()
+						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
+						.collect(Collectors.toList())
+		);
+		names.add(0, "ಆಯ್ಕೆ");
+		visheshaPoojeComboBox.setItems(names);
+		System.out.println("DEBUG: Vishesha Pooja ComboBox refreshed with " + entries.size() + " items.");
 	}
 
 	private void setupFocusTraversal() {

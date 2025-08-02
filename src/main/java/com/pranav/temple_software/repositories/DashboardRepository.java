@@ -93,7 +93,7 @@ public class DashboardRepository {
 		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
 		sql.append("SUM(os.other_seva_amount) as total_amount ");
 		sql.append("FROM Receipts r ");
-		sql.append("JOIN OtherSevas os ON r.sevas_details LIKE CONCAT('%', os.other_seva_name, '%') ");
+		sql.append("JOIN Others os ON r.sevas_details LIKE CONCAT('%', os.other_seva_name, '%') ");
 		sql.append("WHERE 1=1 ");
 
 		List<Object> parameters = new ArrayList<>();
@@ -226,7 +226,7 @@ public class DashboardRepository {
 
 	public List<String> getAllOtherSevaNames() {
 		List<String> otherSevaNames = new ArrayList<>();
-		String sql = "SELECT other_seva_id, other_seva_name FROM OtherSevas ORDER BY display_order";
+		String sql = "SELECT other_seva_id, other_seva_name FROM Others ORDER BY display_order";
 
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();

@@ -17,7 +17,6 @@ repositories {
 java {
     sourceCompatibility = 23
     targetCompatibility = 23
-    modularity.inferModulePath = true
 }
 
 
@@ -39,8 +38,7 @@ dependencies {
 }
 
 application {
-    mainModule = 'com.pranav.temple_software'
-    mainClass = 'com.pranav.temple_software.Launcher'
+    mainClass = 'com.pranav.temple_software.Main'
 }
 
 // Configuration for the jpackage native installer

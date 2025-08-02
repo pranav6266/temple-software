@@ -42,6 +42,7 @@
                     <TableColumn fx:id="sevaDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ" />
                     <TableColumn fx:id="sevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಸೇವೆಗಳು (₹)" />
                     <TableColumn fx:id="otherSevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಇತರೆ ಸೇವೆಗಳು (₹)" />
+                    <TableColumn fx:id="visheshaPoojeColumn" prefWidth="140.0" styleClass="amount-column" text="ವಿಶೇಷ ಪೂಜೆ (₹)" />
                     <!-- REMOVED Donation Column -->
                     <TableColumn fx:id="totalAmountColumn" prefWidth="140.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
                     <TableColumn fx:id="paymentMode" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ" />

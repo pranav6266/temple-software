@@ -79,7 +79,7 @@ public class SevaRepository {
 	}
 
 	// ... The rest of your SevaRepository methods (add, delete, update, etc.) remain the same ...
-	// NOTE: I have applied this same lazy-loading pattern to DonationRepository.java and OtherSevaRepository.java
+	// NOTE: I have applied this same lazy-loading pattern to DonationRepository.java and OthersRepository.java
 	public int getMaxSevaId() {
 		String sql = "SELECT MAX(CAST(seva_id AS INT)) FROM Sevas";
 		int maxId = 0;

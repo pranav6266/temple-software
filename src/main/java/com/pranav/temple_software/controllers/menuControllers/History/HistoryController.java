@@ -6,15 +6,11 @@ import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.models.InKindDonation;
 import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.repositories.DonationReceiptRepository;
-import com.pranav.temple_software.repositories.InKindDonationRepository;
-import com.pranav.temple_software.repositories.OtherSevaRepository;
-import com.pranav.temple_software.repositories.SevaReceiptRepository;
+import com.pranav.temple_software.repositories.*;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -26,8 +22,11 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class HistoryController {
+	public Label totalRecordsLabel;
+
 	// Enum to manage which view is currently active
 	private enum HistoryView {
 		SEVA,
@@ -49,6 +48,7 @@ public class HistoryController {
 	@FXML private TableColumn<SevaReceiptData, String> sevaDateColumn;
 	@FXML private TableColumn<SevaReceiptData, String> sevaColumn;
 	@FXML private TableColumn<SevaReceiptData, String> otherSevaColumn;
+	@FXML private TableColumn<SevaReceiptData, String> visheshaPoojeColumn;
 	@FXML private TableColumn<SevaReceiptData, Double> totalAmountColumn;
 	@FXML private TableColumn<SevaReceiptData, String> paymentMode;
 	@FXML private TableColumn<SevaReceiptData, Void> detailsColumn;
@@ -149,6 +149,7 @@ public class HistoryController {
 		totalAmountColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
 		setupSevaDetailsColumn();
 		setOtherSevaColumn();
+		setVisheshaPoojeColumn();
 		setSevaColumn();
 		setPaymentModeColumn();
 	}
@@ -276,7 +277,7 @@ public class HistoryController {
 
 	private void setOtherSevaColumn() {
 		otherSevaColumn.setCellValueFactory(cellData -> {
-			List<String> validOtherSevas = OtherSevaRepository.getAllOtherSevas().stream()
+			List<String> validOtherSevas = OthersRepository.getAllOthers().stream()
 					.map(SevaEntry::getName)
 					.toList();
 			double otherSevaAmount = cellData.getValue().getSevas().stream()
@@ -286,10 +287,22 @@ public class HistoryController {
 			return new SimpleStringProperty(otherSevaAmount > 0 ? String.format("₹%.2f", otherSevaAmount) : "N/A");
 		});
 	}
+	private void setVisheshaPoojeColumn() {
+		visheshaPoojeColumn.setCellValueFactory(cellData -> {
+			List<String> validPoojas = VisheshaPoojeRepository.getAllVisheshaPooje().stream()
+					.map(SevaEntry::getName)
+					.toList();
+			double poojaAmount = cellData.getValue().getSevas().stream()
+					.filter(entry -> validPoojas.contains(entry.getName()))
+					.mapToDouble(SevaEntry::getTotalAmount)
+					.sum();
+			return new SimpleStringProperty(poojaAmount > 0 ? String.format("₹%.2f", poojaAmount) : "---");
+		});
+	}
 
 	private void setSevaColumn() {
 		sevaColumn.setCellValueFactory(cellData -> {
-			List<String> validOtherSevas = OtherSevaRepository.getAllOtherSevas().stream()
+			List<String> validOtherSevas = OthersRepository.getAllOthers().stream()
 					.map(SevaEntry::getName)
 					.toList();
 			double sevaAmount = cellData.getValue().getSevas().stream()
@@ -301,6 +314,8 @@ public class HistoryController {
 			return new SimpleStringProperty(sevaAmount > 0 ? String.format("₹%.2f", sevaAmount) : "N/A");
 		});
 	}
+
+
 
 	private void setPaymentModeColumn() {
 		paymentMode.setCellValueFactory(cellData -> {
