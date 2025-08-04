@@ -1,10 +1,11 @@
-// ReceiptPrinter.java
+// FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
 package com.pranav.temple_software.utils;
 
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.models.SevaReceiptData;
+import com.pranav.temple_software.models.ShashwathaPoojaReceipt; // Make sure this import exists
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,6 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -43,40 +45,259 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-
 public class ReceiptPrinter {
 
-	private static final double RECEIPT_WIDTH_MM = 80;
+	// MODIFIED: Reduced width slightly for a safety margin on thermal printers
+	private static final double RECEIPT_WIDTH_MM = 78;
 	private static final double POINTS_PER_MM = 2.83465;
 	private static final double RECEIPT_WIDTH_POINTS = RECEIPT_WIDTH_MM * POINTS_PER_MM;
 
 	MainController controller;
-	public ReceiptPrinter(MainController controller){
+
+	public ReceiptPrinter(MainController controller) {
 		this.controller = controller;
 	}
 
-	// NEW: Unified method to save a JavaFX Node as a PDF using the snapshot approach
+	public Node createReceiptNode(SevaReceiptData data) {
+		VBox receiptBox = new VBox(1);
+		// MODIFIED: Reduced padding
+		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
+		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
+		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
+
+		// MODIFIED: Reduced font sizes for all text elements
+		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		templeName.setFont(Font.font("Noto Sans Kannada", 12));
+		templeName.setStyle("-fx-font-weight: bold;");
+		VBox heading = new VBox(templeName);
+		heading.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(heading);
+
+		VBox subHeadings = new VBox(1);
+		subHeadings.setStyle("-fx-alignment: center;");
+		subHeadings.getChildren().addAll(
+				new Text("ಚೇರ್ಕಬೆ"),
+				new Text("ಅಂಚೆ : 671552"),
+				new Text("ದೂರವಾಣಿ : 6282525216, 9526431593")
+		);
+		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text receiptTitle = new Text("ಸೇವಾ ರಶೀದಿ");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
+		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		VBox titleBox = new VBox(receiptTitle);
+		titleBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(titleBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		VBox detailsVBox = new VBox(2);
+		detailsVBox.getChildren().addAll(
+				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()),
+				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
+				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
+				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
+				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
+		);
+		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(detailsVBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		// MODIFIED: Using HBox with flexible growth for the seva name column
+		HBox headerRow = new HBox();
+		headerRow.setPadding(new Insets(2, 0, 2, 0));
+		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
+		sevaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 9px;");
+		HBox.setHgrow(sevaLabel, Priority.ALWAYS);
+
+		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
+		pramanaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 9px; -fx-alignment: center;");
+		pramanaLabel.setPrefWidth(40);
+
+		Label mottaLabel = new Label("ಮೊತ್ತ");
+		mottaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 9px; -fx-alignment: center-right;");
+		mottaLabel.setPrefWidth(55);
+
+		headerRow.getChildren().addAll(sevaLabel, pramanaLabel, mottaLabel);
+		receiptBox.getChildren().add(headerRow);
+		receiptBox.getChildren().add(new Text("-".repeat(50)));
+
+		for (SevaEntry seva : data.getSevas()) {
+			HBox sevaRow = new HBox();
+			Label name = new Label(seva.getName());
+			name.setWrapText(true);
+			name.setStyle("-fx-font-size: 9px;");
+			HBox.setHgrow(name, Priority.ALWAYS);
+
+			Label qty = new Label(String.valueOf(seva.getQuantity()));
+			qty.setStyle("-fx-font-size: 9px; -fx-alignment: center;");
+			qty.setPrefWidth(40);
+
+			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
+			total.setStyle("-fx-font-size: 9px; -fx-alignment: center-right;");
+			total.setPrefWidth(55);
+
+			sevaRow.getChildren().addAll(name, qty, total);
+			receiptBox.getChildren().add(sevaRow);
+		}
+		receiptBox.getChildren().add(new Text("-".repeat(50)));
+		receiptBox.getChildren().add(new Text(""));
+
+		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
+		totalText.setFont(Font.font("Noto Sans Kannada", 11));
+		totalText.setStyle("-fx-font-weight: bold;");
+		HBox totalBox = new HBox(totalText);
+		totalBox.setAlignment(Pos.CENTER_RIGHT);
+		receiptBox.getChildren().add(totalBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
+		blessing.setFont(Font.font("Noto Sans Kannada", 10));
+		blessing.setStyle("-fx-font-style: italic;");
+		VBox blessingBox = new VBox(blessing);
+		blessingBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(blessingBox);
+
+		return receiptBox;
+	}
+
+	public Node createDonationReceiptNode(DonationReceiptData data) {
+		VBox receiptBox = new VBox(1);
+		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
+		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
+		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
+
+		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		templeName.setFont(Font.font("Noto Sans Kannada", 12));
+		templeName.setStyle("-fx-font-weight: bold;");
+		VBox heading = new VBox(templeName);
+		heading.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(heading);
+
+		VBox subHeadings = new VBox(1);
+		subHeadings.setStyle("-fx-alignment: center;");
+		subHeadings.getChildren().addAll(
+				new Text("ಚೇರ್ಕಬೆ"),
+				new Text("ಅಂಚೆ : 671552"),
+				new Text("ದೂರವಾಣಿ : 6282525216, 9526431593")
+		);
+		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text receiptTitle = new Text("ದೇಣಿಗೆ ರಶೀದಿ");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
+		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		VBox titleBox = new VBox(receiptTitle);
+		titleBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(titleBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		VBox detailsVBox = new VBox(2);
+		detailsVBox.getChildren().addAll(
+				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId()),
+				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
+				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
+				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
+				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
+		);
+		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(detailsVBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		VBox donationDetailsVBox = new VBox(2);
+		donationDetailsVBox.getChildren().addAll(
+				new Text("ದೇಣಿಗೆ ವಿಧ: " + data.getDonationName()),
+				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode()),
+				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount()))
+		);
+		donationDetailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(donationDetailsVBox);
+		receiptBox.getChildren().add(new Text(""));
+
+
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
+		blessing.setFont(Font.font("Noto Sans Kannada", 10));
+		blessing.setStyle("-fx-font-style: italic;");
+		VBox blessingBox = new VBox(blessing);
+		blessingBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(blessingBox);
+
+		return receiptBox;
+	}
+
+	public Node createShashwathaPoojaReceiptNode(ShashwathaPoojaReceipt data) {
+		VBox receiptBox = new VBox(1);
+		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
+		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
+		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
+
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
+		templeName.setFont(Font.font("Noto Sans Kannada", 12));
+		templeName.setStyle("-fx-font-weight: bold;");
+		VBox heading = new VBox(templeName);
+		heading.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(heading);
+
+		VBox subHeadings = new VBox(1);
+		subHeadings.setStyle("-fx-alignment: center;");
+		subHeadings.getChildren().addAll(
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
+		);
+		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text receiptTitle = new Text("ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
+		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		VBox titleBox = new VBox(receiptTitle);
+		titleBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(titleBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		VBox detailsVBox = new VBox(2);
+		detailsVBox.getChildren().addAll(
+				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()),
+				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
+				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
+				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
+				new Text("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate()),
+				new Text("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ: " + data.getPoojaDate())
+		);
+		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(detailsVBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
+		blessing.setFont(Font.font("Noto Sans Kannada", 10));
+		blessing.setStyle("-fx-font-style: italic;");
+		VBox blessingBox = new VBox(blessing);
+		blessingBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(blessingBox);
+
+		return receiptBox;
+	}
+
+	// ... (Keep the rest of the file from saveNodeAsPdf onwards unchanged)
 	private void saveNodeAsPdf(Node nodeToSave, File outputFile, Consumer<Boolean> onSaveComplete) {
 		try {
-			// Ensure the node has a scene for snapshotting
 			if (nodeToSave.getScene() == null) {
 				new Scene(new Group(nodeToSave));
 			}
-
-			// Define a scale factor for higher resolution. 2 or 3 is usually good.
 			final int scale = 3;
-
-// Use SnapshotParameters to apply the scale and set a white background
 			SnapshotParameters params = new SnapshotParameters();
 			params.setFill(Color.WHITE);
 			params.setTransform(javafx.scene.transform.Transform.scale(scale, scale));
-
-// The snapshot is now taken at 3x the resolution
 			WritableImage image = nodeToSave.snapshot(params, null);
 			BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-
 			try (PDDocument document = new PDDocument()) {
-				// Calculate page size based on the image dimensions
 				float width = (float) image.getWidth();
 				float height = (float) image.getHeight();
 				PDPage page = new PDPage(new PDRectangle(width, height));
@@ -87,7 +308,6 @@ public class ReceiptPrinter {
 				byte[] imageInByte = baos.toByteArray();
 
 				PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageInByte, outputFile.getName());
-
 				try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
 					contentStream.drawImage(pdImage, 0, 0, width, height);
 				}
@@ -104,8 +324,6 @@ public class ReceiptPrinter {
 		}
 	}
 
-
-	// MODIFIED: This now uses the new snapshot method
 	public void saveSevaReceiptAsPdf(SevaReceiptData data, Consumer<Boolean> onSaveComplete) {
 		try {
 			String userDesktop = System.getProperty("user.home") + File.separator + "Desktop";
@@ -126,7 +344,6 @@ public class ReceiptPrinter {
 		}
 	}
 
-	// MODIFIED: This now uses the new snapshot method
 	public void saveDonationReceiptAsPdf(DonationReceiptData data, Consumer<Boolean> onSaveComplete) {
 		try {
 			String userDesktop = System.getProperty("user.home") + File.separator + "Desktop";
@@ -143,158 +360,7 @@ public class ReceiptPrinter {
 		} catch (IOException e) {
 			e.printStackTrace();
 			showAlert(controller.mainStage, "File Error", "Could not create directory for PDF: " + e.getMessage());
-			onSaveComplete.accept(false);
 		}
-	}
-
-
-	// --- Existing Methods (Unchanged) ---
-
-	public Node createReceiptNode(SevaReceiptData data) {
-		VBox receiptBox = new VBox(1);
-		receiptBox.setStyle("-fx-padding: 7; -fx-background-color: white;");  // Added white background for snapshot
-		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
-		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
-
-		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
-		templeName.setFont(Font.font("Noto Sans Kannada", 16));
-		templeName.setStyle("-fx-font-weight: bold; -fx-underline: true;");
-		VBox heading =  new VBox(templeName);
-		heading.setStyle("-fx-alignment: center; -fx-underline: true;");
-		receiptBox.getChildren().add(heading);
-
-		VBox subHeadings = new VBox(2);
-		subHeadings.setStyle("-fx-alignment: center;");
-		subHeadings.getChildren().addAll(
-				new Text(ConfigManager.getInstance().getProperty("temple.location")),
-				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
-				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
-		);
-		receiptBox.getChildren().add(subHeadings);
-		receiptBox.getChildren().add(new Text(""));
-
-		Text receiptTitle = new Text("ಸೇವಾ ರಶೀದಿ");
-		receiptTitle.setFont(Font.font("Noto Sans Kannada", 14));
-		receiptTitle.setStyle("-fx-underline: true;");
-		VBox titleBox = new VBox(receiptTitle);
-		titleBox.setStyle("-fx-alignment: center;");
-		receiptBox.getChildren().add(titleBox);
-		receiptBox.getChildren().add(new Text(""));
-
-		receiptBox.getChildren().addAll(
-				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()),
-				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ?  "---" : data.getDevoteeName() )),
-				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
-				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
-		);
-		receiptBox.getChildren().add(new Text(""));
-
-		HBox headerRow = new HBox(8);
-		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು"); sevaLabel.setPrefWidth(105);
-		sevaLabel.setStyle("-fx-font-weight: bold;");
-		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
-		pramanaLabel.setPrefWidth(65);
-		pramanaLabel.setStyle("-fx-font-weight: bold;");
-		Label mottaLabel = new Label("ಮೊತ್ತ");
-		mottaLabel.setPrefWidth(60);
-		mottaLabel.setStyle("-fx-font-weight: bold;");
-		headerRow.getChildren().addAll(sevaLabel, pramanaLabel, mottaLabel);
-		receiptBox.getChildren().add(headerRow);
-
-		for (SevaEntry seva : data.getSevas()) {
-			HBox sevaRow = new HBox(20);
-			sevaRow.getChildren().addAll(
-					createLabel(seva.getName(), 150),
-					createLabel(String.valueOf(seva.getQuantity()), 50),
-					createLabel("₹" + String.format("%.2f", seva.getTotalAmount()), 70)
-			);
-			receiptBox.getChildren().add(sevaRow);
-		}
-		receiptBox.getChildren().add(new Text(""));
-
-		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
-		totalText.setFont(Font.font("Noto Sans Kannada", 14));
-		totalText.setStyle("-fx-font-weight: bold;");
-		receiptBox.getChildren().add(totalText);
-		receiptBox.getChildren().add(new Text(""));
-
-		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
-		blessing.setFont(Font.font("Noto Sans Kannada", 12));
-		blessing.setStyle("-fx-font-style: italic;");
-		VBox blessingBox = new VBox(blessing);
-		blessingBox.setStyle("-fx-alignment: center;");
-		receiptBox.getChildren().add(blessingBox);
-
-		return receiptBox;
-	}
-
-	private Label createLabel(String text, double width) {
-		Label label = new Label(text);
-		label.setFont(Font.font("Noto Sans Kannada", 12));
-		label.setPrefWidth(width);
-		label.setWrapText(true);
-		return label;
-	}
-
-	public Node createDonationReceiptNode(DonationReceiptData data) {
-		VBox receiptBox = new VBox(1);
-		receiptBox.setStyle("-fx-padding: 10; -fx-background-color: white;"); // Added white background for snapshot
-		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
-		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
-
-
-		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
-		templeName.setFont(Font.font("Noto Sans Kannada", 16));
-		templeName.setStyle("-fx-font-weight: bold; -fx-underline: true;");
-		VBox heading = new VBox(templeName);
-		heading.setStyle("-fx-alignment: center; -fx-underline: true;");
-		receiptBox.getChildren().add(heading);
-
-		VBox subHeadings = new VBox(2);
-		subHeadings.setStyle("-fx-alignment: center;");
-		subHeadings.getChildren().addAll(
-				new Text(ConfigManager.getInstance().getProperty("temple.location")),
-				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
-				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
-		);
-		receiptBox.getChildren().add(subHeadings);
-		receiptBox.getChildren().add(new Text(""));
-
-		Text receiptTitle = new Text("ದೇಣಿಗೆ ರಶೀದಿ");
-		receiptTitle.setFont(Font.font("Noto Sans Kannada", 14));
-		receiptTitle.setStyle("-fx-underline: true;");
-		VBox titleBox = new VBox(receiptTitle);
-		titleBox.setStyle("-fx-alignment: center;");
-		receiptBox.getChildren().add(titleBox);
-		receiptBox.getChildren().add(new Text(""));
-
-		receiptBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId()));
-		receiptBox.getChildren().addAll(
-				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
-				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
-				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
-		);
-		receiptBox.getChildren().add(new Text(""));
-
-		receiptBox.getChildren().addAll(
-				new Text("ದೇಣಿಗೆ ವಿಧ: " + data.getDonationName()),
-				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode()),
-				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount()))
-		);
-		receiptBox.getChildren().add(new Text(""));
-
-		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
-		blessing.setFont(Font.font("Noto Sans Kannada", 12));
-		blessing.setStyle("-fx-font-style: italic;");
-		VBox blessingBox = new VBox(blessing);
-		blessingBox.setStyle("-fx-alignment: center;");
-		receiptBox.getChildren().add(blessingBox);
-
-		return receiptBox;
 	}
 
 	public boolean printReceipt(Node nodeToPrint, Stage ownerStage) {
@@ -409,6 +475,55 @@ public class ReceiptPrinter {
 		HBox buttonBox = new HBox(10, printButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
+		VBox layout = new VBox(10, scrollPane, buttonBox);
+		layout.setAlignment(Pos.CENTER);
+		scrollPane.setPrefViewportHeight(800);
+		Scene scene = new Scene(layout, 450, 600);
+		previewStage.setScene(scene);
+		previewStage.show();
+	}
+
+	public void showShashwathaPoojaPrintPreview(ShashwathaPoojaReceipt data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		Stage previewStage = new Stage();
+		previewStage.initModality(Modality.WINDOW_MODAL);
+		previewStage.initOwner(ownerStage);
+		previewStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+
+		Node receiptNode = createShashwathaPoojaReceiptNode(data);
+		double scaleFactor = 1.3;
+		receiptNode.setScaleX(scaleFactor);
+		receiptNode.setScaleY(scaleFactor);
+
+		Group scaledContainer = new Group(receiptNode);
+		scaledContainer.setAutoSizeChildren(true);
+
+		ScrollPane scrollPane = new ScrollPane(scaledContainer);
+		scrollPane.setFitToWidth(false);
+		scrollPane.setFitToHeight(false);
+		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
+		scrollPane.setPrefViewportHeight(450);
+
+		Button printButton = new Button("ಮುದ್ರಿಸು");
+		printButton.setOnAction(e -> {
+			receiptNode.setScaleX(1.0);
+			receiptNode.setScaleY(1.0);
+			boolean success = printReceipt(receiptNode, ownerStage);
+			if (onPrintComplete != null) {
+				onPrintComplete.accept(success);
+			}
+			previewStage.close();
+		});
+
+		previewStage.setOnCloseRequest(e -> {
+			if (onDialogClosed != null) {
+				onDialogClosed.run();
+			}
+		});
+
+		HBox buttonBox = new HBox(10, printButton);
+		buttonBox.setAlignment(Pos.CENTER);
+		buttonBox.setPadding(new Insets(10));
+
 		VBox layout = new VBox(10, scrollPane, buttonBox);
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);

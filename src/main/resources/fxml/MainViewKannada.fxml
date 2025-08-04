@@ -42,6 +42,7 @@
                                       <MenuItem mnemonicParsing="false" onAction="#handleDonationManagerButton" text="💰 ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
                                       <MenuItem mnemonicParsing="false" onAction="#handleOthersManagerButton" text="⚙️ ಇತರೆ ನಿರ್ವಹಿಸಿ" />
                                       <MenuItem mnemonicParsing="false" onAction="#handleVisheshaPoojeManagerButton" text="✨ ವಿಶೇಷ ಪೂಜೆ ನಿರ್ವಹಿಸಿ" />
+                                      <MenuItem mnemonicParsing="false" onAction="#handleShashwathaPoojaMenuItem" text="🕉️ ಶಾಶ್ವತ ಪೂಜೆ" />
                                       <MenuItem mnemonicParsing="false" onAction="#handleInKindDonationMenuItem" text="🎁 ವಸ್ತು ದೇಣಿಗೆ" />
                                       <MenuItem mnemonicParsing="false" onAction="#handleBackupAndRestore" text="💾 ಬ್ಯಾಕಪ್ ಮತ್ತು ಮರುಸ್ಥಾಪನೆ" />
                                   </items>

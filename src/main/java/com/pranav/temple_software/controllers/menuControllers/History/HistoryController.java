@@ -2,10 +2,7 @@
 
 package com.pranav.temple_software.controllers.menuControllers.History;
 
-import com.pranav.temple_software.models.DonationReceiptData;
-import com.pranav.temple_software.models.InKindDonation;
-import com.pranav.temple_software.models.SevaReceiptData;
-import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.models.*;
 import com.pranav.temple_software.repositories.*;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -31,7 +28,8 @@ public class HistoryController {
 	private enum HistoryView {
 		SEVA,
 		DONATION,
-		IN_KIND
+		IN_KIND,
+		SHASHWATHA_POOJA
 	}
 
 	private HistoryView currentView = HistoryView.SEVA;
@@ -40,6 +38,7 @@ public class HistoryController {
 	private final SevaReceiptRepository sevaReceiptRepository = new SevaReceiptRepository();
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private final InKindDonationRepository inKindDonationRepository = new InKindDonationRepository();
+	private final ShashwathaPoojaRepository shashwathaPoojaRepository = new ShashwathaPoojaRepository(); // <-- ADD THIS
 
 	// FXML elements for Seva Table
 	@FXML private TableView<SevaReceiptData> historyTable;
@@ -71,6 +70,13 @@ public class HistoryController {
 	@FXML private TableColumn<InKindDonation, String> itemDescriptionColumn;
 	@FXML private TableColumn<InKindDonation, Void> inKindDetailsColumn;
 
+	@FXML private TableView<ShashwathaPoojaReceipt> shashwathaPoojaHistoryTable;
+	@FXML private TableColumn<ShashwathaPoojaReceipt, Integer> shashwathaReceiptIdColumn;
+	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaDevoteeNameColumn;
+	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaReceiptDateColumn;
+	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaPoojaDateColumn;
+	@FXML private TableColumn<ShashwathaPoojaReceipt, Void> shashwathaDetailsColumn;
+
 	// General FXML elements
 	@FXML private Button toggleViewButton;
 	@FXML private Label currentViewLabel;
@@ -82,9 +88,12 @@ public class HistoryController {
 		setupSevaTableColumns();
 		setupDonationTableColumns();
 		setupInKindDonationTableColumns();
-
+		setupShashwathaPoojaTableColumns();
 		// Set the initial view to Seva receipts
 		switchToSevaView();
+	}
+
+	private void setupShashwathaPoojaTableColumns() {
 	}
 
 	@FXML
@@ -107,6 +116,48 @@ public class HistoryController {
 		currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ");
 		toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
 	}
+
+
+	private void switchToShashwathaPoojaView() {
+		currentView = HistoryView.SHASHWATHA_POOJA;
+		setTableVisibility(false, false, false, true);
+		List<ShashwathaPoojaReceipt> shashwathaList = shashwathaPoojaRepository.getAllShashwathaPoojaReceipts();
+		shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(shashwathaList));
+		currentViewLabel.setText("ಶಾಶ್ವತ ಪೂಜೆ ಇತಿಹಾಸ");
+		toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
+	}
+
+	private void setTableVisibility(boolean seva, boolean donation, boolean inKind, boolean shashwatha) {
+		historyTable.setVisible(seva);
+		donationHistoryTable.setVisible(donation);
+		inKindDonationHistoryTable.setVisible(inKind);
+		shashwathaPoojaHistoryTable.setVisible(shashwatha);
+	}
+
+
+	private void setupShashwathaPoojaDetailsColumn() {
+		shashwathaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showShashwathaPoojaDetails));
+	}
+
+	private void showShashwathaPoojaDetails(ShashwathaPoojaReceipt poojaData) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/ShashwathaPoojaDetailsView.fxml"));
+			Stage detailsStage = new Stage();
+			detailsStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ವಿವರಗಳು");
+			detailsStage.initModality(Modality.WINDOW_MODAL);
+			detailsStage.initOwner(shashwathaPoojaHistoryTable.getScene().getWindow());
+			Scene scene = new Scene(loader.load());
+			detailsStage.setScene(scene);
+			ShashwathaPoojaDetailsController detailsController = loader.getController();
+			detailsController.initializeDetails(poojaData);
+			detailsStage.setMaxHeight(650);
+			detailsStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Could not load Shashwatha Pooja details view.");
+		}
+	}
+
 
 	private void switchToDonationView() {
 		currentView = HistoryView.DONATION;

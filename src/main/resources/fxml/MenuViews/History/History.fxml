@@ -73,6 +73,16 @@
                     <TableColumn fx:id="inKindDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
             </TableView>
+
+            <TableView fx:id="shashwathaPoojaHistoryTable" styleClass="modern-history-table" visible="false">
+                <columns>
+                    <TableColumn fx:id="shashwathaReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="shashwathaDevoteeNameColumn" prefWidth="250.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="shashwathaReceiptDateColumn" prefWidth="150.0" resizable="false" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
+                    <TableColumn fx:id="shashwathaPoojaDateColumn" prefWidth="350.0" styleClass="service-column" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ" />
+                    <TableColumn fx:id="shashwathaDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                </columns>
+            </TableView>
         </StackPane>
     </center>
 

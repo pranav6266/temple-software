@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.layout.ColumnConstraints?>
+
+<ScrollPane styleClass="details-root" stylesheets="@../../../css/modern-details.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.ShashwathaPoojaDetailsController">
+    <VBox styleClass="details-container">
+        <Label styleClass="details-header" text="ಶಾಶ್ವತ ಪೂಜೆ ವಿವರಗಳು"/>
+        <Label fx:id="receiptIdLabel" styleClass="receipt-id-label" text="ರಶೀದಿ ಸಂಖ್ಯೆ: "/>
+
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಭಕ್ತರ ವಿವರಗಳು"/>
+            <GridPane styleClass="info-grid">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label fx:id="devoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು: " GridPane.rowIndex="0"/>
+                <Label fx:id="phoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ: " GridPane.rowIndex="1"/>
+                <Label fx:id="receiptDateLabel" styleClass="info-label" text="ರಶೀದಿ ದಿನಾಂಕ: " GridPane.rowIndex="2"/>
+                <Label fx:id="rashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="3"/>
+                <Label fx:id="nakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="4"/>
+                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="5"/>
+            </GridPane>
+        </VBox>
+
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ"/>
+            <Text fx:id="poojaDateText" styleClass="address-text" text="ವಿವರ..." wrappingWidth="400"/>
+        </VBox>
+
+        <HBox styleClass="button-container">
+            <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ"/>
+        </HBox>
+    </VBox>
+</ScrollPane>

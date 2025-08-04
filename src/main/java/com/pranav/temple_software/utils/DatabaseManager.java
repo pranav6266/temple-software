@@ -58,6 +58,7 @@ public class DatabaseManager {
 			createReceiptTableIfNotExists();
 			createDonationReceiptTableIfNotExists();
 			createInKindDonationTableIfNotExists();
+			createShashwathaPoojaReceiptTableIfNotExists();
 			createCredentialsTableIfNotExists();
 
 			// --- Verify connection and seed initial data ---
@@ -81,6 +82,25 @@ public class DatabaseManager {
 		} catch (Exception e) {
 			System.err.println("❌ Database initialization failed: " + e.getMessage());
 			e.printStackTrace();
+		}
+	}
+
+	private void createShashwathaPoojaReceiptTableIfNotExists() {
+		String sql = "CREATE TABLE IF NOT EXISTS ShashwathaPoojaReceipts(" +
+				"receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"devotee_name VARCHAR(255), " +
+				"phone_number VARCHAR(20), " +
+				"address VARCHAR(255), " +
+				"rashi VARCHAR(50), " +
+				"nakshatra VARCHAR(50), " +
+				"receipt_date DATE, " +
+				"pooja_date VARCHAR(255), " + // Storing as String
+				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("✅ ShashwathaPoojaReceipts table checked/created successfully.");
+		} catch (SQLException e) {
+			System.err.println("❌ Error creating ShashwathaPoojaReceipts table: " + e.getMessage());
 		}
 	}
 

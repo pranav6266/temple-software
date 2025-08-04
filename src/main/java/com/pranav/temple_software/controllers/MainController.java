@@ -4,6 +4,7 @@ package com.pranav.temple_software.controllers;
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
 import com.pranav.temple_software.controllers.menuControllers.OthersManager.OthersManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
+import com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager.ShashwathaPoojaController;
 import com.pranav.temple_software.controllers.menuControllers.VisheshaPoojeManager.VisheshaPoojeManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.DevoteeDetails;
@@ -238,6 +239,28 @@ public class MainController {
 		});
 	}
 
+	@FXML
+	public void handleShashwathaPoojaMenuItem() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/ShashwathaPoojaManager/ShashwathaPoojaView.fxml"));
+			Stage shashwathaStage = new Stage();
+			shashwathaStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ಸೇರಿಸಿ");
+			Scene scene = new Scene(loader.load());
+			shashwathaStage.setScene(scene);
+
+			// Pass the receipt printer instance to the new controller
+			ShashwathaPoojaController controller = loader.getController();
+			controller.setReceiptPrinter(this.receiptPrinter);
+
+			shashwathaStage.initModality(Modality.WINDOW_MODAL);
+			shashwathaStage.initOwner(mainStage);
+			shashwathaStage.setResizable(false);
+			shashwathaStage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Failed to load the Shashwatha Pooja view: " + e.getMessage());
+		}
+	}
 	@FXML
 	public void handleSmartAction() {
 		long pendingCount = selectedSevas.stream()
