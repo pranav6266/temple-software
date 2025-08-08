@@ -4,6 +4,8 @@ package com.pranav.temple_software.controllers.menuControllers.InKindDonationMan
 
 import com.pranav.temple_software.models.InKindDonation;
 import com.pranav.temple_software.repositories.InKindDonationRepository;
+import com.pranav.temple_software.utils.ReceiptPrinter;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class InKindDonationController {
 
@@ -58,8 +61,49 @@ public class InKindDonationController {
 		boolean success = repository.saveInKindDonation(newDonation);
 
 		if (success) {
-			showAlert(Alert.AlertType.INFORMATION, "Success", "In-kind donation saved successfully!");
-			closeWindow();
+			// Get the latest saved donation with ID
+			List<InKindDonation> donations = repository.getAllInKindDonations();
+			if (!donations.isEmpty()) {
+				InKindDonation savedDonation = donations.get(0); // First item is latest (ORDER BY DESC)
+
+				// Show print preview
+				try {
+					// Create a ReceiptPrinter instance (you'll need to pass this or create it)
+					ReceiptPrinter receiptPrinter = new ReceiptPrinter(null); // You may need to adjust this
+
+					Consumer<Boolean> onPrintComplete = (printSuccess) -> {
+						if (printSuccess) {
+							Platform.runLater(() -> {
+								showAlert(Alert.AlertType.INFORMATION, "Success",
+										"In-kind donation receipt printed successfully!");
+								closeWindow();
+							});
+						} else {
+							Platform.runLater(() -> {
+								showAlert(Alert.AlertType.WARNING, "Print Cancelled",
+										"Receipt was saved but printing was cancelled.");
+								closeWindow();
+							});
+						}
+					};
+
+					Runnable onDialogClosed = () -> {
+						Platform.runLater(() -> closeWindow());
+					};
+
+					Stage ownerStage = (Stage) saveButton.getScene().getWindow();
+					receiptPrinter.showInKindDonationPrintPreview(savedDonation, ownerStage, onPrintComplete, onDialogClosed);
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					showAlert(Alert.AlertType.ERROR, "Print Error",
+							"Receipt saved successfully but failed to open print preview: " + e.getMessage());
+					closeWindow();
+				}
+			} else {
+				showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve saved donation for printing.");
+				closeWindow();
+			}
 		} else {
 			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the donation. Please check the logs.");
 		}

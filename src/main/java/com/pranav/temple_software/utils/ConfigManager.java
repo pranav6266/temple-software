@@ -1,7 +1,7 @@
 package com.pranav.temple_software.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class ConfigManager {
@@ -21,12 +21,11 @@ public class ConfigManager {
 
 	private void loadProperties() {
 		properties = new Properties();
-		try (InputStream input = ConfigManager.class.getResourceAsStream("/config.properties")) {
-			if (input != null) {
-				properties.load(input);
-			}
+		try (InputStream input = getClass().getResourceAsStream("/config.properties");
+		     InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
+			properties.load(reader);
 		} catch (IOException e) {
-			System.err.println("Failed to load config.properties: " + e.getMessage());
+			System.err.println("Error loading config.properties: " + e.getMessage());
 		}
 	}
 

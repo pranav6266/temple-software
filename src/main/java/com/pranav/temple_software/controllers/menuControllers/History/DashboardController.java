@@ -127,7 +127,7 @@ public class DashboardController {
 		itemTypeColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
 				switch (cellData.getValue().getItemType()) {
 					case "SEVA" -> "ಸೇವೆ";
-					case "OTHER_SEVA" -> "ಇತರೆ ಸೇವೆ";
+					case "OTHERS" -> "ಇತರೆ";
 					case "DONATION" -> "ದೇಣಿಗೆ";
 					default -> cellData.getValue().getItemType();
 				}

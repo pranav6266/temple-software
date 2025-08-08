@@ -87,13 +87,13 @@ public class DashboardRepository {
 		List<DashboardStats> stats = new ArrayList<>();
 
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT os.other_seva_id, os.other_seva_name, os.other_seva_amount, ");
+		sql.append("SELECT os.others_id, os.others_name, os.others_amount, ");
 		sql.append("COUNT(*) as total_count, ");
 		sql.append("SUM(CASE WHEN r.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
 		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
-		sql.append("SUM(os.other_seva_amount) as total_amount ");
+		sql.append("SUM(os.others_amount) as total_amount ");
 		sql.append("FROM Receipts r ");
-		sql.append("JOIN Others os ON r.sevas_details LIKE CONCAT('%', os.other_seva_name, '%') ");
+		sql.append("JOIN Others os ON r.sevas_details LIKE CONCAT('%', os.others_name, '%') ");
 		sql.append("WHERE 1=1 ");
 
 		List<Object> parameters = new ArrayList<>();
@@ -111,11 +111,11 @@ public class DashboardRepository {
 			parameters.add(paymentMethod);
 		}
 		if (specificOtherSevaId != null && !specificOtherSevaId.isEmpty()) {
-			sql.append("AND os.other_seva_id = ? ");
+			sql.append("AND os.others_id = ? ");
 			parameters.add(specificOtherSevaId);
 		}
 
-		sql.append("GROUP BY os.other_seva_id, os.other_seva_name, os.other_seva_amount ");
+		sql.append("GROUP BY os.others_id, os.others_name, os.others_amount ");
 		sql.append("ORDER BY total_count DESC");
 
 		try (Connection conn = getConnection();
@@ -128,9 +128,9 @@ public class DashboardRepository {
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				stats.add(new DashboardStats(
-						rs.getString("other_seva_id"),
-						rs.getString("other_seva_name"),
-						"OTHER_SEVA",
+						rs.getString("others_id"),
+						rs.getString("others_name"),
+						"OTHERS",
 						rs.getInt("total_count"),
 						rs.getInt("cash_count"),
 						rs.getInt("online_count"),
@@ -226,14 +226,14 @@ public class DashboardRepository {
 
 	public List<String> getAllOtherSevaNames() {
 		List<String> otherSevaNames = new ArrayList<>();
-		String sql = "SELECT other_seva_id, other_seva_name FROM Others ORDER BY display_order";
+		String sql = "SELECT others_id, others_name FROM Others ORDER BY display_order";
 
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
 
 			while (rs.next()) {
-				otherSevaNames.add(rs.getString("other_seva_id") + ":" + rs.getString("other_seva_name"));
+				otherSevaNames.add(rs.getString("others_id") + ":" + rs.getString("others_name"));
 			}
 		} catch (SQLException e) {
 			System.err.println("Error fetching other seva names: " + e.getMessage());

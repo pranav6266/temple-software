@@ -4,7 +4,7 @@ import javafx.beans.property.*;
 
 public class DashboardStats {
 	private final StringProperty itemName;
-	private final StringProperty itemType; // "SEVA", "OTHER_SEVA", "DONATION"
+	private final StringProperty itemType; // "SEVA", "OTHERS", "DONATION"
 	private final IntegerProperty totalCount;
 	private final IntegerProperty cashCount;
 	private final IntegerProperty onlineCount;

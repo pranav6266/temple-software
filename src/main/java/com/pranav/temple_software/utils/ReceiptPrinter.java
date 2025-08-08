@@ -5,10 +5,7 @@ import com.github.anastaciocintra.escpos.EscPosConst;
 import com.github.anastaciocintra.escpos.Style;
 import com.github.anastaciocintra.output.PrinterOutputStream;
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.models.DonationReceiptData;
-import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.models.SevaReceiptData;
-import com.pranav.temple_software.models.ShashwathaPoojaReceipt;
+import com.pranav.temple_software.models.*;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -96,7 +93,7 @@ public class ReceiptPrinter {
 			escpos.writeLF("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
 			escpos.writeLF("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
 			escpos.writeLF("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
-			escpos.writeLF("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---"));
+			escpos.writeLF("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---"));
 			escpos.writeLF("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
 			escpos.writeLF("ದಿನಾಂಕ: " + data.getFormattedDate());
 			escpos.feed(1);
@@ -338,7 +335,7 @@ public class ReceiptPrinter {
 				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
 				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
 				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
 				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
 		);
 		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
@@ -793,4 +790,229 @@ public class ReceiptPrinter {
 			alert.showAndWait();
 		});
 	}
+
+	// Create In-Kind Donation Receipt Node for PDF/Preview
+	public Node createInKindDonationReceiptNode(InKindDonation data) {
+		VBox receiptBox = new VBox(1);
+		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
+		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
+		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
+
+		// Header - Temple Name
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
+		templeName.setFont(Font.font("Noto Sans Kannada", 12));
+		templeName.setStyle("-fx-font-weight: bold;");
+		VBox heading = new VBox(templeName);
+		heading.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(heading);
+
+		// Temple Sub-details
+		VBox subHeadings = new VBox(1);
+		subHeadings.setStyle("-fx-alignment: center;");
+		subHeadings.getChildren().addAll(
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
+		);
+		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new Text(""));
+
+		// Receipt Title
+		Text receiptTitle = new Text("ವಸ್ತು ದೇಣಿಗೆ ರಶೀದಿ");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
+		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		VBox titleBox = new VBox(receiptTitle);
+		titleBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(titleBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		// Receipt Details
+		VBox detailsVBox = new VBox(2);
+		detailsVBox.getChildren().addAll(
+				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId()),
+				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
+				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
+				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
+				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
+				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
+		);
+		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(detailsVBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		// Address (if available)
+		if (data.getAddress() != null && !data.getAddress().trim().isEmpty()) {
+			Text addressText = new Text("ವಿಳಾಸ: " + data.getAddress());
+			addressText.setFont(Font.font("Noto Sans Kannada", 9));
+			addressText.setWrappingWidth(RECEIPT_WIDTH_POINTS - 20);
+			receiptBox.getChildren().add(addressText);
+			receiptBox.getChildren().add(new Text(""));
+		}
+
+		// Item Description Section
+		receiptBox.getChildren().add(new Text("-".repeat(50)));
+		Text itemHeader = new Text("ವಸ್ತು ವಿವರಣೆ:");
+		itemHeader.setFont(Font.font("Noto Sans Kannada", 10));
+		itemHeader.setStyle("-fx-font-weight: bold;");
+		receiptBox.getChildren().add(itemHeader);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text itemDescription = new Text(data.getItemDescription());
+		itemDescription.setFont(Font.font("Noto Sans Kannada", 9));
+		itemDescription.setWrappingWidth(RECEIPT_WIDTH_POINTS - 20);
+		receiptBox.getChildren().add(itemDescription);
+		receiptBox.getChildren().add(new Text(""));
+		receiptBox.getChildren().add(new Text("-".repeat(50)));
+		receiptBox.getChildren().add(new Text(""));
+
+		// Blessing
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
+		blessing.setFont(Font.font("Noto Sans Kannada", 10));
+		blessing.setStyle("-fx-font-style: italic;");
+		VBox blessingBox = new VBox(blessing);
+		blessingBox.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(blessingBox);
+
+		return receiptBox;
+	}
+
+	// Thermal Printing for In-Kind Donations
+	public void printInKindDonationReceiptThermal(InKindDonation data, Consumer<Boolean> onPrintComplete) {
+		try {
+			PrintService selectedPrinter = selectPrinter();
+			if (selectedPrinter == null) {
+				onPrintComplete.accept(false);
+				return;
+			}
+
+			PrinterOutputStream printerOutputStream = new PrinterOutputStream(selectedPrinter);
+			EscPos escpos = new EscPos(printerOutputStream);
+
+			// Print header
+			printThermalHeader(escpos);
+
+			// Print in-kind donation receipt content
+			escpos.feed(1);
+			escpos.writeLF(centerText("ವಸ್ತು ದೇಣಿಗೆ ರಶೀದಿ", THERMAL_PAPER_WIDTH));
+			escpos.writeLF(repeatChar("=", THERMAL_PAPER_WIDTH));
+			escpos.feed(1);
+
+			// Receipt details
+			escpos.writeLF("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId());
+			escpos.writeLF("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
+			escpos.writeLF("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
+			escpos.writeLF("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---"));
+			escpos.writeLF("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
+			escpos.writeLF("ದಿನಾಂಕ: " + data.getFormattedDate());
+
+			if (data.getAddress() != null && !data.getAddress().trim().isEmpty()) {
+				escpos.writeLF("ವಿಳಾಸ: " + data.getAddress());
+			}
+			escpos.feed(1);
+
+			// Item description
+			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
+			escpos.writeLF("ವಸ್ತು ವಿವರಣೆ:");
+			escpos.writeLF(data.getItemDescription());
+			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
+			escpos.feed(2);
+
+			// Footer blessing
+			escpos.writeLF(centerText("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!", THERMAL_PAPER_WIDTH));
+
+			// Cut paper
+			escpos.feed(3);
+			escpos.cut(EscPos.CutMode.FULL);
+			escpos.close();
+
+			onPrintComplete.accept(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(controller.mainStage, "Printing Error", "Failed to print in-kind donation receipt: " + e.getMessage());
+			onPrintComplete.accept(false);
+		}
+	}
+
+	// Print Preview for In-Kind Donations
+	public void showInKindDonationPrintPreview(InKindDonation data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		Stage previewStage = new Stage();
+		previewStage.initModality(Modality.WINDOW_MODAL);
+		previewStage.initOwner(ownerStage);
+		previewStage.setTitle("ವಸ್ತು ದೇಣಿಗೆ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+
+		Node receiptNode = createInKindDonationReceiptNode(data);
+		double scaleFactor = 1.3;
+		receiptNode.setScaleX(scaleFactor);
+		receiptNode.setScaleY(scaleFactor);
+
+		Group scaledContainer = new Group(receiptNode);
+		scaledContainer.setAutoSizeChildren(true);
+
+		ScrollPane scrollPane = new ScrollPane(scaledContainer);
+		scrollPane.setFitToWidth(false);
+		scrollPane.setFitToHeight(false);
+		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
+		scrollPane.setPrefViewportHeight(450);
+
+		Button thermalPrintButton = new Button("ಥರ್ಮಲ್ ಮುದ್ರಣ");
+		thermalPrintButton.setOnAction(e -> {
+			printInKindDonationReceiptThermal(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
+			previewStage.close();
+		});
+
+		Button pdfSaveButton = new Button("PDF ಸೇವ್");
+		pdfSaveButton.setOnAction(e -> {
+			saveInKindDonationReceiptAsPdf(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
+			previewStage.close();
+		});
+
+		previewStage.setOnCloseRequest(e -> {
+			if (onDialogClosed != null) {
+				onDialogClosed.run();
+			}
+		});
+
+		HBox buttonBox = new HBox(10, thermalPrintButton, pdfSaveButton);
+		buttonBox.setAlignment(Pos.CENTER);
+		buttonBox.setPadding(new Insets(10));
+
+		VBox layout = new VBox(10, scrollPane, buttonBox);
+		layout.setAlignment(Pos.CENTER);
+		scrollPane.setPrefViewportHeight(800);
+		Scene scene = new Scene(layout, 450, 600);
+		previewStage.setScene(scene);
+		previewStage.show();
+	}
+
+	// PDF Save for In-Kind Donations
+	public void saveInKindDonationReceiptAsPdf(InKindDonation data, Consumer<Boolean> onSaveComplete) {
+		try {
+			String userDesktop = System.getProperty("user.home") + File.separator + "Desktop";
+			Path directoryPath = Paths.get(userDesktop, "CHERKABE_SEVAS", "INKIND_DONATION_RECEIPTS");
+			Files.createDirectories(directoryPath);
+
+			String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+			String fileName = String.format("InKind-%d-%s.pdf", data.getInKindReceiptId(), timestamp);
+			File file = new File(directoryPath.toFile(), fileName);
+
+			Node receiptNode = createInKindDonationReceiptNode(data);
+			saveNodeAsPdf(receiptNode, file, onSaveComplete);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert(controller.mainStage, "File Error", "Could not create directory for PDF: " + e.getMessage());
+			onSaveComplete.accept(false);
+		}
+	}
+
 }
