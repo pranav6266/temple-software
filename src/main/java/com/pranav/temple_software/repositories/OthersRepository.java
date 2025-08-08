@@ -40,8 +40,8 @@ public class OthersRepository {
 		     ResultSet rs = stmt.executeQuery(sql)) {
 
 			while (rs.next()) {
-				String name = rs.getString("other_seva_name");
-				double amount = rs.getDouble("other_seva_amount");
+				String name = rs.getString("others_name");
+				double amount = rs.getDouble("others_amount");
 				int order = rs.getInt("display_order");
 
 				SevaEntry entry = new SevaEntry(name, amount);
@@ -69,7 +69,7 @@ public class OthersRepository {
 
 	// This method was already non-static and correct, as it's called on the instance.
 	public int getMaxOtherSevaId() {
-		String sql = "SELECT MAX(CAST(other_seva_id AS INT)) FROM Others";
+		String sql = "SELECT MAX(CAST(others_id AS INT)) FROM Others";
 		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 			if (rs.next()) return rs.getInt(1);
 		} catch (SQLException e) {
@@ -80,7 +80,7 @@ public class OthersRepository {
 
 	// This method was already non-static and correct.
 	public void addOtherSevaToDB(String id, String name, int amount) {
-		String sql = "INSERT INTO Others (other_seva_id, other_seva_name, other_seva_amount, display_order) VALUES (?, ?, ?, ?)";
+		String sql = "INSERT INTO Others (others_id, others_name, others_amount, display_order) VALUES (?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, id);
@@ -95,7 +95,7 @@ public class OthersRepository {
 
 	// This method was already non-static and correct.
 	public boolean deleteOtherSevaFromDB(String id) {
-		String sql = "DELETE FROM Others WHERE other_seva_id = ?";
+		String sql = "DELETE FROM Others WHERE others_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, id);
 			int affectedRows = pstmt.executeUpdate();
@@ -108,7 +108,7 @@ public class OthersRepository {
 
 	// *** KEY CHANGE: Made this method static again ***
 	public static boolean updateDisplayOrder(String id, int order) {
-		String sql = "UPDATE Others SET display_order = ? WHERE other_seva_id = ?";
+		String sql = "UPDATE Others SET display_order = ? WHERE others_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, order);
 			pstmt.setString(2, id);
@@ -122,22 +122,22 @@ public class OthersRepository {
 
 	// This method was already non-static and correct.
 	public String getOtherSevaIdByName(String name) {
-		String sql = "SELECT other_seva_id FROM Others WHERE other_seva_name = ?";
+		String sql = "SELECT others_id FROM Others WHERE others_name = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, name);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
-				return rs.getString("other_seva_id");
+				return rs.getString("others_id");
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching other_seva_id: " + e.getMessage());
+			System.err.println("Error fetching others_id: " + e.getMessage());
 		}
 		return null;
 	}
 
 	// *** KEY CHANGE: Made this method static again ***
 	public static boolean updateAmount(String otherSevaId, double newAmount) {
-		String sql = "UPDATE Others SET other_seva_amount = ? WHERE other_seva_id = ?";
+		String sql = "UPDATE Others SET others_amount = ? WHERE others_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement stmt = conn.prepareStatement(sql)) {
 			stmt.setDouble(1, newAmount);
