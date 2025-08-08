@@ -1,5 +1,4 @@
-// COPY AND PASTE THE ENTIRE MODIFIED FILE
-
+// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/History/HistoryController.java
 package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.*;
@@ -19,20 +18,28 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class HistoryController {
 	public Label totalRecordsLabel;
 
 	// Update the enum to include all 4 types
 	private enum HistoryView {
-		SEVA,
-		DONATION,
-		IN_KIND,
-		SHASHWATHA_POOJA
+		SEVA("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"),
+		DONATION("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ"),
+		IN_KIND("ವಸ್ತು ದೇಣಿಗೆ ಇತಿಹಾಸ"),
+		SHASHWATHA_POOJA("ಶಾಶ್ವತ ಪೂಜೆ ಇತಿಹಾಸ");
+
+		private final String displayName;
+
+		HistoryView(String displayName) {
+			this.displayName = displayName;
+		}
+
+		@Override
+		public String toString() {
+			return displayName;
+		}
 	}
-
-
 
 	private HistoryView currentView = HistoryView.SEVA;
 
@@ -40,7 +47,7 @@ public class HistoryController {
 	private final SevaReceiptRepository sevaReceiptRepository = new SevaReceiptRepository();
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private final InKindDonationRepository inKindDonationRepository = new InKindDonationRepository();
-	private final ShashwathaPoojaRepository shashwathaPoojaRepository = new ShashwathaPoojaRepository(); // <-- ADD THIS
+	private final ShashwathaPoojaRepository shashwathaPoojaRepository = new ShashwathaPoojaRepository();
 
 	// FXML elements for Seva Table
 	@FXML private TableView<SevaReceiptData> historyTable;
@@ -79,23 +86,106 @@ public class HistoryController {
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaPoojaDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Void> shashwathaDetailsColumn;
 
-	// General FXML elements
-	@FXML private Button toggleViewButton;
+	// General FXML elements - REPLACE BUTTON WITH COMBOBOX
+	@FXML private ComboBox<HistoryView> viewSelectionComboBox;
 	@FXML private Label currentViewLabel;
 	@FXML private Button dashboardButton;
 
 	@FXML
 	public void initialize() {
-		// Setup all three tables
+		// Setup all tables
 		setupSevaTableColumns();
 		setupDonationTableColumns();
 		setupInKindDonationTableColumns();
 		setupShashwathaPoojaTableColumns();
+
+		// Setup the ComboBox with all view options
+		setupViewSelectionComboBox();
+
 		// Set the initial view to Seva receipts
-		switchToSevaView();
+		switchToView(HistoryView.SEVA);
 	}
 
-	// Complete the missing method implementations
+	private void setupViewSelectionComboBox() {
+		// Populate ComboBox with all view options
+		viewSelectionComboBox.setItems(FXCollections.observableArrayList(HistoryView.values()));
+
+		// Set initial selection
+		viewSelectionComboBox.setValue(HistoryView.SEVA);
+
+		// Add listener for selection changes
+		viewSelectionComboBox.setOnAction(event -> {
+			HistoryView selectedView = viewSelectionComboBox.getValue();
+			if (selectedView != null && selectedView != currentView) {
+				switchToView(selectedView);
+			}
+		});
+	}
+
+	// REMOVE the old handleToggleView method and replace with this:
+	private void switchToView(HistoryView view) {
+		currentView = view;
+
+		switch (view) {
+			case SEVA -> switchToSevaView();
+			case DONATION -> switchToDonationView();
+			case IN_KIND -> switchToInKindDonationView();
+			case SHASHWATHA_POOJA -> switchToShashwathaPoojaView();
+		}
+
+		// Update the current view label
+		currentViewLabel.setText(view.displayName);
+
+		// Ensure ComboBox reflects current selection
+		if (viewSelectionComboBox.getValue() != view) {
+			viewSelectionComboBox.setValue(view);
+		}
+	}
+
+	private void switchToSevaView() {
+		setTableVisibility(true, false, false, false);
+		List<SevaReceiptData> sevaList = sevaReceiptRepository.getAllReceipts();
+		historyTable.setItems(FXCollections.observableArrayList(sevaList));
+		updateRecordCount(sevaList.size());
+	}
+
+	private void switchToDonationView() {
+		setTableVisibility(false, true, false, false);
+		List<DonationReceiptData> donationList = donationReceiptRepository.getAllDonationReceipts();
+		donationHistoryTable.setItems(FXCollections.observableArrayList(donationList));
+		updateRecordCount(donationList.size());
+	}
+
+	private void switchToInKindDonationView() {
+		setTableVisibility(false, false, true, false);
+		List<InKindDonation> inKindList = inKindDonationRepository.getAllInKindDonations();
+		inKindDonationHistoryTable.setItems(FXCollections.observableArrayList(inKindList));
+		updateRecordCount(inKindList.size());
+	}
+
+	private void switchToShashwathaPoojaView() {
+		setTableVisibility(false, false, false, true);
+		List<ShashwathaPoojaReceipt> shashwathaList = shashwathaPoojaRepository.getAllShashwathaPoojaReceipts();
+		shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(shashwathaList));
+		updateRecordCount(shashwathaList.size());
+	}
+
+	private void setTableVisibility(boolean seva, boolean donation, boolean inKind, boolean shashwatha) {
+		historyTable.setVisible(seva);
+		donationHistoryTable.setVisible(donation);
+		inKindDonationHistoryTable.setVisible(inKind);
+		shashwathaPoojaHistoryTable.setVisible(shashwatha);
+	}
+
+	private void updateRecordCount(int count) {
+		if (totalRecordsLabel != null) {
+			totalRecordsLabel.setText("ಒಟ್ಟು ದಾಖಲೆಗಳು: " + count);
+		}
+	}
+
+	// Continue with the rest of your existing methods...
+	// (Keep all the existing setup methods and detail display methods)
+
 	private void setupShashwathaPoojaTableColumns() {
 		shashwathaReceiptIdColumn.setCellValueFactory(cellData ->
 				new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
@@ -107,48 +197,6 @@ public class HistoryController {
 				new SimpleStringProperty(cellData.getValue().getPoojaDate()));
 		setupShashwathaPoojaDetailsColumn();
 	}
-
-	// Update the toggle method
-	@FXML
-	public void handleToggleView() {
-		switch (currentView) {
-			case SEVA -> switchToDonationView();
-			case DONATION -> switchToInKindDonationView();
-			case IN_KIND -> switchToShashwathaPoojaView();
-			case SHASHWATHA_POOJA -> switchToSevaView();
-		}
-	}
-
-	private void switchToSevaView() {
-		currentView = HistoryView.SEVA;
-		historyTable.setVisible(true);
-		donationHistoryTable.setVisible(false);
-		inKindDonationHistoryTable.setVisible(false);
-
-		List<SevaReceiptData> sevaList = sevaReceiptRepository.getAllReceipts();
-		historyTable.setItems(FXCollections.observableArrayList(sevaList));
-		currentViewLabel.setText("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ");
-		toggleViewButton.setText("ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
-	}
-
-
-	private void switchToShashwathaPoojaView() {
-		currentView = HistoryView.SHASHWATHA_POOJA;
-		setTableVisibility(false, false, false, true);
-		List<ShashwathaPoojaReceipt> shashwathaList = shashwathaPoojaRepository.getAllShashwathaPoojaReceipts();
-		shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(shashwathaList));
-		currentViewLabel.setText("ಶಾಶ್ವತ ಪೂಜೆ ಇತಿಹಾಸ");
-		toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
-	}
-
-
-	private void setTableVisibility(boolean seva, boolean donation, boolean inKind, boolean shashwatha) {
-		historyTable.setVisible(seva);
-		donationHistoryTable.setVisible(donation);
-		inKindDonationHistoryTable.setVisible(inKind);
-		shashwathaPoojaHistoryTable.setVisible(shashwatha);
-	}
-
 
 	private void setupShashwathaPoojaDetailsColumn() {
 		shashwathaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showShashwathaPoojaDetails));
@@ -173,41 +221,9 @@ public class HistoryController {
 		}
 	}
 
+	// Keep all your existing methods for table setup and detail views...
+	// (I'm keeping the existing methods as they are working correctly)
 
-	private void switchToDonationView() {
-		currentView = HistoryView.DONATION;
-		historyTable.setVisible(false);
-		donationHistoryTable.setVisible(true);
-		inKindDonationHistoryTable.setVisible(false);
-
-		List<DonationReceiptData> donationList = donationReceiptRepository.getAllDonationReceipts();
-		donationHistoryTable.setItems(FXCollections.observableArrayList(donationList));
-		currentViewLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ");
-		toggleViewButton.setText("ವಸ್ತು ದೇಣಿಗೆ ನೋಡಿ");
-	}
-
-	private void switchToInKindDonationView() {
-		currentView = HistoryView.IN_KIND;
-		historyTable.setVisible(false);
-		donationHistoryTable.setVisible(false);
-		inKindDonationHistoryTable.setVisible(true);
-
-		// ============================================
-		// START: CORRECTED CODE BLOCK
-		// ============================================
-		// Explicitly create the List first, then wrap it in an ObservableList.
-		// This resolves the ClassCastException.
-		List<InKindDonation> inKindList = inKindDonationRepository.getAllInKindDonations();
-		inKindDonationHistoryTable.setItems(FXCollections.observableArrayList(inKindList));
-		// ============================================
-		// END: CORRECTED CODE BLOCK
-		// ============================================
-
-		currentViewLabel.setText("ವಸ್ತು ದೇಣಿಗೆ ಇತಿಹಾಸ");
-		toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
-	}
-
-	// --- Seva Table Setup ---
 	private void setupSevaTableColumns() {
 		receiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
 		devoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
@@ -220,7 +236,6 @@ public class HistoryController {
 		setPaymentModeColumn();
 	}
 
-	// --- Donation Table Setup ---
 	private void setupDonationTableColumns() {
 		donationReceiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getDonationReceiptId()).asObject());
 		donationDevoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
@@ -231,7 +246,6 @@ public class HistoryController {
 		setupDonationDetailsColumn();
 	}
 
-	// --- In-Kind Donation Table Setup ---
 	private void setupInKindDonationTableColumns() {
 		inKindReceiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getInKindReceiptId()).asObject());
 		inKindDevoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
@@ -240,7 +254,6 @@ public class HistoryController {
 		setupInKindDonationDetailsColumn();
 	}
 
-	// --- Details Column Button Setup (Refactored for stability) ---
 	private void setupSevaDetailsColumn() {
 		detailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showSevaReceiptDetails));
 	}
@@ -274,7 +287,6 @@ public class HistoryController {
 		};
 	}
 
-	// --- Show Details Window Logic ---
 	private void showSevaReceiptDetails(SevaReceiptData sevaReceiptData) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/SevaReceiptDetailsView.fxml"));
@@ -332,7 +344,6 @@ public class HistoryController {
 		}
 	}
 
-	// --- Helper Methods ---
 	private void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
 		alert.setTitle(title);
@@ -353,6 +364,7 @@ public class HistoryController {
 			return new SimpleStringProperty(otherSevaAmount > 0 ? String.format("₹%.2f", otherSevaAmount) : "N/A");
 		});
 	}
+
 	private void setVisheshaPoojeColumn() {
 		visheshaPoojeColumn.setCellValueFactory(cellData -> {
 			List<String> validPoojas = VisheshaPoojeRepository.getAllVisheshaPooje().stream()
@@ -380,8 +392,6 @@ public class HistoryController {
 			return new SimpleStringProperty(sevaAmount > 0 ? String.format("₹%.2f", sevaAmount) : "N/A");
 		});
 	}
-
-
 
 	private void setPaymentModeColumn() {
 		paymentMode.setCellValueFactory(cellData -> {

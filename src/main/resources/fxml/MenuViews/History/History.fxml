@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.ComboBox?>
 <BorderPane prefHeight="760.0" prefWidth="1360.0" styleClass="history-root"
             stylesheets="@../../../css/modern-history.css"
             xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
@@ -21,7 +22,7 @@
             <HBox styleClass="title-bar">
                 <Label styleClass="page-title" text="📋 ರಶೀದಿ ಇತಿಹಾಸ" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="toggleViewButton" onAction="#handleToggleView" styleClass="toggle-button" text="ದೇಣಿಗೆ ರಶೀದಿಗಳನ್ನು ನೋಡಿ" />
+                <ComboBox fx:id="viewSelectionComboBox" promptText="ವೀಕ್ಷಣೆ ಆಯ್ಕೆ ಮಾಡಿ" styleClass="view-selection-combo"/>
             </HBox>
             <Label fx:id="currentViewLabel" styleClass="current-view-label" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" />
             <HBox styleClass="filter-section">
