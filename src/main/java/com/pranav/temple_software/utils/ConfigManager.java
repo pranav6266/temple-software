@@ -5,27 +5,32 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class ConfigManager {
-	private static final ConfigManager instance = new ConfigManager();
-	private final Properties properties = new Properties();
+	private static ConfigManager instance;
+	private Properties properties;
 
 	private ConfigManager() {
-		try (InputStream input = ConfigManager.class.getResourceAsStream("/config.properties")) {
-			if (input == null) {
-				System.err.println("Sorry, unable to find config.properties");
-				return;
-			}
-			// Load a properties file from class path, inside static method
-			properties.load(input);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+		loadProperties();
 	}
 
 	public static ConfigManager getInstance() {
+		if (instance == null) {
+			instance = new ConfigManager();
+		}
 		return instance;
 	}
 
+	private void loadProperties() {
+		properties = new Properties();
+		try (InputStream input = ConfigManager.class.getResourceAsStream("/config.properties")) {
+			if (input != null) {
+				properties.load(input);
+			}
+		} catch (IOException e) {
+			System.err.println("Failed to load config.properties: " + e.getMessage());
+		}
+	}
+
 	public String getProperty(String key) {
-		return properties.getProperty(key, ""); // Return empty string if key not found
+		return properties.getProperty(key, "");
 	}
 }

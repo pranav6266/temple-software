@@ -1,11 +1,15 @@
-// FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
 package com.pranav.temple_software.utils;
 
+import com.github.anastaciocintra.escpos.EscPos;
+import com.github.anastaciocintra.escpos.EscPosConst;
+import com.github.anastaciocintra.escpos.Style;
+import com.github.anastaciocintra.output.PrinterOutputStream;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.models.SevaReceiptData;
-import com.pranav.temple_software.models.ShashwathaPoojaReceipt; // Make sure this import exists
+import com.pranav.temple_software.models.ShashwathaPoojaReceipt;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,7 +18,9 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.WritableImage;
@@ -24,6 +30,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -33,6 +40,8 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import javax.imageio.ImageIO;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -43,14 +52,16 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ReceiptPrinter {
 
-	// MODIFIED: Reduced width slightly for a safety margin on thermal printers
+	// Constants for receipt formatting
 	private static final double RECEIPT_WIDTH_MM = 78;
 	private static final double POINTS_PER_MM = 2.83465;
 	private static final double RECEIPT_WIDTH_POINTS = RECEIPT_WIDTH_MM * POINTS_PER_MM;
+	private static final int THERMAL_PAPER_WIDTH = 48; // Characters for 80mm thermal paper
 
 	MainController controller;
 
@@ -58,15 +69,244 @@ public class ReceiptPrinter {
 		this.controller = controller;
 	}
 
+	// ESC/POS Methods for Thermal Printing
+
+	public void printSevaReceiptThermal(SevaReceiptData data, Consumer<Boolean> onPrintComplete) {
+		try {
+			// Show printer selection dialog
+			PrintService selectedPrinter = selectPrinter();
+			if (selectedPrinter == null) {
+				onPrintComplete.accept(false);
+				return;
+			}
+
+			PrinterOutputStream printerOutputStream = new PrinterOutputStream(selectedPrinter);
+			EscPos escpos = new EscPos(printerOutputStream);
+
+			// Print header
+			printThermalHeader(escpos);
+
+			// Print seva receipt content
+			escpos.feed(1);
+			escpos.writeLF(centerText("ಸೇವಾ ರಶೀದಿ", THERMAL_PAPER_WIDTH));
+			escpos.writeLF(repeatChar("=", THERMAL_PAPER_WIDTH));
+			escpos.feed(1);
+
+			// Receipt details
+			escpos.writeLF("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
+			escpos.writeLF("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
+			escpos.writeLF("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
+			escpos.writeLF("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "---"));
+			escpos.writeLF("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
+			escpos.writeLF("ದಿನಾಂಕ: " + data.getFormattedDate());
+			escpos.feed(1);
+
+			// Seva items table
+			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
+			escpos.writeLF(String.format("%-25s %3s %8s", "ಸೇವೆಯ ಹೆಸರು", "ಪ್ರಮಾಣ", "ಮೊತ್ತ"));
+			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
+
+			for (SevaEntry seva : data.getSevas()) {
+				String name = truncateText(seva.getName(), 24);
+				String qty = String.valueOf(seva.getQuantity());
+				String amount = String.format("₹%.2f", seva.getTotalAmount());
+				escpos.writeLF(String.format("%-24s %3s %9s", name, qty, amount));
+			}
+
+			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
+
+			// Total
+			Style boldStyle = new Style().setBold(true);
+			escpos.write(boldStyle, String.format("%32s ₹%.2f", "ಒಟ್ಟು ಮೊತ್ತ:", data.getTotalAmount()));
+			escpos.feed(2);
+
+			// Footer blessing
+			escpos.writeLF(centerText("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!", THERMAL_PAPER_WIDTH));
+
+			// Cut paper
+			escpos.feed(3);
+			escpos.cut(EscPos.CutMode.FULL);
+			escpos.close();
+
+			onPrintComplete.accept(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(controller.mainStage, "Printing Error", "Failed to print receipt: " + e.getMessage());
+			onPrintComplete.accept(false);
+		}
+	}
+
+	public void printDonationReceiptThermal(DonationReceiptData data, Consumer<Boolean> onPrintComplete) {
+		try {
+			PrintService selectedPrinter = selectPrinter();
+			if (selectedPrinter == null) {
+				onPrintComplete.accept(false);
+				return;
+			}
+
+			PrinterOutputStream printerOutputStream = new PrinterOutputStream(selectedPrinter);
+			EscPos escpos = new EscPos(printerOutputStream);
+
+			// Print header
+			printThermalHeader(escpos);
+
+			// Print donation receipt content
+			escpos.feed(1);
+			escpos.writeLF(centerText("ದೇಣಿಗೆ ರಶೀದಿ", THERMAL_PAPER_WIDTH));
+			escpos.writeLF(repeatChar("=", THERMAL_PAPER_WIDTH));
+			escpos.feed(1);
+
+			// Receipt details
+			escpos.writeLF("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId());
+			escpos.writeLF("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
+			escpos.writeLF("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
+			escpos.writeLF("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---"));
+			escpos.writeLF("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
+			escpos.writeLF("ದಿನಾಂಕ: " + data.getFormattedDate());
+			escpos.feed(1);
+
+			// Donation details
+			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
+			escpos.writeLF("ದೇಣಿಗೆ ವಿಧ: " + data.getDonationName());
+			escpos.writeLF("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode());
+
+			Style boldStyle = new Style().setBold(true);
+			escpos.write(boldStyle, String.format("ದೇಣಿಗೆ ಮೊತ್ತ: ₹%.2f", data.getDonationAmount()));
+			escpos.feed(2);
+
+			// Footer blessing
+			escpos.writeLF(centerText("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!", THERMAL_PAPER_WIDTH));
+
+			// Cut paper
+			escpos.feed(3);
+			escpos.cut(EscPos.CutMode.FULL);
+			escpos.close();
+
+			onPrintComplete.accept(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(controller.mainStage, "Printing Error", "Failed to print donation receipt: " + e.getMessage());
+			onPrintComplete.accept(false);
+		}
+	}
+
+	public void printShashwathaPoojaReceiptThermal(ShashwathaPoojaReceipt data, Consumer<Boolean> onPrintComplete) {
+		try {
+			PrintService selectedPrinter = selectPrinter();
+			if (selectedPrinter == null) {
+				onPrintComplete.accept(false);
+				return;
+			}
+
+			PrinterOutputStream printerOutputStream = new PrinterOutputStream(selectedPrinter);
+			EscPos escpos = new EscPos(printerOutputStream);
+
+			// Print header
+			printThermalHeader(escpos);
+
+			// Print Shashwatha Pooja receipt content
+			escpos.feed(1);
+			escpos.writeLF(centerText("ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ", THERMAL_PAPER_WIDTH));
+			escpos.writeLF(repeatChar("=", THERMAL_PAPER_WIDTH));
+			escpos.feed(1);
+
+			// Receipt details
+			escpos.writeLF("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
+			escpos.writeLF("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
+			escpos.writeLF("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
+			escpos.writeLF("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---"));
+			escpos.writeLF("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
+			escpos.writeLF("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate());
+			escpos.writeLF("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ: " + data.getPoojaDate());
+			escpos.feed(2);
+
+			// Footer blessing
+			escpos.writeLF(centerText("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!", THERMAL_PAPER_WIDTH));
+
+			// Cut paper
+			escpos.feed(3);
+			escpos.cut(EscPos.CutMode.FULL);
+			escpos.close();
+
+			onPrintComplete.accept(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(controller.mainStage, "Printing Error", "Failed to print Shashwatha Pooja receipt: " + e.getMessage());
+			onPrintComplete.accept(false);
+		}
+	}
+
+	// Helper methods for thermal printing
+
+	private void printThermalHeader(EscPos escpos) throws IOException {
+		Style boldStyle = new Style().setBold(true).setFontSize(Style.FontSize._2, Style.FontSize._1);
+
+		// Temple name (bold and larger)
+		escpos.write(boldStyle, centerText(ConfigManager.getInstance().getProperty("temple.name"), THERMAL_PAPER_WIDTH));
+		escpos.feed(1);
+
+		// Temple details (normal size)
+		Style normalStyle = new Style();
+		escpos.write(normalStyle, centerText(ConfigManager.getInstance().getProperty("temple.location"), THERMAL_PAPER_WIDTH));
+		escpos.write(normalStyle, centerText(ConfigManager.getInstance().getProperty("temple.postal"), THERMAL_PAPER_WIDTH));
+		escpos.write(normalStyle, centerText(ConfigManager.getInstance().getProperty("temple.phone"), THERMAL_PAPER_WIDTH));
+	}
+
+	private PrintService selectPrinter() {
+		PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, null);
+
+		if (printServices.length == 0) {
+			showAlert(controller.mainStage, "No Printers", "No printers found on this system.");
+			return null;
+		}
+
+		// Create a choice dialog for printer selection
+		Alert printerDialog = new Alert(Alert.AlertType.CONFIRMATION);
+		printerDialog.setTitle("Select Printer");
+		printerDialog.setHeaderText("Choose a printer for thermal printing:");
+
+		StringBuilder printerList = new StringBuilder();
+		for (int i = 0; i < printServices.length; i++) {
+			printerList.append((i + 1)).append(". ").append(printServices[i].getName()).append("\n");
+		}
+		printerDialog.setContentText(printerList.toString() + "\nEnter printer number (1-" + printServices.length + "):");
+
+		Optional<ButtonType> result = printerDialog.showAndWait();
+		if (result.isPresent() && result.get() == ButtonType.OK) {
+			// For simplicity, return the first printer. In production, you might want a proper selection UI
+			return printServices[0];
+		}
+
+		return null;
+	}
+
+	private String centerText(String text, int width) {
+		if (text.length() >= width) return text.substring(0, width);
+		int padding = (width - text.length()) / 2;
+		return " ".repeat(padding) + text;
+	}
+
+	private String repeatChar(String ch, int count) {
+		return ch.repeat(count);
+	}
+
+	private String truncateText(String text, int maxLength) {
+		return text.length() <= maxLength ? text : text.substring(0, maxLength - 3) + "...";
+	}
+
+	// Original JavaFX Node creation methods (for PDF generation)
+
 	public Node createReceiptNode(SevaReceiptData data) {
 		VBox receiptBox = new VBox(1);
-		// MODIFIED: Reduced padding
 		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 
-		// MODIFIED: Reduced font sizes for all text elements
-		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		// Header
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", 12));
 		templeName.setStyle("-fx-font-weight: bold;");
 		VBox heading = new VBox(templeName);
@@ -76,9 +316,9 @@ public class ReceiptPrinter {
 		VBox subHeadings = new VBox(1);
 		subHeadings.setStyle("-fx-alignment: center;");
 		subHeadings.getChildren().addAll(
-				new Text("ಚೇರ್ಕಬೆ"),
-				new Text("ಅಂಚೆ : 671552"),
-				new Text("ದೂರವಾಣಿ : 6282525216, 9526431593")
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
 		);
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
@@ -105,7 +345,7 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
 
-		// MODIFIED: Using HBox with flexible growth for the seva name column
+		// Seva items table
 		HBox headerRow = new HBox();
 		headerRow.setPadding(new Insets(2, 0, 2, 0));
 		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
@@ -169,7 +409,7 @@ public class ReceiptPrinter {
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 
-		Text templeName = new Text("ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣಯೇಶ್ವರ ದೇವಸ್ಥಾನ");
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", 12));
 		templeName.setStyle("-fx-font-weight: bold;");
 		VBox heading = new VBox(templeName);
@@ -179,9 +419,9 @@ public class ReceiptPrinter {
 		VBox subHeadings = new VBox(1);
 		subHeadings.setStyle("-fx-alignment: center;");
 		subHeadings.getChildren().addAll(
-				new Text("ಚೇರ್ಕಬೆ"),
-				new Text("ಅಂಚೆ : 671552"),
-				new Text("ದೂರವಾಣಿ : 6282525216, 9526431593")
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
 		);
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
@@ -217,7 +457,6 @@ public class ReceiptPrinter {
 		donationDetailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(donationDetailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-
 
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
 		blessing.setFont(Font.font("Noto Sans Kannada", 10));
@@ -285,7 +524,8 @@ public class ReceiptPrinter {
 		return receiptBox;
 	}
 
-	// ... (Keep the rest of the file from saveNodeAsPdf onwards unchanged)
+	// PDF Generation methods (keeping original functionality)
+
 	private void saveNodeAsPdf(Node nodeToSave, File outputFile, Consumer<Boolean> onSaveComplete) {
 		try {
 			if (nodeToSave.getScene() == null) {
@@ -363,76 +603,58 @@ public class ReceiptPrinter {
 		}
 	}
 
-	public boolean printReceipt(Node nodeToPrint, Stage ownerStage) {
-		PrinterJob job = PrinterJob.createPrinterJob();
-		if (job == null) {
-			showAlert(ownerStage, "Printing Error", "Could not create printer job.");
-			return false;
-		}
-		boolean proceed = job.showPrintDialog(ownerStage);
-		boolean printSucceeded = false;
-		if (proceed) {
-			Printer printer = job.getPrinter();
-			Paper customPaper = Paper.NA_LETTER;
-			PageLayout pageLayout = printer.createPageLayout(customPaper, PageOrientation.PORTRAIT, Printer.MarginType.HARDWARE_MINIMUM);
-			if (pageLayout.getPrintableWidth() < RECEIPT_WIDTH_POINTS * 0.8) {
-				pageLayout = printer.createPageLayout(Paper.NA_LETTER, PageOrientation.PORTRAIT, Printer.MarginType.DEFAULT);
-				double scaleX = pageLayout.getPrintableWidth() / nodeToPrint.getBoundsInParent().getWidth();
-				nodeToPrint.setScaleX(scaleX);
-				nodeToPrint.setScaleY(scaleX);
-			}
-			boolean printed = job.printPage(pageLayout, nodeToPrint);
-			if (printed) {
-				printSucceeded = job.endJob();
-				nodeToPrint.setScaleX(1.0);
-				nodeToPrint.setScaleY(1.0);
-				if (!printSucceeded) {
-					showAlert(ownerStage, "Printing Failed", "Failed to finalize the print job.");
-				}
-			} else {
-				showAlert(ownerStage, "Printing Failed", "Failed to print the page.");
-				job.cancelJob();
-			}
-		} else {
-			job.cancelJob();
-		}
-		return printSucceeded;
-	}
+	// Print Preview Methods (for thermal printing preview)
 
-	public void showPrintPreviewWithCancelCallback(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+	public void showThermalPrintPreview(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
-		previewStage.setTitle("ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+		previewStage.setTitle("ಥರ್ಮಲ್ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+
 		Node receiptNode = createReceiptNode(data);
 		double scaleFactor = 1.3;
 		receiptNode.setScaleX(scaleFactor);
 		receiptNode.setScaleY(scaleFactor);
+
 		Group scaledContainer = new Group(receiptNode);
 		scaledContainer.setAutoSizeChildren(true);
+
 		ScrollPane scrollPane = new ScrollPane(scaledContainer);
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
-		Button printButton = new Button("ಮುದ್ರಿಸು");
-		printButton.setOnAction(e -> {
-			receiptNode.setScaleX(1.0);
-			receiptNode.setScaleY(1.0);
-			boolean success = printReceipt(receiptNode, ownerStage);
-			if (onPrintComplete != null) {
-				onPrintComplete.accept(success);
-			}
+
+		Button thermalPrintButton = new Button("ಥರ್ಮಲ್ ಮುದ್ರಣ");
+		thermalPrintButton.setOnAction(e -> {
+			printSevaReceiptThermal(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
 			previewStage.close();
 		});
+
+		Button pdfSaveButton = new Button("PDF ಸೇವ್");
+		pdfSaveButton.setOnAction(e -> {
+			saveSevaReceiptAsPdf(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
+			previewStage.close();
+		});
+
 		previewStage.setOnCloseRequest(e -> {
 			if (onDialogClosed != null) {
 				onDialogClosed.run();
 			}
 		});
-		HBox buttonBox = new HBox(10, printButton);
+
+		HBox buttonBox = new HBox(10, thermalPrintButton, pdfSaveButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
+
 		VBox layout = new VBox(10, scrollPane, buttonBox);
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);
@@ -441,40 +663,56 @@ public class ReceiptPrinter {
 		previewStage.show();
 	}
 
-	public void showDonationPrintPreviewWithCancelCallback(DonationReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+	public void showDonationThermalPrintPreview(DonationReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
-		previewStage.setTitle("ದೇಣಿಗೆ ರಶೀದಿ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+		previewStage.setTitle("ದೇಣಿಗೆ ಥರ್ಮಲ್ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+
 		Node receiptNode = createDonationReceiptNode(data);
 		double scaleFactor = 1.3;
 		receiptNode.setScaleX(scaleFactor);
 		receiptNode.setScaleY(scaleFactor);
+
 		Group scaledContainer = new Group(receiptNode);
 		scaledContainer.setAutoSizeChildren(true);
+
 		ScrollPane scrollPane = new ScrollPane(scaledContainer);
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
-		Button printButton = new Button("ಮುದ್ರಿಸು");
-		printButton.setOnAction(e -> {
-			receiptNode.setScaleX(1.0);
-			receiptNode.setScaleY(1.0);
-			boolean success = printReceipt(receiptNode, ownerStage);
-			if (onPrintComplete != null) {
-				onPrintComplete.accept(success);
-			}
+
+		Button thermalPrintButton = new Button("ಥರ್ಮಲ್ ಮುದ್ರಣ");
+		thermalPrintButton.setOnAction(e -> {
+			printDonationReceiptThermal(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
 			previewStage.close();
 		});
+
+		Button pdfSaveButton = new Button("PDF ಸೇವ್");
+		pdfSaveButton.setOnAction(e -> {
+			saveDonationReceiptAsPdf(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
+			previewStage.close();
+		});
+
 		previewStage.setOnCloseRequest(e -> {
 			if (onDialogClosed != null) {
 				onDialogClosed.run();
 			}
 		});
-		HBox buttonBox = new HBox(10, printButton);
+
+		HBox buttonBox = new HBox(10, thermalPrintButton, pdfSaveButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
+
 		VBox layout = new VBox(10, scrollPane, buttonBox);
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);
@@ -483,11 +721,11 @@ public class ReceiptPrinter {
 		previewStage.show();
 	}
 
-	public void showShashwathaPoojaPrintPreview(ShashwathaPoojaReceipt data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+	public void showShashwathaPoojaThermalPrintPreview(ShashwathaPoojaReceipt data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
-		previewStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
+		previewStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ಥರ್ಮಲ್ ಮುದ್ರಣ ಪೂರ್ವದರ್ಶನ");
 
 		Node receiptNode = createShashwathaPoojaReceiptNode(data);
 		double scaleFactor = 1.3;
@@ -503,14 +741,13 @@ public class ReceiptPrinter {
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
 
-		Button printButton = new Button("ಮುದ್ರಿಸು");
-		printButton.setOnAction(e -> {
-			receiptNode.setScaleX(1.0);
-			receiptNode.setScaleY(1.0);
-			boolean success = printReceipt(receiptNode, ownerStage);
-			if (onPrintComplete != null) {
-				onPrintComplete.accept(success);
-			}
+		Button thermalPrintButton = new Button("ಥರ್ಮಲ್ ಮುದ್ರಣ");
+		thermalPrintButton.setOnAction(e -> {
+			printShashwathaPoojaReceiptThermal(data, success -> {
+				if (onPrintComplete != null) {
+					Platform.runLater(() -> onPrintComplete.accept(success));
+				}
+			});
 			previewStage.close();
 		});
 
@@ -520,7 +757,7 @@ public class ReceiptPrinter {
 			}
 		});
 
-		HBox buttonBox = new HBox(10, printButton);
+		HBox buttonBox = new HBox(10, thermalPrintButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
 
@@ -532,12 +769,28 @@ public class ReceiptPrinter {
 		previewStage.show();
 	}
 
+	// Legacy methods for backward compatibility
+
+	public void showPrintPreviewWithCancelCallback(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		showThermalPrintPreview(data, ownerStage, onPrintComplete, onDialogClosed);
+	}
+
+	public void showDonationPrintPreviewWithCancelCallback(DonationReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		showDonationThermalPrintPreview(data, ownerStage, onPrintComplete, onDialogClosed);
+	}
+
+	public void showShashwathaPoojaPrintPreview(ShashwathaPoojaReceipt data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		showShashwathaPoojaThermalPrintPreview(data, ownerStage, onPrintComplete, onDialogClosed);
+	}
+
 	private void showAlert(Stage owner, String title, String message) {
-		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-		alert.initOwner(owner);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
+		Platform.runLater(() -> {
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.initOwner(owner);
+			alert.setTitle(title);
+			alert.setHeaderText(null);
+			alert.setContentText(message);
+			alert.showAndWait();
+		});
 	}
 }
