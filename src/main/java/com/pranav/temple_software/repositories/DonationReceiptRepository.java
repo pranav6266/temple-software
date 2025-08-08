@@ -31,6 +31,7 @@ public class DonationReceiptRepository {
 				String devoteeName = rs.getString("devotee_name");
 				String phoneNumber = rs.getString("phone_number");
 				String address = rs.getString("address");
+				String panNumber = rs.getString("pan_number"); // Get PAN
 				String rashi = rs.getString("rashi");
 				String nakshatra = rs.getString("nakshatra");
 				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
@@ -39,7 +40,7 @@ public class DonationReceiptRepository {
 				String paymentMode = rs.getString("payment_mode");
 
 				DonationReceiptData donationReceipt = new DonationReceiptData(
-						donationReceiptId, devoteeName, phoneNumber, address, rashi, nakshatra,
+						donationReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 						sevaDate, donationName, donationAmount, paymentMode
 				);
 
@@ -76,12 +77,12 @@ public class DonationReceiptRepository {
 		return nextId;
 	}
 
-	public int saveSpecificDonationReceipt(int id, String name, String phone, String address,
+	public int saveSpecificDonationReceipt(int id, String name, String phone, String address, String panNumber,
 	                                       String rashi, String nakshatra, LocalDate date,
 	                                       String donationName, double amount, String paymentMode) {
 		String sql = "INSERT INTO DonationReceipts (donation_receipt_id, devotee_name, phone_number, " +
-				"address, rashi, nakshatra, seva_date, donation_name, donation_amount, payment_mode) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"address, pan_number, rashi, nakshatra, seva_date, donation_name, donation_amount, payment_mode) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -89,12 +90,13 @@ public class DonationReceiptRepository {
 			pstmt.setString(2, name);
 			pstmt.setString(3, phone);
 			pstmt.setString(4, address);
-			pstmt.setString(5, rashi);
-			pstmt.setString(6, nakshatra);
-			pstmt.setDate(7, java.sql.Date.valueOf(date));
-			pstmt.setString(8, donationName);
-			pstmt.setDouble(9, amount);
-			pstmt.setString(10, paymentMode);
+			pstmt.setString(5, panNumber); // Add PAN
+			pstmt.setString(6, rashi);
+			pstmt.setString(7, nakshatra);
+			pstmt.setDate(8, java.sql.Date.valueOf(date));
+			pstmt.setString(9, donationName);
+			pstmt.setDouble(10, amount);
+			pstmt.setString(11, paymentMode);
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
@@ -103,7 +105,7 @@ public class DonationReceiptRepository {
 		} catch (SQLException e) {
 			if (H2_PK_VIOLATION_STATE.equals(e.getSQLState())) {
 				System.out.println("Donation Receipt ID " + id + " already exists. Falling back to auto-increment ID.");
-				return saveAutoIncrementDonationReceipt(name, phone, address, rashi, nakshatra, date, donationName, amount, paymentMode);
+				return saveAutoIncrementDonationReceipt(name, phone, address, panNumber, rashi, nakshatra, date, donationName, amount, paymentMode);
 			} else {
 				System.err.println("Error inserting donation receipt: " + e.getMessage());
 				return -1;
@@ -112,11 +114,11 @@ public class DonationReceiptRepository {
 		return id;
 	}
 
-	private int saveAutoIncrementDonationReceipt(String name, String phone, String address, String rashi,
+	private int saveAutoIncrementDonationReceipt(String name, String phone, String address, String panNumber, String rashi,
 	                                             String nakshatra, LocalDate date, String donationName,
 	                                             double amount, String paymentMode) {
-		String sql = "INSERT INTO DonationReceipts (devotee_name, phone_number, address, rashi, nakshatra, " +
-				"seva_date, donation_name, donation_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO DonationReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +
+				"seva_date, donation_name, donation_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		int generatedId = -1;
 
 		try (Connection conn = getConnection();
@@ -124,12 +126,13 @@ public class DonationReceiptRepository {
 			pstmt.setString(1, name);
 			pstmt.setString(2, phone);
 			pstmt.setString(3, address);
-			pstmt.setString(4, rashi);
-			pstmt.setString(5, nakshatra);
-			pstmt.setDate(6, java.sql.Date.valueOf(date));
-			pstmt.setString(7, donationName);
-			pstmt.setDouble(8, amount);
-			pstmt.setString(9, paymentMode);
+			pstmt.setString(4, panNumber); // Add PAN
+			pstmt.setString(5, rashi);
+			pstmt.setString(6, nakshatra);
+			pstmt.setDate(7, java.sql.Date.valueOf(date));
+			pstmt.setString(8, donationName);
+			pstmt.setDouble(9, amount);
+			pstmt.setString(10, paymentMode);
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {

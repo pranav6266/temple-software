@@ -6,12 +6,14 @@ package com.pranav.temple_software.models;
 public class DevoteeDetails {
 	private final String name;
 	private final String address;
+	private final String panNumber;
 	private final String rashi;
 	private final String nakshatra;
 
-	public DevoteeDetails(String name, String address, String rashi, String nakshatra) {
+	public DevoteeDetails(String name, String address, String panNumber, String rashi, String nakshatra) {
 		this.name = name;
 		this.address = address;
+		this.panNumber = panNumber;
 		this.rashi = rashi;
 		this.nakshatra = nakshatra;
 	}
@@ -22,6 +24,10 @@ public class DevoteeDetails {
 
 	public String getAddress() {
 		return address;
+	}
+
+	public String getPanNumber() {
+		return panNumber;
 	}
 
 	public String getRashi() {

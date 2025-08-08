@@ -43,13 +43,13 @@ public class SevaReceiptRepository {
 		return nextId;
 	}
 
-	public int saveSpecificReceipt(int id, String name, String phone,String address,String rashi,String nakshatra, LocalDate date,
+	public int saveSpecificReceipt(int id, String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
 	                               String sevasDetails, double total, String paymentMode) {
 
 		String sql = "INSERT INTO Receipts (receipt_id, devotee_name, phone_number, " +
-				"address, rashi, nakshatra," +
+				"address, pan_number, rashi, nakshatra," +
 				"seva_date, sevas_details, total_amount, payment_mode) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -58,12 +58,13 @@ public class SevaReceiptRepository {
 			pstmt.setString(2, name);
 			pstmt.setString(3, phone);
 			pstmt.setString(4, address);
-			pstmt.setString(5, rashi);
-			pstmt.setString(6, nakshatra);
-			pstmt.setDate(7, java.sql.Date.valueOf(date));
-			pstmt.setString(8, sevasDetails);
-			pstmt.setDouble(9, total);
-			pstmt.setString(10, paymentMode);
+			pstmt.setString(5, panNumber); // Add PAN
+			pstmt.setString(6, rashi);
+			pstmt.setString(7, nakshatra);
+			pstmt.setDate(8, java.sql.Date.valueOf(date));
+			pstmt.setString(9, sevasDetails);
+			pstmt.setDouble(10, total);
+			pstmt.setString(11, paymentMode);
 
 			int affectedRows = pstmt.executeUpdate();
 
@@ -71,13 +72,13 @@ public class SevaReceiptRepository {
 				return id;
 			} else {
 				System.err.println("Error inserting receipt with specific ID " + id + ": No rows affected, but no exception.");
-				return saveReceipt(name, phone, date, sevasDetails, total, paymentMode);
+				return saveReceipt(name, phone, address, panNumber, date, sevasDetails, total, paymentMode);
 			}
 
 		} catch (SQLException e) {
 			if (H2_PK_VIOLATION_STATE.equals(e.getSQLState())) {
 				System.out.println("Receipt ID " + id + " already exists. Falling back to auto-increment ID.");
-				return saveReceipt(name, phone, date, sevasDetails, total, paymentMode);
+				return saveReceipt(name, phone, address, panNumber, date, sevasDetails, total, paymentMode);
 			} else {
 				System.err.println("Error inserting receipt with specific ID " + id + ": " + e.getMessage() + " (SQLState: " + e.getSQLState() + ")");
 				return -1;
@@ -85,12 +86,12 @@ public class SevaReceiptRepository {
 		}
 	}
 
-	public int saveReceipt(String name, String phone, LocalDate date,
+	public int saveReceipt(String name, String phone, String address, String panNumber, LocalDate date,
 	                       String sevasDetails, double total, String paymentMode) {
 
 		String sql = "INSERT INTO Receipts (devotee_name, " +
-				"phone_number, seva_date, sevas_details," +
-				" total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?)";
+				"phone_number, address, pan_number, seva_date, sevas_details," +
+				" total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 		int generatedId = -1;
 
 		try (Connection conn = getConnection();
@@ -98,10 +99,12 @@ public class SevaReceiptRepository {
 
 			pstmt.setString(1, name);
 			pstmt.setString(2, phone);
-			pstmt.setDate(3, java.sql.Date.valueOf(date));
-			pstmt.setString(4, sevasDetails);
-			pstmt.setDouble(5, total);
-			pstmt.setString(6, paymentMode);
+			pstmt.setString(3, address);
+			pstmt.setString(4, panNumber); // Add PAN
+			pstmt.setDate(5, java.sql.Date.valueOf(date));
+			pstmt.setString(6, sevasDetails);
+			pstmt.setDouble(7, total);
+			pstmt.setString(8, paymentMode);
 
 			int affectedRows = pstmt.executeUpdate();
 
@@ -132,6 +135,7 @@ public class SevaReceiptRepository {
 				String devoteeName = rs.getString("devotee_name");
 				String phoneNumber = rs.getString("phone_number");
 				String address = rs.getString("address");
+				String panNumber = rs.getString("pan_number"); // Get PAN
 				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
 				double totalAmount = rs.getDouble("total_amount");
 				String rashi = rs.getString("rashi");
@@ -142,7 +146,7 @@ public class SevaReceiptRepository {
 				String donationStatus = hasDonation ? "ಹೌದು" : "ಇಲ್ಲ";
 				String paymentMode = rs.getString("payment_mode");
 				SevaReceiptData receipt = new SevaReceiptData(
-						receiptId, devoteeName, phoneNumber, address, rashi, nakshatra,
+						receiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 						sevaDate, sevas, totalAmount, paymentMode, donationStatus
 				);
 				receipts.add(receipt);

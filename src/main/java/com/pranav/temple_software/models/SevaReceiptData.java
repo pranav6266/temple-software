@@ -17,13 +17,15 @@ public class SevaReceiptData {
 	private final String paymentMode;
 	private final String donationStatus;
 	private final String address;
+	private final String panNumber; // Added PAN
 
-	public SevaReceiptData(int receiptId, String devoteeName, String phoneNumber, String address, String rashi, String nakshatra,
+	public SevaReceiptData(int receiptId, String devoteeName, String phoneNumber, String address, String panNumber, String rashi, String nakshatra,
 	                       LocalDate sevaDate, ObservableList<SevaEntry> sevas, double totalAmount, String paymentMode, String donationStatus) {
 		this.receiptId = receiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
 		this.address = address;
+		this.panNumber = panNumber; // Set PAN
 		this.rashi = rashi;
 		this.nakshatra = nakshatra;
 		this.sevaDate = sevaDate;
@@ -32,7 +34,6 @@ public class SevaReceiptData {
 		this.paymentMode = paymentMode;
 		this.donationStatus = donationStatus;
 	}
-
 
 	// --- Getters for all fields ---
 	public String getDevoteeName() { return devoteeName; }
@@ -47,4 +48,5 @@ public class SevaReceiptData {
 	public String getPaymentMode() {return paymentMode;}
 	public String getDonationStatus() {return donationStatus;}
 	public String getAddress(){return address;}
+	public String getPanNumber(){return panNumber;} // Add PAN getter
 }

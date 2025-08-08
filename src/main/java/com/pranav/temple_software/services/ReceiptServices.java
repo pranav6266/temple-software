@@ -1,4 +1,4 @@
-// ReceiptServices.java
+// FILE: src/main/java/com/pranav/temple_software/services/ReceiptServices.java
 package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
@@ -106,6 +106,7 @@ public class ReceiptServices {
 		final String devoteeName = controller.devoteeNameField.getText();
 		final String phoneNumber = controller.contactField.getText();
 		final String address = controller.addressField.getText();
+		final String panNumber = controller.panNumberField.getText(); // Get PAN
 		final LocalDate date = controller.sevaDatePicker.getValue();
 		final String raashi = controller.raashiComboBox.getValue();
 		final String nakshatra = controller.nakshatraComboBox.getValue();
@@ -117,12 +118,12 @@ public class ReceiptServices {
 
 		String paymentMode = controller.cashRadio.isSelected() ? "Cash" : "Online";
 
-		processReceiptsWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+		processReceiptsWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
 				FXCollections.observableArrayList(itemsToProcess), paymentMode, actionType);
 	}
 
-	// MODIFIED: Added ActionType parameter
-	private void processReceiptsWithStatusTracking(String devoteeName, String phoneNumber, String address,
+	// MODIFIED: Added ActionType parameter and panNumber
+	private void processReceiptsWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
 	                                               String raashi, String nakshatra, LocalDate date,
 	                                               ObservableList<SevaEntry> items, String paymentMode, ActionType actionType) {
 
@@ -145,18 +146,18 @@ public class ReceiptServices {
 		}
 
 		if (!sevaEntries.isEmpty()) {
-			handleSevaReceiptWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+			handleSevaReceiptWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
 					sevaEntries, paymentMode, actionType);
 		}
 
 		for (SevaEntry donation : donationEntries) {
-			handleDonationReceiptWithStatusTracking(devoteeName, phoneNumber, address, raashi, nakshatra, date,
+			handleDonationReceiptWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
 					donation, paymentMode, actionType);
 		}
 	}
 
-	// MODIFIED: Added ActionType parameter
-	private void handleDonationReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address,
+	// MODIFIED: Added ActionType parameter and panNumber
+	private void handleDonationReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
 	                                                     String raashi, String nakshatra, LocalDate date,
 	                                                     SevaEntry donation, String paymentMode, ActionType actionType) {
 
@@ -168,7 +169,7 @@ public class ReceiptServices {
 
 		String donationName = donation.getName().replace("ದೇಣಿಗೆ : ", "");
 		DonationReceiptData donationReceiptData = new DonationReceiptData(
-				donationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+				donationReceiptId, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
 				date, donationName, donation.getTotalAmount(), paymentMode
 		);
 
@@ -176,7 +177,7 @@ public class ReceiptServices {
 			if (success) {
 				DonationReceiptRepository repo = new DonationReceiptRepository();
 				int actualSavedId = repo.saveSpecificDonationReceipt(
-						donationReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+						donationReceiptId, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
 						date, donationName, donation.getTotalAmount(), paymentMode
 				);
 
@@ -207,8 +208,8 @@ public class ReceiptServices {
 		}
 	}
 
-	// MODIFIED: Added ActionType parameter
-	private void handleSevaReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address,
+	// MODIFIED: Added ActionType parameter and panNumber
+	private void handleSevaReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
 	                                                 String raashi, String nakshatra, LocalDate date,
 	                                                 List<SevaEntry> sevaEntries, String paymentMode, ActionType actionType) {
 
@@ -220,7 +221,7 @@ public class ReceiptServices {
 
 		double sevaTotal = sevaEntries.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 		SevaReceiptData sevaReceiptData = new SevaReceiptData(
-				sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+				sevaReceiptId, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode, "ಇಲ್ಲ"
 		);
 
@@ -228,7 +229,7 @@ public class ReceiptServices {
 			if (success) {
 				String sevasDetailsString = formatSevasForDatabase(FXCollections.observableArrayList(sevaEntries));
 				int actualSavedId = controller.sevaReceiptRepository.saveSpecificReceipt(
-						sevaReceiptId, devoteeName, phoneNumber, address, raashi, nakshatra,
+						sevaReceiptId, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
 						date, sevasDetailsString, sevaTotal, paymentMode
 				);
 

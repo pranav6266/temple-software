@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class ValidationServices {
-MainController controller;
+	MainController controller;
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 
 	public ValidationServices(MainController controller) {
@@ -62,6 +62,46 @@ MainController controller;
 		}
 	}
 
+	public void setupPanValidation() {
+		// PAN number should be uppercase and match PAN format
+		controller.panNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue != null) {
+				// Convert to uppercase and limit to 10 characters
+				String upperCase = newValue.toUpperCase();
+				if (upperCase.length() > 10) {
+					upperCase = upperCase.substring(0, 10);
+				}
+				// Only allow alphanumeric characters
+				upperCase = upperCase.replaceAll("[^A-Z0-9]", "");
+				controller.panNumberField.setText(upperCase);
+			}
+		});
+
+		// Validate PAN format when focus is lost
+		controller.panNumberField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+			if (!newVal) { // When focus is lost
+				String pan = controller.panNumberField.getText();
+				if (pan != null && !pan.trim().isEmpty()) {
+					if (!isValidPanFormat(pan.trim())) {
+						controller.showAlert("Invalid PAN Format",
+								"PAN should be in format: AAAPL1234C\n" +
+										"(5 letters + 4 numbers + 1 letter)");
+					}
+				}
+			}
+		});
+	}
+
+	/**
+	 * Validates PAN number format
+	 */
+	private boolean isValidPanFormat(String pan) {
+		if (pan == null || pan.length() != 10) {
+			return false;
+		}
+		// PAN format: 5 letters, 4 digits, 1 letter
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
+	}
 
 	public void setupAmountValidation() {
 		controller.donationField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -153,5 +193,4 @@ MainController controller;
 				totalBinding
 		));
 	}
-
 }

@@ -64,6 +64,7 @@ public class MainController {
 	@FXML public RadioButton onlineRadio;
 	@FXML public TextField devoteeNameField;
 	@FXML public TextField contactField;
+	@FXML public TextField panNumberField; // New PAN field
 	@FXML public DatePicker sevaDatePicker;
 	@FXML public VBox sevaCheckboxContainer;
 	@FXML public TableView<SevaEntry> sevaTableView;
@@ -131,6 +132,7 @@ public class MainController {
 		validationServices.setupNameValidation();
 		validationServices.setupPhoneValidation();
 		validationServices.setupAmountValidation();
+		validationServices.setupPanValidation(); // New PAN validation
 		sevaListener.rashiNakshatraMap();
 		refreshSevaCheckboxes();
 		populateRashiComboBox();
@@ -153,6 +155,12 @@ public class MainController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
+
+		panNumberField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
 			while (change.next()) {
 				for (SevaEntry entry : change.getAddedSubList()) {
@@ -261,8 +269,14 @@ public class MainController {
 			showAlert("Error", "Failed to load the Shashwatha Pooja view: " + e.getMessage());
 		}
 	}
+
 	@FXML
 	public void handleSmartAction() {
+		// PAN validation before processing receipts
+		if (!validatePanRequirement()) {
+			return; // Don't proceed if PAN validation fails
+		}
+
 		long pendingCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
 				.count();
@@ -280,6 +294,48 @@ public class MainController {
 			Platform.runLater(() -> devoteeNameField.requestFocus());
 			showAlert("Add Items", "Please add seva items to the table to proceed.");
 		}
+	}
+
+	/**
+	 * Validates PAN requirement based on total cart value
+	 * Returns true if validation passes, false if PAN is required but missing
+	 */
+	private boolean validatePanRequirement() {
+		double totalAmount = selectedSevas.stream()
+				.mapToDouble(SevaEntry::getTotalAmount)
+				.sum();
+
+		if (totalAmount > 2000.0) {
+			String panNumber = panNumberField.getText();
+			if (panNumber == null || panNumber.trim().isEmpty()) {
+				showAlert("PAN Required",
+						"PAN number is mandatory for transactions above ₹2000.\n" +
+								"Current total: ₹" + String.format("%.2f", totalAmount) + "\n" +
+								"Please enter PAN number to proceed.");
+				Platform.runLater(() -> panNumberField.requestFocus());
+				return false;
+			}
+
+			// Basic PAN format validation
+			if (!isValidPanFormat(panNumber.trim())) {
+				showAlert("Invalid PAN",
+						"Please enter a valid PAN number format (e.g., AAAPL1234C)");
+				Platform.runLater(() -> panNumberField.requestFocus());
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Validates PAN number format
+	 */
+	private boolean isValidPanFormat(String pan) {
+		if (pan == null || pan.length() != 10) {
+			return false;
+		}
+		// PAN format: 5 letters, 4 digits, 1 letter
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
 	private void showPrintOrSaveDialog() {
@@ -500,6 +556,7 @@ public class MainController {
 	public void clearForm() {
 		devoteeNameField.clear();
 		contactField.clear();
+		panNumberField.clear(); // Clear PAN field
 		raashiComboBox.getSelectionModel().selectFirst();
 		nakshatraComboBox.getSelectionModel().clearSelection();
 		sevaDatePicker.setValue(LocalDate.now());
@@ -658,6 +715,7 @@ public class MainController {
 		List<Control> formControls = List.of(
 				devoteeNameField,
 				contactField,
+				panNumberField, // Add PAN to focus traversal
 				raashiComboBox,
 				nakshatraComboBox,
 				sevaDatePicker,
@@ -698,6 +756,7 @@ public class MainController {
 		if (details == null) return;
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
 		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
+		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : ""); // Set PAN
 		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
 			raashiComboBox.setValue(details.getRashi());
 		} else {

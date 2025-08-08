@@ -8,6 +8,7 @@ public class DonationReceiptData {
 	private final String devoteeName;
 	private final String phoneNumber;
 	private final String address;
+	private final String panNumber; // Added PAN
 	private final String rashi;
 	private final String nakshatra;
 	private final LocalDate sevaDate;
@@ -15,13 +16,14 @@ public class DonationReceiptData {
 	private final double donationAmount;
 	private final String paymentMode;
 
-	public DonationReceiptData(int donationReceiptId, String devoteeName, String phoneNumber, String address,
+	public DonationReceiptData(int donationReceiptId, String devoteeName, String phoneNumber, String address, String panNumber,
 	                           String rashi, String nakshatra, LocalDate sevaDate, String donationName,
 	                           double donationAmount, String paymentMode) {
 		this.donationReceiptId = donationReceiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
 		this.address = address;
+		this.panNumber = panNumber; // Set PAN
 		this.rashi = rashi;
 		this.nakshatra = nakshatra;
 		this.sevaDate = sevaDate;
@@ -35,6 +37,7 @@ public class DonationReceiptData {
 	public String getDevoteeName() { return devoteeName; }
 	public String getPhoneNumber() { return phoneNumber; }
 	public String getAddress() { return address; }
+	public String getPanNumber() { return panNumber; } // Add PAN getter
 	public String getRashi() { return rashi; }
 	public String getNakshatra() { return nakshatra; }
 	public LocalDate getSevaDate() { return sevaDate; }

@@ -111,7 +111,7 @@
                                           <RadioButton fx:id="onlineRadio" styleClass="radio-button" text="💳 ಆನ್ಲೈನ್" toggleGroup="$paymentGroup" />
                                       </HBox>
                         <Label layoutX="25.0" layoutY="517.0" styleClass="form-label" text="PAN ಮಾಹಿತಿ:" GridPane.rowIndex="7" />
-                        <TextField fx:id="devoteeNameField1" layoutX="167.0" layoutY="10.0" promptText="PAN ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                        <TextField fx:id="panNumberField" layoutX="167.0" layoutY="10.0" promptText="PAN ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" styleClass="form-input" GridPane.columnIndex="1" GridPane.rowIndex="7" />
                                       <rowConstraints>
                                           <RowConstraints />
                                           <RowConstraints />
