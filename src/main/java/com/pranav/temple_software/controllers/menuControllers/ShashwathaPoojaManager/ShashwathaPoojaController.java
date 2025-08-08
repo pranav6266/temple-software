@@ -43,6 +43,10 @@ public class ShashwathaPoojaController {
 		receiptDatePicker.setValue(LocalDate.now());
 		populateRashiComboBox();
 		setupRashiNakshatraListener();
+		devoteeNameField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
 	}
 
 	@FXML
