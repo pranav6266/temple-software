@@ -27,8 +27,7 @@ public class DatabaseManager {
 			// Create tables with PAN column included from the start
 			createTablesWithPanColumn();
 
-			// Initialize credentials
-			initializeCredentials();
+
 
 		} catch (Exception e) {
 			System.err.println("❌ Error initializing database: " + e.getMessage());
@@ -48,6 +47,7 @@ public class DatabaseManager {
 			createShashwathaPoojaTableIfNotExists(conn);
 			createCredentialsTableIfNotExists(conn);
 
+
 		} catch (SQLException e) {
 			System.err.println("❌ Error creating tables: " + e.getMessage());
 			e.printStackTrace();
@@ -60,6 +60,8 @@ public class DatabaseManager {
 				"credential_value TEXT NOT NULL)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
+			// Initialize credentials
+			initializeCredentials();
 			System.out.println("✅ Credentials table checked/created successfully.");
 		} catch (SQLException e) {
 			System.err.println("❌ Error creating Credentials table: " + e.getMessage());
@@ -119,19 +121,19 @@ public class DatabaseManager {
 					try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
 						// Default passwords (you should change these)
 						pstmt.setString(1, "NORMAL_PASSWORD");
-						pstmt.setString(2, "$2a$12$xKvn8qF5rYTK4YQHxkp9Q.RgWTzR8w7fZJ8nKQxQzPJd6wJcV/k6."); // "password"
+						pstmt.setString(2, "$2a$12$mKDI7SvSR3xVxoOgE6BRu.kNVPpc9jAThhtmgVP66tzcUVZO811k."); // "password"
 						pstmt.executeUpdate();
 
 						pstmt.setString(1, "SPECIAL_PASSWORD");
-						pstmt.setString(2, "$2a$12$xKvn8qF5rYTK4YQHxkp9Q.RgWTzR8w7fZJ8nKQxQzPJd6wJcV/k6."); // "password"
+						pstmt.setString(2, "$2a$12$Z2qx6uSzEIvkmI21GuY02uIFZHnUeDf/d.xAPHvm0H3IA2EEqfK/O"); // "password"
 						pstmt.executeUpdate();
 
 						pstmt.setString(1, "ADMIN_USERNAME");
-						pstmt.setString(2, "admin");
+						pstmt.setString(2, "Pranav");
 						pstmt.executeUpdate();
 
 						pstmt.setString(1, "ADMIN_PASSWORD");
-						pstmt.setString(2, "$2a$12$xKvn8qF5rYTK4YQHxkp9Q.RgWTzR8w7fZJ8nKQxQzPJd6wJcV/k6."); // "password"
+						pstmt.setString(2, "$2a$12$KJgaWpl8PHvOWBd1Nw7yI.je6qqWBZ1ZKRtPF.vCASqbVdEmPfPlO"); // "password"
 						pstmt.executeUpdate();
 
 						System.out.println("✅ Default credentials initialized.");

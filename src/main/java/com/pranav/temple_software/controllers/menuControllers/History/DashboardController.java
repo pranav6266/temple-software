@@ -131,6 +131,8 @@ public class DashboardController {
 					case "SEVA" -> "ಸೇವೆ";
 					case "OTHERS" -> "ಇತರೆ";
 					case "DONATION" -> "ದೇಣಿಗೆ";
+					case "VISHESHA_POOJA" -> "ವಿಶೇಷ ಪೂಜೆ";
+					case "SHASHWATHA_POOJA" -> "ಶಾಶ್ವತ ಪೂಜೆ";
 					default -> cellData.getValue().getItemType();
 				}
 		));
