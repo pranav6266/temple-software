@@ -6,6 +6,7 @@ import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.OthersRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
+import com.pranav.temple_software.repositories.VisheshaPoojeRepository;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -47,7 +48,7 @@ public class FilterPopupController {
 	private void setupComboBoxes() {
 		// Type ComboBox
 		typeComboBox.setItems(FXCollections.observableArrayList(
-				"ಎಲ್ಲಾ", "ಸೇವೆ", "ಇತರೆ ಸೇವೆ", "ದೇಣಿಗೆ"
+				"ಎಲ್ಲಾ", "ಸೇವೆ", "ಇತರೆ ಸೇವೆ", "ದೇಣಿಗೆ", "ವಸ್ತು ದೇಣಿಗೆ", "ಶಾಶ್ವತ ಪೂಜೆ", "ವಿಶೇಷ ಪೂಜೆ"
 		));
 		typeComboBox.setValue("ಎಲ್ಲಾ");
 
@@ -193,36 +194,38 @@ public class FilterPopupController {
 
 		switch (selectedType) {
 			case "ಸೇವೆ":
-				// Get all regular sevas from SevaRepository
 				List<Seva> sevaEntries = SevaRepository.getInstance().getAllSevas();
-				items.addAll(sevaEntries.stream()
-						.map(Seva::getName)
-						.toList());
+				items.addAll(sevaEntries.stream().map(Seva::getName).toList());
 				break;
 
 			case "ಇತರೆ ಸೇವೆ":
-				// Get all other sevas from OthersRepository
 				List<SevaEntry> otherSevaEntries = OthersRepository.getAllOthers();
-				items.addAll(otherSevaEntries.stream()
-						.map(SevaEntry::getName)
-						.toList());
+				items.addAll(otherSevaEntries.stream().map(SevaEntry::getName).toList());
 				break;
 
 			case "ದೇಣಿಗೆ":
-				// Get all donations from DonationRepository
 				List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
-				items.addAll(donationEntries.stream()
-						.map(Donations::getName)
-						.toList());
+				items.addAll(donationEntries.stream().map(Donations::getName).toList());
+				break;
+
+			case "ವಸ್ತು ದೇಣಿಗೆ":
+				items.add("ವಸ್ತು ದೇಣಿಗೆ");
+				break;
+
+			case "ಶಾಶ್ವತ ಪೂಜೆ":
+				items.add("ಶಾಶ್ವತ ಪೂಜೆ");
+				break;
+
+			case "ವಿಶೇಷ ಪೂಜೆ":
+				List<SevaEntry> visheshaPoojaEntries = VisheshaPoojeRepository.getAllVisheshaPooje();
+				items.addAll(visheshaPoojaEntries.stream().map(SevaEntry::getName).toList());
 				break;
 
 			case "ಎಲ್ಲಾ":
 			default:
-				// For "All" option, keep only the default "ಎಲ್ಲಾ" option
 				break;
 		}
 
-		// Update the combo box items
 		itemComboBox.setItems(FXCollections.observableArrayList(items));
 		itemComboBox.setValue("ಎಲ್ಲಾ");
 	}

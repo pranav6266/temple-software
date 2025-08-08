@@ -913,8 +913,7 @@ public class ReceiptPrinter {
 
 			// Item description
 			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
-			escpos.writeLF("ವಸ್ತು ವಿವರಣೆ:");
-			escpos.writeLF(data.getItemDescription());
+			escpos.writeLF("ವಸ್ತು ವಿವರಣೆ: " + data.getItemDescription());
 			escpos.writeLF(repeatChar("-", THERMAL_PAPER_WIDTH));
 			escpos.feed(2);
 

@@ -4,6 +4,7 @@ package com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaMa
 import com.pranav.temple_software.models.ShashwathaPoojaReceipt;
 import com.pranav.temple_software.repositories.ShashwathaPoojaRepository;
 import com.pranav.temple_software.utils.ReceiptPrinter;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -64,23 +65,51 @@ public class ShashwathaPoojaController {
 		boolean success = repository.saveShashwathaPooja(newReceipt);
 
 		if (success) {
-			showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja saved successfully! Opening print preview...");
-
 			// Re-fetch from DB to get the auto-generated ID for the receipt
 			List<ShashwathaPoojaReceipt> latest = repository.getAllShashwathaPoojaReceipts();
 			if (!latest.isEmpty()) {
+				ShashwathaPoojaReceipt savedReceipt = latest.get(0); // First item is latest
+
+				// Check if receiptPrinter is null and handle appropriately
 				if (receiptPrinter != null) {
 					Consumer<Boolean> onPrintComplete = (printSuccess) -> {
 						if (printSuccess) {
-							System.out.println("Shashwatha Pooja receipt printed.");
+							Platform.runLater(() -> {
+								showAlert(Alert.AlertType.INFORMATION, "Success",
+										"Shashwatha Pooja receipt printed successfully!");
+								closeWindow();
+							});
 						} else {
-							System.out.println("Shashwatha Pooja receipt printing cancelled or failed.");
+							Platform.runLater(() -> {
+								showAlert(Alert.AlertType.WARNING, "Print Cancelled",
+										"Receipt was saved but printing was cancelled.");
+								closeWindow();
+							});
 						}
 					};
-					receiptPrinter.showShashwathaPoojaPrintPreview(latest.get(0), (Stage) saveButton.getScene().getWindow(), onPrintComplete, null);
+
+					Runnable onDialogClosed = () -> {
+						Platform.runLater(() -> closeWindow());
+					};
+
+					try {
+						Stage ownerStage = (Stage) saveButton.getScene().getWindow();
+						receiptPrinter.showShashwathaPoojaPrintPreview(savedReceipt, ownerStage, onPrintComplete, onDialogClosed);
+					} catch (Exception e) {
+						e.printStackTrace();
+						showAlert(Alert.AlertType.ERROR, "Print Error",
+								"Failed to open print preview: " + e.getMessage());
+						closeWindow();
+					}
+				} else {
+					showAlert(Alert.AlertType.ERROR, "Print Error",
+							"Receipt printer is not initialized. Please contact support.");
+					closeWindow();
 				}
+			} else {
+				showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve saved receipt for printing.");
+				closeWindow();
 			}
-			closeWindow();
 		} else {
 			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the Pooja. Please check the logs.");
 		}

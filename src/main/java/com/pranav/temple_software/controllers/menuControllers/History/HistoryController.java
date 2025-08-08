@@ -24,13 +24,15 @@ import java.util.stream.Collectors;
 public class HistoryController {
 	public Label totalRecordsLabel;
 
-	// Enum to manage which view is currently active
+	// Update the enum to include all 4 types
 	private enum HistoryView {
 		SEVA,
 		DONATION,
 		IN_KIND,
 		SHASHWATHA_POOJA
 	}
+
+
 
 	private HistoryView currentView = HistoryView.SEVA;
 
@@ -93,15 +95,27 @@ public class HistoryController {
 		switchToSevaView();
 	}
 
+	// Complete the missing method implementations
 	private void setupShashwathaPoojaTableColumns() {
+		shashwathaReceiptIdColumn.setCellValueFactory(cellData ->
+				new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
+		shashwathaDevoteeNameColumn.setCellValueFactory(cellData ->
+				new SimpleStringProperty(cellData.getValue().getDevoteeName()));
+		shashwathaReceiptDateColumn.setCellValueFactory(cellData ->
+				new SimpleStringProperty(cellData.getValue().getFormattedReceiptDate()));
+		shashwathaPoojaDateColumn.setCellValueFactory(cellData ->
+				new SimpleStringProperty(cellData.getValue().getPoojaDate()));
+		setupShashwathaPoojaDetailsColumn();
 	}
 
+	// Update the toggle method
 	@FXML
 	public void handleToggleView() {
 		switch (currentView) {
 			case SEVA -> switchToDonationView();
 			case DONATION -> switchToInKindDonationView();
-			case IN_KIND -> switchToSevaView();
+			case IN_KIND -> switchToShashwathaPoojaView();
+			case SHASHWATHA_POOJA -> switchToSevaView();
 		}
 	}
 
@@ -126,6 +140,7 @@ public class HistoryController {
 		currentViewLabel.setText("ಶಾಶ್ವತ ಪೂಜೆ ಇತಿಹಾಸ");
 		toggleViewButton.setText("ಸೇವಾ ರಶೀದಿಗಳನ್ನು ನೋಡಿ");
 	}
+
 
 	private void setTableVisibility(boolean seva, boolean donation, boolean inKind, boolean shashwatha) {
 		historyTable.setVisible(seva);

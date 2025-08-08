@@ -259,4 +259,152 @@ public class DashboardRepository {
 
 		return donationNames;
 	}
+
+	public List<DashboardStats> getShashwathaPoojaStatistics(LocalDate fromDate, LocalDate toDate) {
+		List<DashboardStats> stats = new ArrayList<>();
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT 'SHASHWATHA_POOJA' as item_id, 'ಶಾಶ್ವತ ಪೂಜೆ' as item_name, ");
+		sql.append("COUNT(*) as total_count, ");
+		sql.append("0 as cash_count, "); // Shashwatha Pooja doesn't have payment mode
+		sql.append("0 as online_count, ");
+		sql.append("0 as total_amount "); // No amount for Shashwatha Pooja
+		sql.append("FROM ShashwathaPoojaReceipts spr ");
+		sql.append("WHERE 1=1 ");
+
+		List<Object> parameters = new ArrayList<>();
+
+		if (fromDate != null) {
+			sql.append("AND spr.receipt_date >= ? ");
+			parameters.add(Date.valueOf(fromDate));
+		}
+		if (toDate != null) {
+			sql.append("AND spr.receipt_date <= ? ");
+			parameters.add(Date.valueOf(toDate));
+		}
+
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+			for (int i = 0; i < parameters.size(); i++) {
+				pstmt.setObject(i + 1, parameters.get(i));
+			}
+
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				stats.add(new DashboardStats(
+						rs.getString("item_id"),
+						rs.getString("item_name"),
+						"SHASHWATHA_POOJA",
+						rs.getInt("total_count"),
+						rs.getInt("cash_count"),
+						rs.getInt("online_count"),
+						rs.getDouble("total_amount")
+				));
+			}
+		} catch (SQLException e) {
+			System.err.println("Error fetching Shashwatha Pooja statistics: " + e.getMessage());
+		}
+
+		return stats;
+	}
+
+	public List<DashboardStats> getVisheshaPoojaStatistics(LocalDate fromDate, LocalDate toDate,
+	                                                       String paymentMethod, String specificVisheshaPoojaId) {
+		List<DashboardStats> stats = new ArrayList<>();
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT vp.vishesha_pooje_id, vp.vishesha_pooje_name, vp.vishesha_pooje_amount, ");
+		sql.append("COUNT(*) as total_count, ");
+		sql.append("SUM(CASE WHEN r.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
+		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
+		sql.append("SUM(vp.vishesha_pooje_amount) as total_amount ");
+		sql.append("FROM Receipts r ");
+		sql.append("JOIN VisheshaPooje vp ON r.sevas_details LIKE CONCAT('%', vp.vishesha_pooje_name, '%') ");
+		sql.append("WHERE 1=1 ");
+
+		List<Object> parameters = new ArrayList<>();
+
+		if (fromDate != null) {
+			sql.append("AND r.seva_date >= ? ");
+			parameters.add(Date.valueOf(fromDate));
+		}
+		if (toDate != null) {
+			sql.append("AND r.seva_date <= ? ");
+			parameters.add(Date.valueOf(toDate));
+		}
+		if (paymentMethod != null && !paymentMethod.equals("All")) {
+			sql.append("AND r.payment_mode = ? ");
+			parameters.add(paymentMethod);
+		}
+		if (specificVisheshaPoojaId != null && !specificVisheshaPoojaId.isEmpty()) {
+			sql.append("AND vp.vishesha_pooje_id = ? ");
+			parameters.add(specificVisheshaPoojaId);
+		}
+
+		sql.append("GROUP BY vp.vishesha_pooje_id, vp.vishesha_pooje_name, vp.vishesha_pooje_amount ");
+		sql.append("ORDER BY total_count DESC");
+
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+			for (int i = 0; i < parameters.size(); i++) {
+				pstmt.setObject(i + 1, parameters.get(i));
+			}
+
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				stats.add(new DashboardStats(
+						rs.getString("vishesha_pooje_id"),
+						rs.getString("vishesha_pooje_name"),
+						"VISHESHA_POOJA",
+						rs.getInt("total_count"),
+						rs.getInt("cash_count"),
+						rs.getInt("online_count"),
+						rs.getDouble("total_amount")
+				));
+			}
+		} catch (SQLException e) {
+			System.err.println("Error fetching Vishesha Pooja statistics: " + e.getMessage());
+		}
+
+		return stats;
+	}
+
+	public List<String> getAllShashwathaPoojaNames() {
+		List<String> names = new ArrayList<>();
+		String sql = "SELECT DISTINCT 'SHASHWATHA_POOJA:ಶಾಶ್ವತ ಪೂಜೆ' as name_entry FROM ShashwathaPoojaReceipts";
+
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(sql)) {
+
+			while (rs.next()) {
+				names.add(rs.getString("name_entry"));
+			}
+		} catch (SQLException e) {
+			System.err.println("Error fetching Shashwatha Pooja names: " + e.getMessage());
+		}
+
+		return names;
+	}
+
+	public List<String> getAllVisheshaPoojaNames() {
+		List<String> names = new ArrayList<>();
+		String sql = "SELECT vishesha_pooje_id, vishesha_pooje_name FROM VisheshaPooje ORDER BY display_order";
+
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(sql)) {
+
+			while (rs.next()) {
+				names.add(rs.getString("vishesha_pooje_id") + ":" + rs.getString("vishesha_pooje_name"));
+			}
+		} catch (SQLException e) {
+			System.err.println("Error fetching Vishesha Pooja names: " + e.getMessage());
+		}
+
+		return names;
+	}
+
 }
