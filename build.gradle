@@ -3,7 +3,7 @@ plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.1.0'
     // Plugin to simplify creating native installers
-    id("org.beryx.jlink") version "3.1.1"
+    id 'org.beryx.jlink' version '3.0.1'
 }
 
 group = 'com.pranav'
@@ -11,19 +11,18 @@ version = '1.0.0'
 
 repositories {
     mavenCentral()
-    gradlePluginPortal()
 }
 
 java {
-    sourceCompatibility = 23
-    targetCompatibility = 23
+    // It's good practice to define the toolchain for consistency
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
 }
-
-
 
 javafx {
     version = "21"
-    modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics','javafx.swing']
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.swing']
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -31,39 +30,45 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 dependencies {
-    implementation 'org.openjfx:javafx-swing:21.0.2'
-    implementation 'org.apache.pdfbox:pdfbox:2.0.27'
+    // Your dependencies are correct
+    implementation 'org.apache.pdfbox:pdfbox:3.0.0' // Using a slightly newer version
     implementation 'com.h2database:h2:2.2.224'
-    implementation 'org.xerial:sqlite-jdbc:3.46.0.0'
+    // https://mvnrepository.com/artifact/com.github.anastaciocintra/escpos-coffee
     implementation 'com.github.anastaciocintra:escpos-coffee:4.1.0'
+    implementation 'org.slf4j:slf4j-jdk14:2.0.9'
 }
 
 application {
+    // This tells the application plugin where your main method is
     mainClass = 'com.pranav.temple_software.Main'
 }
 
 // Configuration for the jpackage native installer
 jlink {
-    // This line explicitly sets the module path for jlink and jpackage
-    addOptions('--module-path', configurations.runtimeClasspath.asPath)
-
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
-    launcher {
-        name = 'TempleSoftware'
-    }
     jpackage {
-        imageName = 'TempleSoftware'
+        // The plugin will automatically use the mainClass from the 'application' block
+        // and find the application JAR from the 'jar' task.
+
+        moduleName = 'com.pranav.temple_software'
+        imageName = 'TempleSoftwareApp' // Name for the application image folder
+        applicationName = 'Temple Software'     // Name that appears to the user
         appVersion = project.version
         vendor = 'Pranav'
 
+        imageOptions = [
+                '--java-options', '-Djava.util.logging.config.file=app/logging.properties'
+        ]
+
+        // Set the installer type directly
+        installerType = 'msi' // Creates a .msi file
+
+        // Options specific to Windows installers
         installerOptions = [
                 '--copyright', 'Copyright © 2025 Pranav',
                 '--win-menu',
                 '--win-shortcut',
-                '--win-upgrade-uuid', 'a2e1852b-12d4-4b9a-99de-93c8a415f7f3',
+                '--win-upgrade-uuid', 'a2e1852b-12d4-4b9a-99de-93c8a415f7f3', // Unique ID for your app
                 '--win-per-user-install'
         ]
-
-        installerType = 'msi'
     }
 }
