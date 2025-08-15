@@ -1,4 +1,5 @@
 package com.pranav.temple_software.services;
+
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.SevaEntry;
@@ -8,6 +9,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextFormatter;
 
 import java.time.LocalDate;
@@ -17,9 +19,65 @@ import java.util.Optional;
 public class ValidationServices {
 	MainController controller;
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
+	private double devoteeDailyCashTotal = 0.0;
 
 	public ValidationServices(MainController controller) {
 		this.controller = controller;
+	}
+
+	/**
+	 * The main method to check and enforce the daily cash limit.
+	 * It considers both the current cart total and any previous transactions by the devotee.
+	 */
+	public void checkAndEnforceCashLimit() {
+		double currentCartTotal = controller.selectedSevas.stream()
+				.mapToDouble(SevaEntry::getTotalAmount)
+				.sum();
+
+		double grandTotal = devoteeDailyCashTotal + currentCartTotal;
+
+		// Rule 1: Disable cash if the combined total exceeds 2000
+		if (grandTotal > 2000.0) {
+			if (!controller.onlineRadio.isSelected()) {
+				Platform.runLater(() -> {
+					controller.cashRadio.setSelected(false);
+					controller.onlineRadio.setSelected(true);
+					showAlert("Cash Limit Exceeded",
+							String.format("Today's cash total for this devotee (₹%.2f) plus the current cart total (₹%.2f) exceeds ₹2000.\nPayment must be made online.",
+									devoteeDailyCashTotal, currentCartTotal));
+				});
+			}
+			controller.cashRadio.setDisable(true);
+		} else {
+			// Re-enable the cash option if the total is within the limit
+			controller.cashRadio.setDisable(false);
+		}
+	}
+
+	/**
+	 * Fetches the devotee's past cash transactions for today and triggers the limit check.
+	 * Called when the phone number field loses focus.
+	 */
+	private void fetchPastTransactionsAndValidate() {
+		String phoneNumber = controller.contactField.getText();
+		if (phoneNumber != null && phoneNumber.length() == 10) {
+			// Fetch today's cash total from the database
+			this.devoteeDailyCashTotal = devoteeRepository.getTodaysCashTotalByPhone(phoneNumber);
+			// Run the validation check
+			checkAndEnforceCashLimit();
+		} else {
+			// If the phone number is cleared or invalid, reset the daily total
+			this.devoteeDailyCashTotal = 0.0;
+			checkAndEnforceCashLimit();
+		}
+	}
+
+	private void showAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 
 	public void setupPhoneValidation() {
@@ -34,22 +92,21 @@ public class ValidationServices {
 			}
 		});
 
-		// **MODIFIED: Add focus listener to trigger auto-fill**
 		controller.contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (!newVal) { // When focus is lost
 				String phoneNumber = controller.contactField.getText();
-				// Proceed only if it's a valid 10-digit number
 				if (phoneNumber != null && phoneNumber.length() == 10) {
-					// Search for devotee details in the database
+					// This now handles both auto-fill and cash limit validation
 					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
-					// If details are found, populate the form
 					detailsOpt.ifPresent(details -> {
-						// Use Platform.runLater to ensure UI updates happen on the JavaFX Application Thread
 						Platform.runLater(() -> controller.populateDevoteeDetails(details));
 					});
+					fetchPastTransactionsAndValidate(); // <-- ADD THIS LINE
 				} else if (phoneNumber != null && !phoneNumber.isEmpty()) {
-					// Show validation alert if the number is incomplete
 					validatePhoneNumber();
+				} else {
+					// If phone number is cleared, reset and re-validate
+					fetchPastTransactionsAndValidate();
 				}
 			}
 		});
@@ -76,7 +133,6 @@ public class ValidationServices {
 				controller.panNumberField.setText(upperCase);
 			}
 		});
-
 		// Validate PAN format when focus is lost
 		controller.panNumberField.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (!newVal) { // When focus is lost
@@ -136,7 +192,6 @@ public class ValidationServices {
 						controller.onlineRadio.setSelected(false);
 					}
 				});
-
 		controller.onlineRadio.selectedProperty().addListener(
 				(observable, oldValue, newValue) -> {
 					if (newValue) {
@@ -186,6 +241,11 @@ public class ValidationServices {
 								.sum(),
 				controller.selectedSevas
 		);
+
+		// Add a listener to the binding that will trigger our cash validation
+		totalBinding.addListener((obs, oldVal, newVal) -> {
+			checkAndEnforceCashLimit();
+		});
 
 		// Update total label with currency format
 		controller.totalLabel.textProperty().bind(Bindings.createStringBinding(() ->

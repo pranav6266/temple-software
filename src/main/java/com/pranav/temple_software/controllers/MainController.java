@@ -155,7 +155,6 @@ public class MainController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-
 		panNumberField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
 			return change;
@@ -255,7 +254,6 @@ public class MainController {
 			shashwathaStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ಸೇರಿಸಿ");
 			Scene scene = new Scene(loader.load());
 			shashwathaStage.setScene(scene);
-
 			// Pass the receipt printer instance to the new controller
 			ShashwathaPoojaController controller = loader.getController();
 			controller.setReceiptPrinter(this.receiptPrinter);
@@ -277,6 +275,21 @@ public class MainController {
 			return; // Don't proceed if PAN validation fails
 		}
 
+		// *** NEW: Add final cash limit validation before printing ***
+		double totalAmount = selectedSevas.stream()
+				.mapToDouble(SevaEntry::getTotalAmount)
+				.sum();
+
+		if (cashRadio.isSelected() && totalAmount > 2000.0) {
+			showAlert("Invalid Payment Method",
+					"Cash payment is not allowed for transactions over ₹2000.\n" +
+							"Please select the 'Online' payment method to proceed.");
+			// Force the selection to Online as a helpful measure
+			onlineRadio.setSelected(true);
+			return; // Stop the process
+		}
+		// *** END of new validation ***
+
 		long pendingCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
 				.count();
@@ -286,6 +299,7 @@ public class MainController {
 		long successCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.count();
+
 		if (pendingCount > 0 || failedCount > 0) {
 			// Directly proceed to the print/preview process for pending or failed items
 			if (failedCount > 0 && pendingCount == 0) {
@@ -295,7 +309,7 @@ public class MainController {
 			}
 		} else if (successCount > 0) {
 			receiptServices.handleClearSuccessful();
-		} else{
+		} else {
 			Platform.runLater(() -> devoteeNameField.requestFocus());
 			showAlert("Add Items", "Please add seva items to the table to proceed.");
 		}
@@ -309,7 +323,6 @@ public class MainController {
 		double totalAmount = selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
 				.sum();
-
 		if (totalAmount > 2000.0) {
 			String panNumber = panNumberField.getText();
 			if (panNumber == null || panNumber.trim().isEmpty()) {
@@ -592,7 +605,6 @@ public class MainController {
 	public Donation donation = new Donation(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
-
 	public void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
 		alert.setTitle(title);
@@ -748,7 +760,8 @@ public class MainController {
 		if (details == null) return;
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
 		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
-		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : ""); // Set PAN
+		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : "");
+		// Set PAN
 		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
 			raashiComboBox.setValue(details.getRashi());
 		} else {
