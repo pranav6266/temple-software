@@ -9,9 +9,16 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -276,6 +283,61 @@ public class DashboardController {
 		generateReport();
 	}
 
+	@FXML
+	private void handleExportToExcel() {
+		// 1. Get the data from the TableView
+		List<DashboardStats> data = dashboardTable.getItems();
+
+		if (data.isEmpty()) {
+			showAlert("No Data", "There is no data to export.");
+			return;
+		}
+
+		// 2. Prompt user for save location
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Save Excel File");
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+		File file = fileChooser.showSaveDialog(dashboardTable.getScene().getWindow());
+
+		if (file != null) {
+			// 3. Create the Excel workbook and sheet
+			try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+				org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Dashboard Report");
+
+				// 4. Create Header Row
+				org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+				String[] headers = {"Item Name", "Item Type", "Total Count", "Cash Count", "Online Count", "Total Amount"};
+				for (int i = 0; i < headers.length; i++) {
+					// Use the fully qualified name for the POI Cell
+					org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+					cell.setCellValue(headers[i]);
+				}
+
+				// 5. Write Data Rows
+				int rowNum = 1;
+				for (DashboardStats stats : data) {
+					org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+					row.createCell(0).setCellValue(stats.getItemName());
+					row.createCell(1).setCellValue(stats.getItemType());
+					row.createCell(2).setCellValue(stats.getTotalCount());
+					row.createCell(3).setCellValue(stats.getCashCount());
+					row.createCell(4).setCellValue(stats.getOnlineCount());
+					row.createCell(5).setCellValue(stats.getTotalAmount());
+				}
+
+				// 6. Write to File
+				try (FileOutputStream fileOut = new FileOutputStream(file)) {
+					workbook.write(fileOut);
+				}
+
+				showAlert("Success", "Data exported successfully to " + file.getName());
+
+			} catch (IOException e) {
+				showAlert("Error", "Failed to write the Excel file: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
 
 	public void closeWindow() {
 		Stage stage = (Stage) dashboardTable.getScene().getWindow();

@@ -78,7 +78,7 @@
                 <Insets bottom="20.0" left="20.0" right="20.0" top="15.0" />
             </padding>
 
-            <Button onAction="#applyFilters" styleClass="primary-button" text="ಅನ್ವಯಿಸಿ">
+            <Button onAction="#applyFilters" styleClass="secondary-button" text="ಅನ್ವಯಿಸಿ">
                 <font>
                     <Font size="14.0" />
                 </font>

@@ -13,9 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" prefHeight="760.0" prefWidth="1360.0" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController"
-            stylesheets="@../../../css/modern-dashboard.css">
+<BorderPane prefHeight="760.0" prefWidth="1360.0" stylesheets="@../../../css/modern-dashboard.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController">
     <top>
         <VBox styleClass="header-section">
             <HBox alignment="CENTER" styleClass="title-bar">
@@ -31,13 +29,18 @@
                     <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
                 </padding>
 
-                <Button onAction="#openFilterWindow" styleClass="secondary-button" text="ಫಿಲ್ಟರ್ ಆಯ್ಕೆಗಳು">
+                <Button fx:id="clearFiltersButton" onAction="#clearAllFilters" styleClass="secondary-button" text="ಫಿಲ್ಟರ್ ತೆರವುಮಾಡಿ">
                     <font>
                         <Font size="14.0" />
                     </font>
                 </Button>
+            <Button layoutX="30.0" layoutY="46.0" onAction="#openFilterWindow" styleClass="secondary-button" text="ಫಿಲ್ಟರ್ ಆಯ್ಕೆಗಳು">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
 
-                <Button fx:id="clearFiltersButton" onAction="#clearAllFilters" styleClass="secondary-button" text="ಫಿಲ್ಟರ್ ತೆರವುಮಾಡಿ">
+                <Button onAction="#handleExportToExcel" styleClass="secondary-button" text="Export To Excel">
                     <font>
                         <Font size="14.0" />
                     </font>
