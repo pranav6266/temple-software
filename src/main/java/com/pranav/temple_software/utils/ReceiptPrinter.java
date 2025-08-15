@@ -1,3 +1,4 @@
+// FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
 package com.pranav.temple_software.utils;
 
 import com.pranav.temple_software.controllers.MainController;
@@ -21,6 +22,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -40,7 +43,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ReceiptPrinter {
@@ -55,15 +57,6 @@ public class ReceiptPrinter {
 		this.controller = controller;
 	}
 
-	/**
-	 * NEW: This is the default printing method. It opens the print dialog and prints the
-	 * receipt using the printer's own default settings for paper, margins, and orientation.
-	 * It does NOT apply any scaling or transformations.
-	 *
-	 * @param nodeToPrint  The JavaFX node to be printed.
-	 * @param ownerStage   The parent window for the print dialog.
-	 * @param onPrintComplete A callback to report success or failure.
-	 */
 	public void printNode(Node nodeToPrint, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
 		PrinterJob job = PrinterJob.createPrinterJob();
 		if (job == null) {
@@ -73,7 +66,6 @@ public class ReceiptPrinter {
 		}
 
 		if (job.showPrintDialog(ownerStage)) {
-			// Use the printer's default page layout
 			PageLayout pageLayout = job.getPrinter().getDefaultPageLayout();
 
 			boolean printed = job.printPage(pageLayout, nodeToPrint);
@@ -86,28 +78,23 @@ public class ReceiptPrinter {
 				onPrintComplete.accept(false);
 			}
 		} else {
-			// User cancelled the print dialog
 			job.cancelJob();
 			onPrintComplete.accept(false);
 		}
 	}
 
 
-	// All other methods remain, but the preview methods now call the new printNode method.
-
 	public void showPrintPreview(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
 		previewStage.setTitle("Print Preview");
-
 		Node receiptNode = createReceiptNode(data);
 
 		VBox previewContainer = new VBox(receiptNode);
 		previewContainer.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		previewContainer.setMaxWidth(RECEIPT_WIDTH_POINTS);
 		previewContainer.setStyle("-fx-border-color: #cccccc; -fx-border-width: 1; -fx-background-color: white;");
-
 		double scaleFactor = 1.3;
 		previewContainer.setScaleX(scaleFactor);
 		previewContainer.setScaleY(scaleFactor);
@@ -121,9 +108,8 @@ public class ReceiptPrinter {
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
 
-		Button printButton = new Button("Print"); // Changed text
+		Button printButton = new Button("Print");
 		printButton.setOnAction(e -> {
-			// Call the new default print method
 			printNode(receiptNode, previewStage, success -> {
 				if (onPrintComplete != null) {
 					Platform.runLater(() -> onPrintComplete.accept(success));
@@ -131,7 +117,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button savePdfButton = new Button("Save as PDF");
 		savePdfButton.setOnAction(e -> {
 			saveSevaReceiptAsPdf(data, success -> {
@@ -141,7 +126,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
 
@@ -150,7 +134,6 @@ public class ReceiptPrinter {
 				onDialogClosed.run();
 			}
 		});
-
 		HBox buttonBox = new HBox(10, printButton, savePdfButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
@@ -182,14 +165,13 @@ public class ReceiptPrinter {
 
 		Group scaledContainer = new Group(previewContainer);
 		scaledContainer.setAutoSizeChildren(true);
-
 		ScrollPane scrollPane = new ScrollPane(scaledContainer);
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
 
-		Button printButton = new Button("Print"); // Changed text
+		Button printButton = new Button("Print");
 		printButton.setOnAction(e -> {
 			printNode(receiptNode, previewStage, success -> {
 				if (onPrintComplete != null) {
@@ -198,7 +180,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button savePdfButton = new Button("Save as PDF");
 		savePdfButton.setOnAction(e -> {
 			saveDonationReceiptAsPdf(data, success -> {
@@ -208,7 +189,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
 
@@ -217,7 +197,6 @@ public class ReceiptPrinter {
 				onDialogClosed.run();
 			}
 		});
-
 		HBox buttonBox = new HBox(10, printButton, savePdfButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
@@ -248,14 +227,13 @@ public class ReceiptPrinter {
 
 		Group scaledContainer = new Group(previewContainer);
 		scaledContainer.setAutoSizeChildren(true);
-
 		ScrollPane scrollPane = new ScrollPane(scaledContainer);
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
 
-		Button printButton = new Button("Print"); // Changed text
+		Button printButton = new Button("Print");
 		printButton.setOnAction(e -> {
 			printNode(receiptNode, previewStage, success -> {
 				if (onPrintComplete != null) {
@@ -264,7 +242,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button savePdfButton = new Button("Save as PDF");
 		savePdfButton.setOnAction(e -> {
 			saveShashwathaPoojaReceiptAsPdf(data, success -> {
@@ -274,7 +251,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
 
@@ -313,14 +289,13 @@ public class ReceiptPrinter {
 		previewContainer.setScaleY(scaleFactor);
 		Group scaledContainer = new Group(previewContainer);
 		scaledContainer.setAutoSizeChildren(true);
-
 		ScrollPane scrollPane = new ScrollPane(scaledContainer);
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
 		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
 		scrollPane.setPrefViewportHeight(450);
 
-		Button printButton = new Button("Print"); // Changed text
+		Button printButton = new Button("Print");
 		printButton.setOnAction(e -> {
 			printNode(receiptNode, previewStage, success -> {
 				if (onPrintComplete != null) {
@@ -329,7 +304,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button savePdfButton = new Button("Save as PDF");
 		savePdfButton.setOnAction(e -> {
 			saveInKindDonationReceiptAsPdf(data, success -> {
@@ -339,7 +313,6 @@ public class ReceiptPrinter {
 			});
 			previewStage.close();
 		});
-
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
 
@@ -348,7 +321,6 @@ public class ReceiptPrinter {
 				onDialogClosed.run();
 			}
 		});
-
 		HBox buttonBox = new HBox(10, printButton, savePdfButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
@@ -360,8 +332,6 @@ public class ReceiptPrinter {
 		previewStage.show();
 	}
 
-	// ... The rest of your file (save...AsPdf, create...Node, showAlert methods) remains unchanged ...
-	// Make sure to include all of them below this point.
 	private void saveNodeAsPdf(Node nodeToSave, File outputFile, Consumer<Boolean> onSaveComplete) {
 		try {
 			if (nodeToSave.getScene() == null) {
@@ -496,9 +466,12 @@ public class ReceiptPrinter {
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 
+		Text asteriskLine = new Text("****************************************");
+		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
+		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
+
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
-		templeName.setFont(Font.font("Noto Sans Kannada", 12));
-		templeName.setStyle("-fx-font-weight: bold;");
+		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
 		VBox heading = new VBox(templeName);
 		heading.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(heading);
@@ -512,25 +485,32 @@ public class ReceiptPrinter {
 		);
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
-		receiptBox.getChildren().add(new Text(""));
+		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
 
+		receiptBox.getChildren().add(new Text(""));
 		Text receiptTitle = new Text("ಸೇವಾ ರಶೀದಿ");
-		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
-		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
+		receiptTitle.setUnderline(true);
 		VBox titleBox = new VBox(receiptTitle);
 		titleBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(titleBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().addAll(
-				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()),
-				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
-				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
-				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
-		);
+		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()));
+		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
+
+		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+		}
+		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+		}
+		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+		}
+
+		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
 		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
@@ -538,15 +518,18 @@ public class ReceiptPrinter {
 		HBox headerRow = new HBox();
 		headerRow.setPadding(new Insets(2, 0, 2, 0));
 		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
-		sevaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 9px;");
+		sevaLabel.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9));
 		HBox.setHgrow(sevaLabel, Priority.ALWAYS);
 		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
-		pramanaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 9px; -fx-alignment: center;");
+		pramanaLabel.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9));
 		pramanaLabel.setPrefWidth(40);
+		pramanaLabel.setAlignment(Pos.CENTER);
+
 
 		Label mottaLabel = new Label("ಮೊತ್ತ");
-		mottaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 9px; -fx-alignment: center-right;");
+		mottaLabel.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9));
 		mottaLabel.setPrefWidth(55);
+		mottaLabel.setAlignment(Pos.CENTER_RIGHT);
 
 		headerRow.getChildren().addAll(sevaLabel, pramanaLabel, mottaLabel);
 		receiptBox.getChildren().add(headerRow);
@@ -560,7 +543,6 @@ public class ReceiptPrinter {
 			Label qty = new Label(String.valueOf(seva.getQuantity()));
 			qty.setStyle("-fx-font-size: 9px; -fx-alignment: center;");
 			qty.setPrefWidth(40);
-
 			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
 			total.setStyle("-fx-font-size: 9px; -fx-alignment: center-right;");
 			total.setPrefWidth(55);
@@ -571,16 +553,14 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		receiptBox.getChildren().add(new Text(""));
 		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
-		totalText.setFont(Font.font("Noto Sans Kannada", 11));
-		totalText.setStyle("-fx-font-weight: bold;");
+		totalText.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 11));
 		HBox totalBox = new HBox(totalText);
 		totalBox.setAlignment(Pos.CENTER_RIGHT);
 		receiptBox.getChildren().add(totalBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
-		blessing.setFont(Font.font("Noto Sans Kannada", 10));
-		blessing.setStyle("-fx-font-style: italic;");
+		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
 		VBox blessingBox = new VBox(blessing);
 		blessingBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(blessingBox);
@@ -594,9 +574,12 @@ public class ReceiptPrinter {
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 
+		Text asteriskLine = new Text("****************************************");
+		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
+		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
+
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
-		templeName.setFont(Font.font("Noto Sans Kannada", 12));
-		templeName.setStyle("-fx-font-weight: bold;");
+		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
 		VBox heading = new VBox(templeName);
 		heading.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(heading);
@@ -610,24 +593,32 @@ public class ReceiptPrinter {
 		);
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
+
 		receiptBox.getChildren().add(new Text(""));
 		Text receiptTitle = new Text("ದೇಣಿಗೆ ರಶೀದಿ");
-		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
-		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
+		receiptTitle.setUnderline(true);
 		VBox titleBox = new VBox(receiptTitle);
 		titleBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(titleBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().addAll(
-				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId()),
-				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
-				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
-				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
-		);
+		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId()));
+		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
+
+		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+		}
+		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+		}
+		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+		}
+
+		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
 		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
@@ -638,13 +629,12 @@ public class ReceiptPrinter {
 				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode()),
 				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount()))
 		);
-		donationDetailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		donationDetailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9)));
 		receiptBox.getChildren().add(donationDetailsVBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
-		blessing.setFont(Font.font("Noto Sans Kannada", 10));
-		blessing.setStyle("-fx-font-style: italic;");
+		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
 		VBox blessingBox = new VBox(blessing);
 		blessingBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(blessingBox);
@@ -658,9 +648,12 @@ public class ReceiptPrinter {
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 
+		Text asteriskLine = new Text("****************************************");
+		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
+		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
+
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
-		templeName.setFont(Font.font("Noto Sans Kannada", 12));
-		templeName.setStyle("-fx-font-weight: bold;");
+		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
 		VBox heading = new VBox(templeName);
 		heading.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(heading);
@@ -674,32 +667,39 @@ public class ReceiptPrinter {
 		);
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
+
 		receiptBox.getChildren().add(new Text(""));
 		Text receiptTitle = new Text("ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ");
-		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
-		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
+		receiptTitle.setUnderline(true);
 		VBox titleBox = new VBox(receiptTitle);
 		titleBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(titleBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().addAll(
-				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()),
-				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
-				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
-				new Text("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate()),
-				new Text("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ: " + data.getPoojaDate())
-		);
+		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()));
+		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
+
+		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+		}
+		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+		}
+		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+		}
+
+		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate()));
+		detailsVBox.getChildren().add(new Text("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ: " + data.getPoojaDate()));
 		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
-		blessing.setFont(Font.font("Noto Sans Kannada", 10));
-		blessing.setStyle("-fx-font-style: italic;");
+		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
 		VBox blessingBox = new VBox(blessing);
 		blessingBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(blessingBox);
@@ -713,9 +713,12 @@ public class ReceiptPrinter {
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
 
+		Text asteriskLine = new Text("****************************************");
+		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
+		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
+
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
-		templeName.setFont(Font.font("Noto Sans Kannada", 12));
-		templeName.setStyle("-fx-font-weight: bold;");
+		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
 		VBox heading = new VBox(templeName);
 		heading.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(heading);
@@ -729,24 +732,32 @@ public class ReceiptPrinter {
 		);
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
+
 		receiptBox.getChildren().add(new Text(""));
 		Text receiptTitle = new Text("ವಸ್ತು ದೇಣಿಗೆ ರಶೀದಿ");
-		receiptTitle.setFont(Font.font("Noto Sans Kannada", 10));
-		receiptTitle.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
+		receiptTitle.setUnderline(true);
 		VBox titleBox = new VBox(receiptTitle);
 		titleBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(titleBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().addAll(
-				new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId()),
-				new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())),
-				new Text("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber())),
-				new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---")),
-				new Text("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !Objects.equals(data.getRashi(), "ಆಯ್ಕೆ") ? data.getRashi() : "---")),
-				new Text("ದಿನಾಂಕ: " + data.getFormattedDate())
-		);
+		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId()));
+		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
+
+		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+		}
+		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+		}
+		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
+			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+		}
+
+		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
 		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
@@ -760,8 +771,7 @@ public class ReceiptPrinter {
 
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		Text itemHeader = new Text("ವಸ್ತು ವಿವರಣೆ:");
-		itemHeader.setFont(Font.font("Noto Sans Kannada", 10));
-		itemHeader.setStyle("-fx-font-weight: bold;");
+		itemHeader.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
 		receiptBox.getChildren().add(itemHeader);
 		receiptBox.getChildren().add(new Text(""));
 
@@ -773,8 +783,7 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		receiptBox.getChildren().add(new Text(""));
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
-		blessing.setFont(Font.font("Noto Sans Kannada", 10));
-		blessing.setStyle("-fx-font-style: italic;");
+		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
 		VBox blessingBox = new VBox(blessing);
 		blessingBox.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(blessingBox);
