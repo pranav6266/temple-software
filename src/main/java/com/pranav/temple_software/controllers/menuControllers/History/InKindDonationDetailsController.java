@@ -25,6 +25,7 @@ public class InKindDonationDetailsController {
 
 	public void initializeDetails(InKindDonation data) {
 		if (data == null) return;
+		this.currentDonationData = data;
 
 		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId());
 		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));

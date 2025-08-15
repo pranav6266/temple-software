@@ -34,7 +34,7 @@ public class SevaReceiptDetailsController {
 
 	public void initializeDetails(SevaReceiptData data) {
 		if (data == null) return;
-
+		this.currentReceiptData = data;
 		receiptIdLabel.setText("Receipt ID: " + data.getReceiptId());
 		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName());
 		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "N/A"));

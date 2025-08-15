@@ -35,6 +35,7 @@ public class DonationDetailsController {
 			System.err.println("Warning: Donation data is null, cannot initialize details view.");
 			return;
 		}
+		this.currentDonationData = donationData;
 
 		// Set receipt identification
 		donationReceiptIdLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " + donationData.getDonationReceiptId());

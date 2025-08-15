@@ -27,7 +27,7 @@ public class ShashwathaPoojaDetailsController {
 
 	public void initializeDetails(ShashwathaPoojaReceipt data) {
 		if (data == null) return;
-
+		this.currentPoojaData = data;
 		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
 		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
 		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
