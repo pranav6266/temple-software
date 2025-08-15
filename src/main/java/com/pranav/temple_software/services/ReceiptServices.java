@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/pranav/temple_software/services/ReceiptServices.java
 package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
@@ -21,12 +20,6 @@ import java.util.stream.Collectors;
 public class ReceiptServices {
 	private final MainController controller;
 
-	// NEW: Enum to define the action type
-	private enum ActionType {
-		PRINT,
-		SAVE_PDF
-	}
-
 	public ReceiptServices(MainController controller) {
 		this.controller = controller;
 	}
@@ -35,34 +28,18 @@ public class ReceiptServices {
 		List<SevaEntry> pendingItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
 				.collect(Collectors.toList());
-
 		if (pendingItems.isEmpty()) {
 			controller.showAlert("No Pending Items", "All items have been processed.");
 			return;
 		}
 
-		processSelectedItems(pendingItems, ActionType.PRINT);
-	}
-
-	// NEW: Method to handle saving all pending items as PDFs
-	public void handleSaveAllPendingAsPdf() {
-		List<SevaEntry> pendingItems = controller.selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
-				.collect(Collectors.toList());
-
-		if (pendingItems.isEmpty()) {
-			controller.showAlert("No Pending Items", "All items have been processed.");
-			return;
-		}
-
-		processSelectedItems(pendingItems, ActionType.SAVE_PDF);
+		processSelectedItems(pendingItems);
 	}
 
 	public void handleRetryFailed() {
 		List<SevaEntry> failedItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED)
 				.collect(Collectors.toList());
-
 		if (failedItems.isEmpty()) {
 			controller.showAlert("No Failed Items", "No failed items to retry.");
 			return;
@@ -73,14 +50,13 @@ public class ReceiptServices {
 			controller.updatePrintStatusLabel();
 		});
 
-		processSelectedItems(failedItems, ActionType.PRINT); // Default retry action is to print
+		processSelectedItems(failedItems);
 	}
 
 	public void handleClearSuccessful() {
 		List<SevaEntry> successfulItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.toList();
-
 		if (successfulItems.isEmpty()) {
 			controller.showAlert("No Successful Items", "No successful items to clear.");
 			return;
@@ -98,19 +74,17 @@ public class ReceiptServices {
 
 	public void retryIndividualItem(SevaEntry item) {
 		Platform.runLater(() -> item.setPrintStatus(SevaEntry.PrintStatus.PENDING));
-		processSelectedItems(Collections.singletonList(item), ActionType.PRINT);
+		processSelectedItems(Collections.singletonList(item));
 	}
 
-	// MODIFIED: Added ActionType parameter
-	private void processSelectedItems(List<SevaEntry> itemsToProcess, ActionType actionType) {
+	private void processSelectedItems(List<SevaEntry> itemsToProcess) {
 		final String devoteeName = controller.devoteeNameField.getText();
 		final String phoneNumber = controller.contactField.getText();
 		final String address = controller.addressField.getText();
-		final String panNumber = controller.panNumberField.getText(); // Get PAN
+		final String panNumber = controller.panNumberField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
 		final String raashi = controller.raashiComboBox.getValue();
 		final String nakshatra = controller.nakshatraComboBox.getValue();
-
 		if (date == null || (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected())) {
 			controller.showAlert("Validation Error", "Please ensure date and payment method are selected.");
 			return;
@@ -119,13 +93,12 @@ public class ReceiptServices {
 		String paymentMode = controller.cashRadio.isSelected() ? "Cash" : "Online";
 
 		processReceiptsWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
-				FXCollections.observableArrayList(itemsToProcess), paymentMode, actionType);
+				FXCollections.observableArrayList(itemsToProcess), paymentMode);
 	}
 
-	// MODIFIED: Added ActionType parameter and panNumber
 	private void processReceiptsWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
 	                                               String raashi, String nakshatra, LocalDate date,
-	                                               ObservableList<SevaEntry> items, String paymentMode, ActionType actionType) {
+	                                               ObservableList<SevaEntry> items, String paymentMode) {
 
 		List<SevaEntry> sevaEntries = new ArrayList<>();
 		List<SevaEntry> donationEntries = new ArrayList<>();
@@ -136,7 +109,6 @@ public class ReceiptServices {
 					entry.setPrintStatus(SevaEntry.PrintStatus.PRINTING);
 					controller.updatePrintStatusLabel();
 				});
-
 				if (entry.getName().startsWith("ದೇಣಿಗೆ ")) {
 					donationEntries.add(entry);
 				} else {
@@ -147,19 +119,18 @@ public class ReceiptServices {
 
 		if (!sevaEntries.isEmpty()) {
 			handleSevaReceiptWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
-					sevaEntries, paymentMode, actionType);
+					sevaEntries, paymentMode);
 		}
 
 		for (SevaEntry donation : donationEntries) {
 			handleDonationReceiptWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
-					donation, paymentMode, actionType);
+					donation, paymentMode);
 		}
 	}
 
-	// MODIFIED: Added ActionType parameter and panNumber
 	private void handleDonationReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
 	                                                     String raashi, String nakshatra, LocalDate date,
-	                                                     SevaEntry donation, String paymentMode, ActionType actionType) {
+	                                                     SevaEntry donation, String paymentMode) {
 
 		int donationReceiptId = DonationReceiptRepository.getNextDonationReceiptId();
 		if (donationReceiptId <= 0) {
@@ -183,35 +154,27 @@ public class ReceiptServices {
 
 				if (actualSavedId != -1) {
 					markItemAsSuccess(donation);
-					String successMessage = actionType == ActionType.SAVE_PDF ? "saved" : "printed";
-					Platform.runLater(() -> controller.showAlert("Donation Receipt Success",
-							"Donation receipt for " + donationName + " " + successMessage + " successfully with ID: " + actualSavedId));
 				} else {
 					markItemAsFailed(donation, "Failed to save to database");
 				}
 			} else {
-				String failureMessage = actionType == ActionType.SAVE_PDF ? "Save job failed" : "Print job was cancelled or failed";
-				markItemAsFailed(donation, failureMessage);
+				markItemAsFailed(donation, "Print job was cancelled or failed");
 			}
 			controller.updatePrintStatusLabel();
 		};
 
-		if (actionType == ActionType.PRINT) {
-			Runnable onDialogClosed = () -> {
-				if (donation.getPrintStatus() == SevaEntry.PrintStatus.PRINTING) {
-					markItemAsFailed(donation, "Print preview was cancelled");
-				}
-			};
-			controller.receiptPrinter.showDonationPrintPreviewWithCancelCallback(donationReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
-		} else { // SAVE_PDF
-			controller.receiptPrinter.saveDonationReceiptAsPdf(donationReceiptData, afterActionCallback);
-		}
+		Runnable onDialogClosed = () -> {
+			if (donation.getPrintStatus() == SevaEntry.PrintStatus.PRINTING) {
+				markItemAsFailed(donation, "Print preview was cancelled");
+			}
+		};
+		controller.receiptPrinter.showDonationPrintPreview(donationReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
 	}
 
-	// MODIFIED: Added ActionType parameter and panNumber
+
 	private void handleSevaReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
 	                                                 String raashi, String nakshatra, LocalDate date,
-	                                                 List<SevaEntry> sevaEntries, String paymentMode, ActionType actionType) {
+	                                                 List<SevaEntry> sevaEntries, String paymentMode) {
 
 		int sevaReceiptId = SevaReceiptRepository.getNextReceiptId();
 		if (sevaReceiptId <= 0) {
@@ -235,32 +198,23 @@ public class ReceiptServices {
 
 				if (actualSavedId != -1) {
 					markItemsAsSuccess(sevaEntries);
-					String successMessage = actionType == ActionType.SAVE_PDF ? "saved" : "printed";
-					Platform.runLater(() -> controller.showAlert("Seva Receipt Success",
-							"Seva receipt " + successMessage + " successfully with ID: " + actualSavedId));
 				} else {
 					markItemsAsFailed(sevaEntries, "Failed to save to database");
 				}
 			} else {
-				String failureMessage = actionType == ActionType.SAVE_PDF ? "Save job failed" : "Print job was cancelled or failed";
-				markItemsAsFailed(sevaEntries, failureMessage);
+				markItemsAsFailed(sevaEntries, "Print job was cancelled or failed");
 			}
 			controller.updatePrintStatusLabel();
 		};
 
-		if (actionType == ActionType.PRINT) {
-			Runnable onDialogClosed = () -> {
-				boolean stillPrinting = sevaEntries.stream()
-						.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
-
-				if (stillPrinting) {
-					markItemsAsFailed(sevaEntries, "Print preview was cancelled");
-				}
-			};
-			controller.receiptPrinter.showPrintPreviewWithCancelCallback(sevaReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
-		} else { // SAVE_PDF
-			controller.receiptPrinter.saveSevaReceiptAsPdf(sevaReceiptData, afterActionCallback);
-		}
+		Runnable onDialogClosed = () -> {
+			boolean stillPrinting = sevaEntries.stream()
+					.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
+			if (stillPrinting) {
+				markItemsAsFailed(sevaEntries, "Print preview was cancelled");
+			}
+		};
+		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
 	}
 
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {

@@ -14,7 +14,7 @@ repositories {
 }
 
 java {
-    // It's good practice to define the toolchain for consistency
+    // Keep Java 23 as requested
     toolchain {
         languageVersion = JavaLanguageVersion.of(23)
     }
@@ -26,16 +26,17 @@ javafx {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    // Keep UTF-8 encoding as requested
     options.encoding = 'UTF-8'
 }
 
 dependencies {
-    // Your dependencies are correct
-    implementation 'org.apache.pdfbox:pdfbox:3.0.0' // Using a slightly newer version
+    // Your existing dependencies
+    implementation 'org.apache.pdfbox:pdfbox:3.0.0'
     implementation 'com.h2database:h2:2.2.224'
-    // https://mvnrepository.com/artifact/com.github.anastaciocintra/escpos-coffee
     implementation 'com.github.anastaciocintra:escpos-coffee:4.1.0'
-    implementation 'org.slf4j:slf4j-jdk14:2.0.9'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    runtimeOnly("org.slf4j:slf4j-nop:2.0.9")
 }
 
 application {
@@ -45,13 +46,29 @@ application {
 
 // Configuration for the jpackage native installer
 jlink {
-    jpackage {
-        // The plugin will automatically use the mainClass from the 'application' block
-        // and find the application JAR from the 'jar' task.
+    // Disable automatic module detection completely
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
 
-        moduleName = 'com.pranav.temple_software'
-        imageName = 'TempleSoftwareApp' // Name for the application image folder
-        applicationName = 'Temple Software'     // Name that appears to the user
+//    // List only the modules your app actually needs
+//    modu = [
+//            'java.base',
+//            'java.desktop',
+//            'java.logging',
+//            'java.sql',
+//            'java.naming',
+//            'java.xml',
+//            'java.prefs'
+//    ]0
+//
+//    // Configure launcher
+//    launcher {
+//        name = 'temple-software'
+//        mainClass = 'com.pranav.temple_software.Main'
+//    }
+
+    jpackage {
+        imageName = 'TempleSoftwareApp'
+        applicationName = 'Temple Software'
         appVersion = project.version
         vendor = 'Pranav'
 
@@ -59,16 +76,15 @@ jlink {
                 '--java-options', '-Djava.util.logging.config.file=app/logging.properties'
         ]
 
-        // Set the installer type directly
-        installerType = 'msi' // Creates a .msi file
+        installerType = 'msi'
 
-        // Options specific to Windows installers
         installerOptions = [
                 '--copyright', 'Copyright © 2025 Pranav',
                 '--win-menu',
                 '--win-shortcut',
-                '--win-upgrade-uuid', 'a2e1852b-12d4-4b9a-99de-93c8a415f7f3', // Unique ID for your app
+                '--win-upgrade-uuid', 'a2e1852b-12d4-4b9a-99de-93c8a415f7f3',
                 '--win-per-user-install'
         ]
     }
 }
+

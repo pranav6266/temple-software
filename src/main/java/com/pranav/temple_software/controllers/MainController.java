@@ -287,10 +287,15 @@ public class MainController {
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.count();
 		if (pendingCount > 0 || failedCount > 0) {
-			showPrintOrSaveDialog();
+			// Directly proceed to the print/preview process for pending or failed items
+			if (failedCount > 0 && pendingCount == 0) {
+				receiptServices.handleRetryFailed();
+			} else {
+				receiptServices.handlePrintAllPending();
+			}
 		} else if (successCount > 0) {
 			receiptServices.handleClearSuccessful();
-		} else {
+		} else{
 			Platform.runLater(() -> devoteeNameField.requestFocus());
 			showAlert("Add Items", "Please add seva items to the table to proceed.");
 		}
@@ -339,27 +344,14 @@ public class MainController {
 	}
 
 	private void showPrintOrSaveDialog() {
-		List<String> choices = new ArrayList<>();
-		choices.add("Save as PDF");
-		choices.add("Print as Receipt");
-		ChoiceDialog<String> dialog = new ChoiceDialog<>("Print as Receipt", choices);
-		dialog.setTitle("Choose Action");
-		dialog.setHeaderText("Select how you want to process the receipt(s).");
-		dialog.setContentText("Choose your option:");
-
-		Optional<String> result = dialog.showAndWait();
-		result.ifPresent(selected -> {
-			if ("Save as PDF".equals(selected)) {
-				receiptServices.handleSaveAllPendingAsPdf();
-			} else if ("Print as Receipt".equals(selected)) {
-				if (selectedSevas.stream().anyMatch(e -> e.getPrintStatus() == SevaEntry.PrintStatus.FAILED)) {
-					receiptServices.handleRetryFailed();
-				} else {
-					receiptServices.handlePrintAllPending();
-				}
-			}
-		});
+		// Remove the choice dialog and directly show preview
+		if (selectedSevas.stream().anyMatch(e -> e.getPrintStatus() == SevaEntry.PrintStatus.FAILED)) {
+			receiptServices.handleRetryFailed();
+		} else {
+			receiptServices.handlePrintAllPending(); // This will now directly show preview
+		}
 	}
+
 
 	@FXML
 	private void handleCloseApp() {
