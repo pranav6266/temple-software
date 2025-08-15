@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.ReceiptDetailsController">
+<ScrollPane styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.SevaReceiptDetailsController">
 
     <VBox alignment="CENTER_LEFT" styleClass="details-container" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
 
@@ -70,11 +70,13 @@
                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                   </columnResizePolicy>
                   </TableView>
-               <HBox alignment="CENTER">
-                  <children>
-                        <Button alignment="CENTER" contentDisplay="CENTER" onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
-                  </children>
-               </HBox>
+                  <HBox alignment="CENTER" spacing="15">
+                      <children>
+                          <Button fx:id="reprintButton" onAction="#handleReprint" styleClass="close-button" text="ಮರುಮುದ್ರಣ" />
+
+                          <Button alignment="CENTER" contentDisplay="CENTER" onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
+                      </children>
+                  </HBox>
               </VBox>
          </children>
       </Pane>

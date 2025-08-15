@@ -29,7 +29,9 @@
             <Text fx:id="itemDescriptionText" styleClass="address-text" text="ವಿವರಣೆ..." wrappingWidth="400" />
         </VBox>
 
-        <HBox styleClass="button-container">
+        <HBox styleClass="button-container" spacing="15">
+            <Button fx:id="reprintButton" onAction="#handleReprint" styleClass="close-button" text="ಮರುಮುದ್ರಣ" />
+
             <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
         </HBox>
     </VBox>

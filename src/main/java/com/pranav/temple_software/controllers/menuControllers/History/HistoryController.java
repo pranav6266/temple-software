@@ -296,7 +296,7 @@ public class HistoryController {
 			detailsStage.initOwner(historyTable.getScene().getWindow());
 			Scene scene = new Scene(loader.load());
 			detailsStage.setScene(scene);
-			ReceiptDetailsController detailsController = loader.getController();
+			SevaReceiptDetailsController detailsController = loader.getController();
 			detailsController.initializeDetails(sevaReceiptData);
 			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();

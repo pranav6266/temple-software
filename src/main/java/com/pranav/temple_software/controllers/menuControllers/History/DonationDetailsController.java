@@ -2,9 +2,12 @@ package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.DonationReceiptData;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import com.pranav.temple_software.utils.ReceiptPrinter;
+import javafx.scene.Node;
 
 public class DonationDetailsController {
 
@@ -18,7 +21,9 @@ public class DonationDetailsController {
 	@FXML private Label donationAmountLabel;
 	@FXML private Label donationPaymentModeLabel;
 	@FXML private Text donationAddressText;
-
+	@FXML private Button reprintButton;
+	private DonationReceiptData currentDonationData;
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
 	/**
 	 * Initializes the donation details view with the provided donation receipt data.
 	 * This method populates all the UI elements with donation-specific information.
@@ -87,6 +92,19 @@ public class DonationDetailsController {
 			return (Stage) donationReceiptIdLabel.getScene().getWindow();
 		}
 		return null;
+	}
+
+	@FXML
+	private void handleReprint() {
+		if (currentDonationData != null) {
+			Stage stage = (Stage) reprintButton.getScene().getWindow();
+			// This shows the preview window
+			receiptPrinter.showDonationPrintPreview(currentDonationData, stage, success -> {
+				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
+			}, () -> {
+				System.out.println("Reprint preview was closed without action.");
+			});
+		}
 	}
 
 	/**

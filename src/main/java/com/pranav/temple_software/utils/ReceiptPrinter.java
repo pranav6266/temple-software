@@ -64,7 +64,7 @@ public class ReceiptPrinter {
 	 * @param ownerStage   The parent window for the print dialog.
 	 * @param onPrintComplete A callback to report success or failure.
 	 */
-	private void printNode(Node nodeToPrint, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
+	public void printNode(Node nodeToPrint, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
 		PrinterJob job = PrinterJob.createPrinterJob();
 		if (job == null) {
 			showAlert(ownerStage, "Printing Error", "Could not create a printer job.");

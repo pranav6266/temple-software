@@ -36,8 +36,10 @@
             <Text fx:id="poojaDateText" styleClass="address-text" text="ವಿವರ..." wrappingWidth="400"/>
         </VBox>
 
-        <HBox styleClass="button-container">
-            <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ"/>
+        <HBox styleClass="button-container" spacing="15">
+            <Button fx:id="reprintButton" onAction="#handleReprint" styleClass="close-button" text="ಮರುಮುದ್ರಣ" />
+
+            <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
         </HBox>
     </VBox>
 </ScrollPane>

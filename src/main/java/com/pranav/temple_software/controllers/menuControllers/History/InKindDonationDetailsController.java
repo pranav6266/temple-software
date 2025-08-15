@@ -6,6 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import com.pranav.temple_software.utils.ReceiptPrinter;
+import javafx.scene.Node;
 
 public class InKindDonationDetailsController {
 
@@ -17,6 +19,9 @@ public class InKindDonationDetailsController {
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
 	@FXML private Text itemDescriptionText;
+	@FXML private Button reprintButton;
+	private InKindDonation currentDonationData;
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
 
 	public void initializeDetails(InKindDonation data) {
 		if (data == null) return;
@@ -29,6 +34,19 @@ public class InKindDonationDetailsController {
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
 		addressText.setText("ವಿಳಾಸ: " + (data.getAddress().isEmpty() ? "---" : data.getAddress()));
 		itemDescriptionText.setText(data.getItemDescription());
+	}
+
+	@FXML
+	private void handleReprint() {
+		if (currentDonationData != null) {
+			Stage stage = (Stage) reprintButton.getScene().getWindow();
+			// This shows the preview window
+			receiptPrinter.showInKindDonationPrintPreview(currentDonationData, stage, success -> {
+				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
+			}, () -> {
+				System.out.println("Reprint preview was closed without action.");
+			});
+		}
 	}
 
 	@FXML
