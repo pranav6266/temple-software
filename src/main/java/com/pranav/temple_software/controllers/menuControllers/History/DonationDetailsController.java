@@ -11,25 +11,23 @@ import javafx.scene.Node;
 
 public class DonationDetailsController {
 
-	@FXML private Label donationReceiptIdLabel;
-	@FXML private Label donationDevoteeNameLabel;
-	@FXML private Label donationPhoneNumberLabel;
+	@FXML private Label receiptIdLabel;
+	@FXML private Label devoteeNameLabel;
+	@FXML private Label phoneNumberLabel;
+	@FXML private Label panNumberLabel; // ADDED
+	@FXML private Label rashiLabel;
+	@FXML private Label nakshatraLabel;
+	@FXML private Text addressText;
+
 	@FXML private Label donationDateLabel;
-	@FXML private Label donationRashiLabel;
-	@FXML private Label donationNakshatraLabel;
 	@FXML private Label donationNameLabel;
-	@FXML private Label donationAmountLabel;
 	@FXML private Label donationPaymentModeLabel;
-	@FXML private Text donationAddressText;
+	@FXML private Label donationAmountLabel;
+
 	@FXML private Button reprintButton;
 	private DonationReceiptData currentDonationData;
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
-	/**
-	 * Initializes the donation details view with the provided donation receipt data.
-	 * This method populates all the UI elements with donation-specific information.
-	 *
-	 * @param donationData The DonationReceiptData object containing all donation details
-	 */
+
 	public void initializeDonationDetails(DonationReceiptData donationData) {
 		if (donationData == null) {
 			System.err.println("Warning: Donation data is null, cannot initialize details view.");
@@ -37,88 +35,40 @@ public class DonationDetailsController {
 		}
 		this.currentDonationData = donationData;
 
-		// Set receipt identification
-		donationReceiptIdLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " + donationData.getDonationReceiptId());
+		receiptIdLabel.setText("ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " + donationData.getDonationReceiptId());
 
-		// Set devotee personal information
-		donationDevoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " +
-				(donationData.getDevoteeName() != null && !donationData.getDevoteeName().isEmpty()
-						? donationData.getDevoteeName() : "---"));
+		// Devotee Details
+		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (donationData.getDevoteeName() != null && !donationData.getDevoteeName().isEmpty() ? donationData.getDevoteeName() : "---"));
+		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (donationData.getPhoneNumber() != null && !donationData.getPhoneNumber().isEmpty() ? donationData.getPhoneNumber() : "---"));
+		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (donationData.getPanNumber() != null && !donationData.getPanNumber().isEmpty() ? donationData.getPanNumber() : "---"));
+		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (donationData.getRashi() != null && !donationData.getRashi().isEmpty() ? donationData.getRashi() : "---"));
+		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (donationData.getNakshatra() != null && !donationData.getNakshatra().isEmpty() ? donationData.getNakshatra() : "---"));
+		addressText.setText(donationData.getAddress() != null && !donationData.getAddress().isEmpty() ? donationData.getAddress() : "---");
 
-		donationPhoneNumberLabel.setText("ದೂರವಾಣಿ: " +
-				(donationData.getPhoneNumber() != null && !donationData.getPhoneNumber().isEmpty()
-						? donationData.getPhoneNumber() : "---"));
-
-		donationAddressText.setText("ವಿಳಾಸ: " +
-				(donationData.getAddress() != null && !donationData.getAddress().isEmpty()
-						? donationData.getAddress() : "---"));
-
-		// Set astrological information
-		donationRashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " +
-				(donationData.getRashi() != null && !donationData.getRashi().isEmpty()
-						? donationData.getRashi() : "---"));
-
-		donationNakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " +
-				(donationData.getNakshatra() != null && !donationData.getNakshatra().isEmpty()
-						? donationData.getNakshatra() : "---"));
-
-		// Set donation transaction details
+		// Donation Details
 		donationDateLabel.setText("ದಿನಾಂಕ: " + donationData.getFormattedDate());
 		donationNameLabel.setText("ದೇಣಿಗೆ ವಿಧ: " + donationData.getDonationName());
+		donationPaymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " + (donationData.getPaymentMode() != null ? donationData.getPaymentMode() : "---"));
 		donationAmountLabel.setText("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", donationData.getDonationAmount()));
-		donationPaymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " +
-				(donationData.getPaymentMode() != null ? donationData.getPaymentMode() : "---"));
 	}
 
-	/**
-	 * Handles the close button action to close the donation details window.
-	 * This method can be called from a close button in the FXML.
-	 */
 	@FXML
 	public void handleClose() {
-		Stage stage = (Stage) donationReceiptIdLabel.getScene().getWindow();
+		Stage stage = (Stage) receiptIdLabel.getScene().getWindow();
 		if (stage != null) {
 			stage.close();
 		}
-	}
-
-	/**
-	 * Alternative method to get the current stage for external closing.
-	 * Useful when the close operation is handled from parent controllers.
-	 *
-	 * @return The current Stage object or null if not available
-	 */
-	public Stage getCurrentStage() {
-		if (donationReceiptIdLabel != null && donationReceiptIdLabel.getScene() != null) {
-			return (Stage) donationReceiptIdLabel.getScene().getWindow();
-		}
-		return null;
 	}
 
 	@FXML
 	private void handleReprint() {
 		if (currentDonationData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			// This shows the preview window
 			receiptPrinter.showDonationPrintPreview(currentDonationData, stage, success -> {
 				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
 			}, () -> {
 				System.out.println("Reprint preview was closed without action.");
 			});
 		}
-	}
-
-	/**
-	 * Validates if the controller has been properly initialized with FXML elements.
-	 * This can be used for debugging purposes.
-	 *
-	 * @return true if all required FXML elements are loaded, false otherwise
-	 */
-	public boolean isProperlyInitialized() {
-		return donationReceiptIdLabel != null &&
-				donationDevoteeNameLabel != null &&
-				donationDateLabel != null &&
-				donationAmountLabel != null &&
-				donationNameLabel != null;
 	}
 }

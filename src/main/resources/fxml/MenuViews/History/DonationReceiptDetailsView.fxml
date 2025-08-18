@@ -19,7 +19,7 @@
         <Label styleClass="details-header" text="ದೇಣಿಗೆ ರಶೀದಿ ವಿವರಗಳು" />
 
         <!-- Receipt ID -->
-        <Label fx:id="donationReceiptIdLabel" styleClass="receipt-id-label" text="ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " />
+        <Label fx:id="receiptIdLabel" styleClass="receipt-id-label" text="ದೇಣಿಗೆ ರಶೀದಿ ಸಂಖ್ಯೆ: " />
 
         <!-- Devotee Details Section -->
         <VBox styleClass="section-container">
@@ -38,19 +38,20 @@
                 </rowConstraints>
 
 
-                <Label fx:id="donationDevoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು: " GridPane.rowIndex="0" />
+                <Label fx:id="devoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು: " GridPane.rowIndex="0" />
 
 
-                <Label fx:id="donationPhoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ: " GridPane.rowIndex="1" />
+                <Label fx:id="phoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ: " GridPane.rowIndex="1" />
 
 
-                <Label fx:id="donationRashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="2" />
+                <Label fx:id="rashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="2" />
 
 
-                <Label fx:id="donationNakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="3" />
+                <Label fx:id="nakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="3" />
 
 
-                <Text fx:id="donationAddressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="4" />
+                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ: " GridPane.rowIndex="4" />
+                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="5" />
             </GridPane>
         </VBox>
 

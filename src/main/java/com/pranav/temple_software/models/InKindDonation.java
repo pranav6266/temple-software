@@ -10,16 +10,18 @@ public class InKindDonation {
 	private final String devoteeName;
 	private final String phoneNumber;
 	private final String address;
+	private final String panNumber; // ADDED
 	private final String rashi;
 	private final String nakshatra;
 	private final LocalDate donationDate;
 	private final String itemDescription;
 
-	public InKindDonation(int inKindReceiptId, String devoteeName, String phoneNumber, String address, String rashi, String nakshatra, LocalDate donationDate, String itemDescription) {
+	public InKindDonation(int inKindReceiptId, String devoteeName, String phoneNumber, String address, String panNumber, String rashi, String nakshatra, LocalDate donationDate, String itemDescription) {
 		this.inKindReceiptId = inKindReceiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
 		this.address = address;
+		this.panNumber = panNumber; // ADDED
 		this.rashi = rashi;
 		this.nakshatra = nakshatra;
 		this.donationDate = donationDate;
@@ -41,6 +43,10 @@ public class InKindDonation {
 
 	public String getAddress() {
 		return address;
+	}
+
+	public String getPanNumber() { // ADDED
+		return panNumber;
 	}
 
 	public String getRashi() {

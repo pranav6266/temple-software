@@ -8,26 +8,31 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.collections.FXCollections;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.scene.Node;
 
 public class SevaReceiptDetailsController {
 
-	public Button reprintButton;
 	@FXML private Label receiptIdLabel;
 	@FXML private Label devoteeNameLabel;
 	@FXML private Label phoneNumberLabel;
-	@FXML private Label sevaDateLabel;
+	@FXML private Label panNumberLabel; // ADDED
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
+	@FXML private Label addressText;
+
+	@FXML private Label sevaDateLabel;
 	@FXML private Label totalAmountLabel;
+
 	@FXML private TableView<SevaEntry> sevaTableView;
 	@FXML private TableColumn<SevaEntry, String> sevaNameColumn;
 	@FXML private TableColumn<SevaEntry, Number> priceColumn;
 	@FXML private TableColumn<SevaEntry, Number> quantityColumn;
 	@FXML private TableColumn<SevaEntry, Number> totalColumn;
-	@FXML private Label addressText;
+
+	@FXML private Button reprintButton;
 
 	private SevaReceiptData currentReceiptData;
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
@@ -35,15 +40,22 @@ public class SevaReceiptDetailsController {
 	public void initializeDetails(SevaReceiptData data) {
 		if (data == null) return;
 		this.currentReceiptData = data;
-		receiptIdLabel.setText("Receipt ID: " + data.getReceiptId());
-		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + data.getDevoteeName());
-		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null ? data.getPhoneNumber() : "N/A"));
-		sevaDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedDate());
-		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null ? data.getRashi() : "Not specified"));
-		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್: " + (data.getNakshatra() != null ? data.getNakshatra() : "Not specified"));
-		addressText.setText("ವಿಳಾಸ: "+ (data.getAddress() != null ? data.getAddress() : "N/A"));
-		totalAmountLabel.setText(String.format("Total Amount: ₹%.2f", data.getTotalAmount()));
 
+		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
+
+		// Devotee Details
+		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName() != null && !data.getDevoteeName().isEmpty() ? data.getDevoteeName() : "---"));
+		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty() ? data.getPhoneNumber() : "---"));
+		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (data.getPanNumber() != null && !data.getPanNumber().isEmpty() ? data.getPanNumber() : "---"));
+		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().isEmpty() ? data.getRashi() : "---"));
+		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null && !data.getNakshatra().isEmpty() ? data.getNakshatra() : "---"));
+		addressText.setText(data.getAddress() != null && !data.getAddress().isEmpty() ? data.getAddress() : "---");
+
+		// Seva Details
+		sevaDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedDate());
+		totalAmountLabel.setText("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
+
+		// Table Setup
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		priceColumn.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
 		quantityColumn.setCellValueFactory(cellData -> cellData.getValue().quantityProperty());
@@ -56,7 +68,6 @@ public class SevaReceiptDetailsController {
 	private void handleReprint() {
 		if (currentReceiptData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			// This shows the preview window
 			receiptPrinter.showPrintPreview(currentReceiptData, stage, success -> {
 				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
 			}, () -> {
@@ -64,6 +75,7 @@ public class SevaReceiptDetailsController {
 			});
 		}
 	}
+
 	@FXML
 	public void handleClose() {
 		Stage stage = (Stage) receiptIdLabel.getScene().getWindow();

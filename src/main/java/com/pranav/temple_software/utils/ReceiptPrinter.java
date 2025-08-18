@@ -760,20 +760,12 @@ public class ReceiptPrinter {
 		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
 		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(detailsVBox);
-		receiptBox.getChildren().add(new Text(""));
-		if (data.getAddress() != null && !data.getAddress().trim().isEmpty()) {
-			Text addressText = new Text("ವಿಳಾಸ: " + data.getAddress());
-			addressText.setFont(Font.font("Noto Sans Kannada", 9));
-			addressText.setWrappingWidth(RECEIPT_WIDTH_POINTS - 20);
-			receiptBox.getChildren().add(addressText);
-			receiptBox.getChildren().add(new Text(""));
-		}
 
-		receiptBox.getChildren().add(new Text("-".repeat(50)));
+		receiptBox.getChildren().add(new Text(""));
 		Text itemHeader = new Text("ವಸ್ತು ವಿವರಣೆ:");
 		itemHeader.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
 		receiptBox.getChildren().add(itemHeader);
-		receiptBox.getChildren().add(new Text(""));
+		receiptBox.getChildren().add(new Text("-".repeat(50)));
 
 		Text itemDescription = new Text(data.getItemDescription());
 		itemDescription.setFont(Font.font("Noto Sans Kannada", 9));

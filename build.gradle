@@ -34,10 +34,7 @@ dependencies {
     // Your existing dependencies
     implementation 'org.apache.pdfbox:pdfbox:3.0.0'
     implementation 'com.h2database:h2:2.2.224'
-    implementation 'com.github.anastaciocintra:escpos-coffee:4.1.0'
-    implementation 'org.slf4j:slf4j-api:2.0.9'
-    runtimeOnly("org.slf4j:slf4j-nop:2.0.9")
-    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+    implementation 'org.apache.poi:poi-ooxml:5.4.0'
 }
 
 application {
@@ -48,7 +45,7 @@ application {
 // Configuration for the jpackage native installer
 jlink {
     // Disable automatic module detection completely
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+//    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
 
 //    // List only the modules your app actually needs
 //    modu = [
@@ -73,9 +70,6 @@ jlink {
         appVersion = project.version
         vendor = 'Pranav'
 
-        imageOptions = [
-                '--java-options', '-Djava.util.logging.config.file=app/logging.properties'
-        ]
 
         installerType = 'msi'
 

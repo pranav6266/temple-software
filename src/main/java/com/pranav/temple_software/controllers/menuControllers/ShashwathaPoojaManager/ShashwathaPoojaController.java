@@ -27,6 +27,7 @@ public class ShashwathaPoojaController {
 	@FXML private ComboBox<String> raashiComboBox;
 	@FXML private ComboBox<String> nakshatraComboBox;
 	@FXML private TextArea addressField;
+	@FXML private TextField panNumberField;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
 
@@ -47,6 +48,11 @@ public class ShashwathaPoojaController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
+		panNumberField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+		validatePanRequirement();
 	}
 
 	@FXML
@@ -60,6 +66,7 @@ public class ShashwathaPoojaController {
 				devoteeNameField.getText(),
 				contactField.getText(),
 				addressField.getText(),
+				panNumberField.getText(),
 				raashiComboBox.getValue(),
 				nakshatraComboBox.getValue(),
 				receiptDatePicker.getValue(),
@@ -133,6 +140,26 @@ public class ShashwathaPoojaController {
 			return false;
 		}
 		return true;
+	}
+
+	private boolean validatePanRequirement() {
+		String panNumber = panNumberField.getText();
+		// Basic PAN format validation
+		if (!isValidPanFormat(panNumber.trim())) {
+			showAlert(Alert.AlertType.INFORMATION,"Invalid PAN",
+					"Please enter a valid PAN number format (e.g., AAAPL1234C)");
+			Platform.runLater(() -> panNumberField.requestFocus());
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isValidPanFormat(String pan) {
+		if (pan == null || pan.length() != 10) {
+			return false;
+		}
+		// PAN format: 5 letters, 4 digits, 1 letter
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
 	@FXML

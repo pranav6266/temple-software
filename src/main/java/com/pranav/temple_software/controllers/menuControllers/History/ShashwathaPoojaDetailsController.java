@@ -15,11 +15,14 @@ public class ShashwathaPoojaDetailsController {
 	@FXML private Label receiptIdLabel;
 	@FXML private Label devoteeNameLabel;
 	@FXML private Label phoneNumberLabel;
-	@FXML private Label receiptDateLabel;
+	@FXML private Label panNumberLabel; // ADDED
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
+
+	@FXML private Label receiptDateLabel;
 	@FXML private Text poojaDateText;
+
 	@FXML private Button reprintButton;
 	private ShashwathaPoojaReceipt currentPoojaData;
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
@@ -29,12 +32,17 @@ public class ShashwathaPoojaDetailsController {
 		if (data == null) return;
 		this.currentPoojaData = data;
 		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
-		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
-		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
+
+		// Devotee Details
+		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName() != null && !data.getDevoteeName().isEmpty() ? data.getDevoteeName() : "---"));
+		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty() ? data.getPhoneNumber() : "---"));
+		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (data.getPanNumber() != null && !data.getPanNumber().isEmpty() ? data.getPanNumber() : "---"));
+		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().isEmpty() ? data.getRashi() : "---"));
+		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null && !data.getNakshatra().isEmpty() ? data.getNakshatra() : "---"));
+		addressText.setText("ವಿಳಾಸ:"+(data.getAddress() != null && !data.getAddress().isEmpty() ? data.getAddress() : "---"));
+
+		// Pooja Details
 		receiptDateLabel.setText("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate());
-		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().equals("ಆಯ್ಕೆ") ? data.getRashi() : "---"));
-		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
-		addressText.setText("ವಿಳಾಸ: " + (data.getAddress().isEmpty() ? "---" : data.getAddress()));
 		poojaDateText.setText(data.getPoojaDate());
 	}
 
@@ -42,7 +50,6 @@ public class ShashwathaPoojaDetailsController {
 	private void handleReprint() {
 		if (currentPoojaData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			// This shows the preview window
 			receiptPrinter.showShashwathaPoojaPrintPreview(currentPoojaData, stage, success -> {
 				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
 			}, () -> {

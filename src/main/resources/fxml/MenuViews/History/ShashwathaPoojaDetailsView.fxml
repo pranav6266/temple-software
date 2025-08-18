@@ -27,7 +27,8 @@
                 <Label fx:id="receiptDateLabel" styleClass="info-label" text="ರಶೀದಿ ದಿನಾಂಕ: " GridPane.rowIndex="2"/>
                 <Label fx:id="rashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="3"/>
                 <Label fx:id="nakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="4"/>
-                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="5"/>
+                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ: " GridPane.rowIndex="5" />
+                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="6"/>
             </GridPane>
         </VBox>
 

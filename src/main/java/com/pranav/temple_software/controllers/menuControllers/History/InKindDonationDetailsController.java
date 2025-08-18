@@ -14,34 +14,45 @@ public class InKindDonationDetailsController {
 	@FXML private Label receiptIdLabel;
 	@FXML private Label devoteeNameLabel;
 	@FXML private Label phoneNumberLabel;
-	@FXML private Label donationDateLabel;
+	@FXML private Label panNumberLabel; // ADDED
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
+
+	@FXML private Label donationDateLabel;
 	@FXML private Text itemDescriptionText;
+
 	@FXML private Button reprintButton;
+
 	private InKindDonation currentDonationData;
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
 
-	public void initializeDetails(InKindDonation data) {
-		if (data == null) return;
-		this.currentDonationData = data;
+	public void initializeDetails(InKindDonation donationData) {
+		if (donationData == null) {
+			System.err.println("Warning: In-Kind donation data is null.");
+			return;
+		}
+		this.currentDonationData = donationData;
 
-		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId());
-		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName()));
-		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber().isEmpty() ? "---" : data.getPhoneNumber()));
-		donationDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedDate());
-		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().equals("ಆಯ್ಕೆ") ? data.getRashi() : "---"));
-		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null ? data.getNakshatra() : "---"));
-		addressText.setText("ವಿಳಾಸ: " + (data.getAddress().isEmpty() ? "---" : data.getAddress()));
-		itemDescriptionText.setText(data.getItemDescription());
+		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + donationData.getInKindReceiptId());
+
+		// Devotee Details
+		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (donationData.getDevoteeName() != null && !donationData.getDevoteeName().isEmpty() ? donationData.getDevoteeName() : "---"));
+		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (donationData.getPhoneNumber() != null && !donationData.getPhoneNumber().isEmpty() ? donationData.getPhoneNumber() : "---"));
+		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (donationData.getPanNumber() != null && !donationData.getPanNumber().isEmpty() ? donationData.getPanNumber() : "---"));
+		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (donationData.getRashi() != null && !donationData.getRashi().isEmpty() ? donationData.getRashi() : "---"));
+		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (donationData.getNakshatra() != null && !donationData.getNakshatra().isEmpty() ? donationData.getNakshatra() : "---"));
+		addressText.setText("ವಿಳಾಸ : " + (donationData.getAddress() != null && !donationData.getAddress().isEmpty() ? donationData.getAddress() : "---"));
+
+		// Donation Details
+		donationDateLabel.setText("ದಿನಾಂಕ: " + donationData.getFormattedDate());
+		itemDescriptionText.setText(donationData.getItemDescription());
 	}
 
 	@FXML
 	private void handleReprint() {
 		if (currentDonationData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			// This shows the preview window
 			receiptPrinter.showInKindDonationPrintPreview(currentDonationData, stage, success -> {
 				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
 			}, () -> {

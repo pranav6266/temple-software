@@ -3,6 +3,7 @@
 package com.pranav.temple_software.controllers.menuControllers.InKindDonationManager;
 
 import com.pranav.temple_software.models.InKindDonation;
+import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.InKindDonationRepository;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.application.Platform;
@@ -27,6 +28,7 @@ public class InKindDonationController {
 	@FXML private ComboBox<String> raashiComboBox;
 	@FXML private ComboBox<String> nakshatraComboBox;
 	@FXML private TextArea addressField;
+	@FXML private TextField panNumberField;
 	@FXML private TextArea itemDescriptionArea;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
@@ -47,6 +49,11 @@ public class InKindDonationController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
+		panNumberField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+		validatePanRequirement();
 	}
 
 	@FXML
@@ -60,6 +67,7 @@ public class InKindDonationController {
 				devoteeNameField.getText(),
 				contactField.getText(),
 				addressField.getText(),
+				panNumberField.getText(),
 				raashiComboBox.getValue(),
 				nakshatraComboBox.getValue(),
 				donationDatePicker.getValue(),
@@ -115,6 +123,26 @@ public class InKindDonationController {
 		} else {
 			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the donation. Please check the logs.");
 		}
+	}
+
+	private boolean validatePanRequirement() {
+		String panNumber = panNumberField.getText();
+			// Basic PAN format validation
+			if (!isValidPanFormat(panNumber.trim())) {
+				showAlert(Alert.AlertType.INFORMATION,"Invalid PAN",
+						"Please enter a valid PAN number format (e.g., AAAPL1234C)");
+				Platform.runLater(() -> panNumberField.requestFocus());
+				return false;
+			}
+		return true;
+	}
+
+	private boolean isValidPanFormat(String pan) {
+		if (pan == null || pan.length() != 10) {
+			return false;
+		}
+		// PAN format: 5 letters, 4 digits, 1 letter
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
 	private boolean validateInput() {

@@ -45,6 +45,7 @@
                 <Label fx:id="sevaDateLabel" styleClass="info-label" text="ದಿನಾಂಕ:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                 <Label fx:id="rashiLabel" styleClass="info-label" text="ರಾಶಿ:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
                 <Label fx:id="nakshatraLabel" styleClass="info-label" text="ನಕ್ಷತ್ರ:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ :" GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
                 <Label fx:id="addressText" styleClass="info-label" text="ವಿಳಾಸ:" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
             </GridPane>
         </VBox>

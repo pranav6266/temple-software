@@ -15,18 +15,19 @@ public class ShashwathaPoojaRepository {
 	}
 
 	public boolean saveShashwathaPooja(ShashwathaPoojaReceipt receipt) {
-		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, rashi, nakshatra, receipt_date, pooja_date) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, pooja_date) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
 			pstmt.setString(1, receipt.getDevoteeName());
 			pstmt.setString(2, receipt.getPhoneNumber());
 			pstmt.setString(3, receipt.getAddress());
-			pstmt.setString(4, receipt.getRashi());
-			pstmt.setString(5, receipt.getNakshatra());
-			pstmt.setDate(6, Date.valueOf(receipt.getReceiptDate()));
-			pstmt.setString(7, receipt.getPoojaDate());
+			pstmt.setString(4, receipt.getPanNumber());
+			pstmt.setString(5, receipt.getRashi());
+			pstmt.setString(6, receipt.getNakshatra());
+			pstmt.setDate(7, Date.valueOf(receipt.getReceiptDate()));
+			pstmt.setString(8, receipt.getPoojaDate());
 
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
@@ -50,6 +51,7 @@ public class ShashwathaPoojaRepository {
 						rs.getString("devotee_name"),
 						rs.getString("phone_number"),
 						rs.getString("address"),
+						rs.getString("pan_number"),
 						rs.getString("rashi"),
 						rs.getString("nakshatra"),
 						rs.getDate("receipt_date").toLocalDate(),
