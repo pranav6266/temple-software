@@ -2,8 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.1.0'
-    // Plugin to simplify creating native installers
-    id 'org.beryx.jlink' version '3.0.1'
+    // Plugin to create a fat/shadow JAR
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'com.pranav'
@@ -39,47 +39,20 @@ dependencies {
 
 application {
     // This tells the application plugin where your main method is
+    // The shadow plugin will also use this as the entry point for the JAR
     mainClass = 'com.pranav.temple_software.Main'
 }
 
-// Configuration for the jpackage native installer
-jlink {
-    // Disable automatic module detection completely
-//    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+// Configure the shadowJar task
+shadowJar {
+    // Specifies the base name for the generated archive.
+    archiveBaseName = 'temple-software'
+    // Specifies the classifier for the generated archive.
+    archiveClassifier = 'all'
+    // Specifies the version for the generated archive.
+    archiveVersion = project.version
 
-//    // List only the modules your app actually needs
-//    modu = [
-//            'java.base',
-//            'java.desktop',
-//            'java.logging',
-//            'java.sql',
-//            'java.naming',
-//            'java.xml',
-//            'java.prefs'
-//    ]0
-//
-//    // Configure launcher
-//    launcher {
-//        name = 'temple-software'
-//        mainClass = 'com.pranav.temple_software.Main'
-//    }
-
-    jpackage {
-        imageName = 'TempleSoftwareApp'
-        applicationName = 'Temple Software'
-        appVersion = project.version
-        vendor = 'Pranav'
-
-
-        installerType = 'msi'
-
-        installerOptions = [
-                '--copyright', 'Copyright © 2025 Pranav',
-                '--win-menu',
-                '--win-shortcut',
-                '--win-upgrade-uuid', 'a2e1852b-12d4-4b9a-99de-93c8a415f7f3',
-                '--win-per-user-install'
-        ]
-    }
+    // This ensures that service files from different dependencies are merged correctly.
+    // It's often necessary for libraries that use Java's ServiceLoader mechanism.
+    mergeServiceFiles()
 }
-
