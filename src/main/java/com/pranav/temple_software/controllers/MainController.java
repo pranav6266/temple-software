@@ -77,6 +77,7 @@ public class MainController {
 	@FXML private Button smartActionButton;
 	@FXML private Button clearFormButton;
 	@FXML private Label statusLabel;
+	@FXML public TextField othersAmountField;
 
 	@FXML
 	public void initialize() {
@@ -110,7 +111,7 @@ public class MainController {
 		table.setupTableView();
 		validationServices.initializeTotalCalculation();
 		smartActionButton.setOnAction(e -> handleSmartAction());
-		addOthersButton.setOnAction(e -> handleAddGeneric("Others", othersComboBox, OthersRepository.getAllOthers()));
+		addOthersButton.setOnAction(e -> handleAddOtherSeva());
 		addVisheshaPoojeButton.setOnAction(e -> handleAddGeneric("Vishesha Pooja", visheshaPoojeComboBox, VisheshaPoojeRepository.getAllVisheshaPooje()));
 		sevaListener.initiateSevaListener();
 		validationServices.calenderChecker();
@@ -154,6 +155,41 @@ public class MainController {
 				}
 			}
 		});
+	}
+
+	private void handleAddOtherSeva() {
+		String sevaType = othersComboBox.getValue();
+		String amountText = othersAmountField.getText();
+
+		if (sevaType == null || sevaType.equals("ಆಯ್ಕೆ") || amountText == null || amountText.trim().isEmpty()) {
+			showAlert("Incomplete Input", "Please select an 'Other Seva' type and enter an amount.");
+			return;
+		}
+
+		try {
+			double amount = Double.parseDouble(amountText);
+			if (amount <= 0) {
+				showAlert("Invalid Amount", "Amount must be greater than zero.");
+				return;
+			}
+
+			// Check for duplicates
+			boolean exists = selectedSevas.stream().anyMatch(entry -> entry.getName().equals(sevaType));
+			if (exists) {
+				showAlert("Duplicate Entry", "The selected Other Seva is already added.");
+				return;
+			}
+
+			SevaEntry newEntry = new SevaEntry(sevaType, amount);
+			selectedSevas.add(newEntry);
+
+			// Clear fields for next entry
+			othersComboBox.getSelectionModel().selectFirst();
+			othersAmountField.clear();
+
+		} catch (NumberFormatException e) {
+			showAlert("Invalid Amount", "Please enter a valid number for the amount.");
+		}
 	}
 
 	@FXML
@@ -202,7 +238,6 @@ public class MainController {
 			sevaTableView.refresh();
 		});
 	}
-
 	public void updatePrintStatusLabel() {
 		long pendingCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
@@ -668,9 +703,10 @@ public class MainController {
 	public void refreshOthersComboBox() {
 		OthersRepository.loadOthersFromDB();
 		List<SevaEntry> entries = OthersRepository.getAllOthers();
+		// Now, just map to the names, not the amount
 		ObservableList<String> names = FXCollections.observableArrayList(
 				entries.stream()
-						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
+						.map(SevaEntry::getName)
 						.collect(Collectors.toList())
 		);
 		names.add(0, "ಆಯ್ಕೆ");

@@ -66,6 +66,17 @@ public class DatabaseManager {
 				}
 			}
 		}
+
+		// Migration for Others table to REMOVE OTHERS_AMOUNT column
+		try (ResultSet rs = meta.getColumns(null, null, "OTHERS", "OTHERS_AMOUNT")) {
+			if (rs.next()) {
+				System.out.println("⏳ Running migration: Dropping OTHERS_AMOUNT column from Others...");
+				try (Statement stmt = conn.createStatement()) {
+					stmt.executeUpdate("ALTER TABLE Others DROP COLUMN OTHERS_AMOUNT");
+					System.out.println("✅ Migration successful for OTHERS_AMOUNT column removal.");
+				}
+			}
+		}
 	}
 
 	private void createCredentialsTableIfNotExists(Connection conn) throws SQLException {
@@ -201,7 +212,6 @@ public class DatabaseManager {
 		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
 				"others_id VARCHAR(10) PRIMARY KEY, " +
 				"others_name VARCHAR(100) NOT NULL, " +
-				"others_amount DECIMAL(10,2) DEFAULT 0, " +
 				"display_order INT NOT NULL)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
