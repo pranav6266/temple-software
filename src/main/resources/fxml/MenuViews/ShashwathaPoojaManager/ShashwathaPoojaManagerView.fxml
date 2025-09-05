@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager.ShashwathaPoojaManagerController">
+    <top>
+        <Label styleClass="popup-title" text="ಶಾಶ್ವತ ಪೂಜೆ ಮೊತ್ತವನ್ನು ನಿರ್ವಹಿಸಿ" BorderPane.alignment="CENTER" />
+    </top>
+    <center>
+        <VBox alignment="CENTER" spacing="20.0" styleClass="popup-content" BorderPane.alignment="CENTER">
+            <children>
+                <Label fx:id="statusLabel" style="-fx-font-weight: bold;" />
+                <HBox alignment="CENTER" spacing="10.0">
+                    <children>
+                        <Label styleClass="popup-field-label" text="ಪ್ರಸ್ತುತ ಮೊತ್ತ (₹):" />
+                        <TextField fx:id="amountField" promptText="Enter new amount" styleClass="popup-text-field" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </center>
+    <bottom>
+        <HBox styleClass="popup-button-container" BorderPane.alignment="CENTER">
+            <children>
+                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#handleSave" styleClass="manager-button, manager-save-button" text="ಉಳಿಸಿ" />
+                <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" styleClass="manager-button, manager-cancel-button" text="ರದ್ದುಮಾಡಿ" />
+            </children>
+        </HBox>
+    </bottom>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+    </padding>
+</BorderPane>

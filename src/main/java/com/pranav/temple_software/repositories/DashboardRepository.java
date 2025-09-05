@@ -15,7 +15,6 @@ public class DashboardRepository {
 	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
-
 	private Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(DB_URL, USER, PASS);
 	}
@@ -23,7 +22,6 @@ public class DashboardRepository {
 	public List<DashboardStats> getSevaStatistics(LocalDate fromDate, LocalDate toDate,
 	                                              String paymentMethod, String specificSevaId) {
 		List<DashboardStats> stats = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT s.seva_id, s.seva_name, s.amount, ");
 		sql.append("COUNT(*) as total_count, ");
@@ -33,7 +31,6 @@ public class DashboardRepository {
 		sql.append("FROM Receipts r ");
 		sql.append("JOIN Sevas s ON r.sevas_details LIKE CONCAT('%', s.seva_name, '%') ");
 		sql.append("WHERE 1=1 ");
-
 		List<Object> parameters = new ArrayList<>();
 
 		if (fromDate != null) {
@@ -85,7 +82,6 @@ public class DashboardRepository {
 	public List<DashboardStats> getOtherSevaStatistics(LocalDate fromDate, LocalDate toDate,
 	                                                   String paymentMethod, String specificOtherSevaId) {
 		List<DashboardStats> stats = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT os.others_id, os.others_name, os.others_amount, ");
 		sql.append("COUNT(*) as total_count, ");
@@ -95,7 +91,6 @@ public class DashboardRepository {
 		sql.append("FROM Receipts r ");
 		sql.append("JOIN Others os ON r.sevas_details LIKE CONCAT('%', os.others_name, '%') ");
 		sql.append("WHERE 1=1 ");
-
 		List<Object> parameters = new ArrayList<>();
 
 		if (fromDate != null) {
@@ -147,7 +142,6 @@ public class DashboardRepository {
 	public List<DashboardStats> getDonationStatistics(LocalDate fromDate, LocalDate toDate,
 	                                                  String paymentMethod, String specificDonationId) {
 		List<DashboardStats> stats = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT d.donation_id, d.donation_name, ");
 		sql.append("COUNT(*) as total_count, ");
@@ -159,7 +153,6 @@ public class DashboardRepository {
 		sql.append("WHERE 1=1 ");
 
 		List<Object> parameters = new ArrayList<>();
-
 		if (fromDate != null) {
 			sql.append("AND dr.seva_date >= ? ");
 			parameters.add(Date.valueOf(fromDate));
@@ -209,7 +202,6 @@ public class DashboardRepository {
 	public List<String> getAllSevaNames() {
 		List<String> sevaNames = new ArrayList<>();
 		String sql = "SELECT seva_id, seva_name FROM Sevas ORDER BY display_order";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -227,7 +219,6 @@ public class DashboardRepository {
 	public List<String> getAllOtherSevaNames() {
 		List<String> otherSevaNames = new ArrayList<>();
 		String sql = "SELECT others_id, others_name FROM Others ORDER BY display_order";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -245,7 +236,6 @@ public class DashboardRepository {
 	public List<String> getAllDonationNames() {
 		List<String> donationNames = new ArrayList<>();
 		String sql = "SELECT donation_id, donation_name FROM Donations ORDER BY display_order";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -265,15 +255,14 @@ public class DashboardRepository {
 
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT 'SHASHWATHA_POOJA' as item_id, 'ಶಾಶ್ವತ ಪೂಜೆ' as item_name, ");
-		sql.append("COUNT(*) as total_count, ");
-		sql.append("0 as cash_count, "); // Shashwatha Pooja doesn't have payment mode
-		sql.append("0 as online_count, ");
-		sql.append("0 as total_amount "); // No amount for Shashwatha Pooja
+		sql.append("COUNT(spr.receipt_id) as total_count, ");
+		sql.append("SUM(CASE WHEN spr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
+		sql.append("SUM(CASE WHEN spr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
+		sql.append("SUM(spr.amount) as total_amount ");
 		sql.append("FROM ShashwathaPoojaReceipts spr ");
 		sql.append("WHERE 1=1 ");
 
 		List<Object> parameters = new ArrayList<>();
-
 		if (fromDate != null) {
 			sql.append("AND spr.receipt_date >= ? ");
 			parameters.add(Date.valueOf(fromDate));
@@ -282,6 +271,8 @@ public class DashboardRepository {
 			sql.append("AND spr.receipt_date <= ? ");
 			parameters.add(Date.valueOf(toDate));
 		}
+		// Add GROUP BY to ensure it returns nothing if the table is empty
+		sql.append("GROUP BY item_name");
 
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
@@ -292,15 +283,18 @@ public class DashboardRepository {
 
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
-				stats.add(new DashboardStats(
-						rs.getString("item_id"),
-						rs.getString("item_name"),
-						"SHASHWATHA_POOJA",
-						rs.getInt("total_count"),
-						rs.getInt("cash_count"),
-						rs.getInt("online_count"),
-						rs.getDouble("total_amount")
-				));
+				int totalCount = rs.getInt("total_count");
+				if (totalCount > 0) {
+					stats.add(new DashboardStats(
+							rs.getString("item_id"),
+							rs.getString("item_name"),
+							"SHASHWATHA_POOJA",
+							totalCount,
+							rs.getInt("cash_count"),
+							rs.getInt("online_count"),
+							rs.getDouble("total_amount")
+					));
+				}
 			}
 		} catch (SQLException e) {
 			System.err.println("Error fetching Shashwatha Pooja statistics: " + e.getMessage());
@@ -308,11 +302,9 @@ public class DashboardRepository {
 
 		return stats;
 	}
-
 	public List<DashboardStats> getVisheshaPoojaStatistics(LocalDate fromDate, LocalDate toDate,
 	                                                       String paymentMethod, String specificVisheshaPoojaId) {
 		List<DashboardStats> stats = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT vp.vishesha_pooje_id, vp.vishesha_pooje_name, vp.vishesha_pooje_amount, ");
 		sql.append("COUNT(*) as total_count, ");
@@ -322,7 +314,6 @@ public class DashboardRepository {
 		sql.append("FROM Receipts r ");
 		sql.append("JOIN VisheshaPooje vp ON r.sevas_details LIKE CONCAT('%', vp.vishesha_pooje_name, '%') ");
 		sql.append("WHERE 1=1 ");
-
 		List<Object> parameters = new ArrayList<>();
 
 		if (fromDate != null) {
@@ -374,7 +365,6 @@ public class DashboardRepository {
 	public List<String> getAllShashwathaPoojaNames() {
 		List<String> names = new ArrayList<>();
 		String sql = "SELECT DISTINCT 'SHASHWATHA_POOJA:ಶಾಶ್ವತ ಪೂಜೆ' as name_entry FROM ShashwathaPoojaReceipts";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -392,7 +382,6 @@ public class DashboardRepository {
 	public List<String> getAllVisheshaPoojaNames() {
 		List<String> names = new ArrayList<>();
 		String sql = "SELECT vishesha_pooje_id, vishesha_pooje_name FROM VisheshaPooje ORDER BY display_order";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {

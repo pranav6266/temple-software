@@ -2,8 +2,10 @@
 
 package com.pranav.temple_software.controllers.menuControllers.InKindDonationManager;
 
+import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.InKindDonation;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.DevoteeRepository;
 import com.pranav.temple_software.repositories.InKindDonationRepository;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.application.Platform;
@@ -18,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class InKindDonationController {
@@ -35,12 +38,14 @@ public class InKindDonationController {
 
 	private final InKindDonationRepository repository = new InKindDonationRepository();
 	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
+	private final DevoteeRepository devoteeRepository = new DevoteeRepository(); // Added for auto-fill
 
 	@FXML
 	public void initialize() {
 		donationDatePicker.setValue(LocalDate.now());
 		populateRashiComboBox();
 		setupRashiNakshatraListener();
+		setupPhoneNumberListener(); // Added for auto-fill
 		devoteeNameField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
 			return change;
@@ -53,7 +58,62 @@ public class InKindDonationController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
+		// Removed validatePanRequirement() call from initialize
 	}
+
+	/**
+	 * Sets up listeners on the phone number field to restrict input and auto-fill devotee details.
+	 */
+	private void setupPhoneNumberListener() {
+		// Restrict input to 10 digits
+		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue != null) {
+				if (!newValue.matches("\\d*")) {
+					contactField.setText(newValue.replaceAll("[^\\d]", ""));
+				}
+				if (newValue.length() > 10) {
+					contactField.setText(newValue.substring(0, 10));
+				}
+			}
+		});
+
+        // Auto-fill when focus is lost [cite: 1284]
+		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+			if (!newVal) { // When focus is lost
+				String phoneNumber = contactField.getText();
+				if (phoneNumber != null && phoneNumber.length() == 10) {
+					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
+					detailsOpt.ifPresent(this::populateDevoteeDetails);
+				}
+			}
+		});
+	}
+
+	/**
+	 * [cite_start]Populates the form fields with data fetched from the database[cite: 291].
+	 * @param details The devotee details object.
+	 */
+	private void populateDevoteeDetails(DevoteeDetails details) {
+		if (details == null) return;
+		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
+		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
+		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : "");
+
+		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
+			raashiComboBox.setValue(details.getRashi());
+		} else {
+			raashiComboBox.getSelectionModel().selectFirst();
+		}
+
+		Platform.runLater(() -> {
+			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
+				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
+					nakshatraComboBox.setValue(details.getNakshatra());
+				}
+			}
+		});
+	}
+
 
 	@FXML
 	private void handleSave() {
@@ -74,7 +134,6 @@ public class InKindDonationController {
 		);
 
 		boolean success = repository.saveInKindDonation(newDonation);
-
 		if (success) {
 			// Get the latest saved donation with ID
 			List<InKindDonation> donations = repository.getAllInKindDonations();
@@ -101,14 +160,12 @@ public class InKindDonationController {
 							});
 						}
 					};
-
 					Runnable onDialogClosed = () -> {
 						Platform.runLater(() -> closeWindow());
 					};
 
 					Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 					receiptPrinter.showInKindDonationPrintPreview(savedDonation, ownerStage, onPrintComplete, onDialogClosed);
-
 				} catch (Exception e) {
 					e.printStackTrace();
 					showAlert(Alert.AlertType.ERROR, "Print Error",
@@ -124,26 +181,6 @@ public class InKindDonationController {
 		}
 	}
 
-	private boolean validatePanRequirement() {
-		String panNumber = panNumberField.getText();
-			// Basic PAN format validation
-			if (!isValidPanFormat(panNumber.trim())) {
-				showAlert(Alert.AlertType.INFORMATION,"Invalid PAN",
-						"Please enter a valid PAN number format (e.g., AAAPL1234C)");
-				Platform.runLater(() -> panNumberField.requestFocus());
-				return false;
-			}
-		return true;
-	}
-
-	private boolean isValidPanFormat(String pan) {
-		if (pan == null || pan.length() != 10) {
-			return false;
-		}
-		// PAN format: 5 letters, 4 digits, 1 letter
-		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
-	}
-
 	private boolean validateInput() {
 		if (devoteeNameField.getText() == null || devoteeNameField.getText().trim().isEmpty()) {
 			showAlert(Alert.AlertType.WARNING, "Validation Error", "Devotee Name is required.");
@@ -157,7 +194,21 @@ public class InKindDonationController {
 			showAlert(Alert.AlertType.WARNING, "Validation Error", "Donation Date is required.");
 			return false;
 		}
+		// Validate PAN format before saving
+		String pan = panNumberField.getText();
+		if (pan != null && !pan.trim().isEmpty() && !isValidPanFormat(pan.trim())) {
+			showAlert(Alert.AlertType.WARNING, "Invalid PAN Format", "Please enter a valid PAN number format (e.g., AAAPL1234C)");
+			return false;
+		}
 		return true;
+	}
+
+	private boolean isValidPanFormat(String pan) {
+		if (pan == null || pan.length() != 10) {
+			return false;
+		}
+		// PAN format: 5 letters, 4 digits, 1 letter [cite: 236]
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
 	@FXML
@@ -173,7 +224,7 @@ public class InKindDonationController {
 	private void populateRashiComboBox() {
 		ObservableList<String> rashiOptions = FXCollections.observableArrayList();
 		rashiOptions.add("ಆಯ್ಕೆ");
-        rashiOptions.addAll(
+		rashiOptions.addAll(
 				"ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
 				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
 		);
@@ -182,44 +233,22 @@ public class InKindDonationController {
 	}
 
 	private void setupRashiNakshatraListener() {
-		// ಮೇಷ (Aries)
-		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
-
-		// ವೃಷಭ (Taurus)
-		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
-
-		// ಮಿಥುನ (Gemini)
-		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರಾ", "ಪುನರ್ವಸು"));
-
-		// ಕರ್ಕ (Cancer)
-		rashiNakshatraMap.put("ಕರ್ಕಾಟಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
-
-		// ಸಿಂಹ (Leo)
-		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘಾ", "ಪೂರ್ವ ಫಲ್ಗುಣಿ", "ಉತ್ತರ ಫಲ್ಗುಣಿ"));
-
-		// ಕನ್ಯಾ (Virgo)
-		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ ಫಲ್ಗುಣಿ", "ಹಸ್ತ", "ಚಿತ್ರ"));
-
-		// ತುಲಾ (Libra)
-		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖಾ"));
-
-		// ವೃಶ್ಚಿಕ (Scorpio)
-		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖಾ", "ಅನುರಾಧ", "ಜೇಷ್ಠ"));
-
-		// ಧನುಸ್ (Sagittarius)
-		rashiNakshatraMap.put("ಧನು", Arrays.asList("ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಡ"));
-
-		// ಮಕರ (Capricorn)
-		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರಾಷಾಡ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
-
-		// ಕುಂಭ (Aquarius)
-		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಭಾದ್ರ"));
-
-		// ಮೀನ (Pisces)
-		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಭಾದ್ರ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
+		// Populate the Rashi-Nakshatra mapping
+		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತಿಕ"));
+		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
+		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರ", "ಪುನರ್ವಸು"));
+		rashiNakshatraMap.put("ಕರ್ಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
+		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘ", "ಪೂರ್ವ ಫಲ್ಗುನಿ", "ಉತ್ತರ ಫಲ್ಗುನಿ"));
+		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ ಫಲ್ಗುನಿ", "ಹಸ್ತ", "ಚಿತ್ರ"));
+		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖ"));
+		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖ", "ಅನುರಾಧ", "ಜ್ಯೇಷ್ಠ"));
+		rashiNakshatraMap.put("ಧನುಸ್", Arrays.asList("ಮೂಲ", "ಪೂರ್ವ ಆಷಾಢ", "ಉತ್ತರ ಆಷಾಢ"));
+		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರ ಆಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
+		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವ ಭಾದ್ರಪದ"));
+		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವ ಭಾದ್ರಪದ", "ಉತ್ತರ ಭಾದ್ರಪದ", "ರೇವತಿ"));
 
 		nakshatraComboBox.setDisable(true);
-        raashiComboBox.getSelectionModel().selectedItemProperty().addListener( // [cite: 878]
+		raashiComboBox.getSelectionModel().selectedItemProperty().addListener(
 				(obs, oldVal, newVal) -> {
 					if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
 						nakshatraComboBox.setDisable(true);

@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 public class DashboardController {
 
 	@FXML private ComboBox<String> typeComboBox;
@@ -46,7 +45,6 @@ public class DashboardController {
 
 	@FXML private Label totalRecordsLabel;
 	@FXML private Label totalAmountLabel;
-
 	private final DashboardRepository dashboardRepository = new DashboardRepository();
 
 	@FXML
@@ -66,7 +64,6 @@ public class DashboardController {
 			filterStage.initModality(Modality.WINDOW_MODAL);
 			filterStage.initOwner(dashboardTable.getScene().getWindow());
 			filterStage.setResizable(false);
-
 			Scene scene = new Scene(loader.load());
 			scene.getStylesheets().add(getClass().getResource("/css/modern-dashboard.css").toExternalForm());
 			filterStage.setScene(scene);
@@ -95,7 +92,6 @@ public class DashboardController {
 			});
 
 			filterStage.showAndWait();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 			showAlert("Error", "Failed to open filter window: " + e.getMessage());
@@ -186,7 +182,6 @@ public class DashboardController {
 		String selectedType = typeComboBox.getValue();
 		List<String> items = new ArrayList<>();
 		items.add("ಎಲ್ಲಾ");
-
 		switch (selectedType) {
 			case "ಸೇವೆ" -> items.addAll(dashboardRepository.getAllSevaNames().stream()
 					.map(s -> s.split(":")[1]).collect(Collectors.toList()));
@@ -194,7 +189,8 @@ public class DashboardController {
 					.map(s -> s.split(":")[1]).collect(Collectors.toList()));
 			case "ದೇಣಿಗೆ" -> items.addAll(dashboardRepository.getAllDonationNames().stream()
 					.map(s -> s.split(":")[1]).collect(Collectors.toList()));
-			case "ವಸ್ತು ದೇಣಿಗೆ" -> items.add("ವಸ್ತು ದೇಣಿಗೆ"); // Only one type
+			case "ವಸ್ತು ದೇಣಿಗೆ" -> items.add("ವಸ್ತು ದೇಣಿಗೆ");
+			// Only one type
 			case "ಶಾಶ್ವತ ಪೂಜೆ" -> items.addAll(dashboardRepository.getAllShashwathaPoojaNames().stream()
 					.map(s -> s.split(":")[1]).collect(Collectors.toList()));
 			case "ವಿಶೇಷ ಪೂಜೆ" -> items.addAll(dashboardRepository.getAllVisheshaPoojaNames().stream()
@@ -215,7 +211,6 @@ public class DashboardController {
 		String selectedMonth = monthComboBox.getValue();
 		String selectedYear = yearComboBox.getValue();
 		String paymentMode = paymentModeComboBox.getValue();
-
 		// Date handling logic remains the same...
 
 		List<DashboardStats> allStats = new ArrayList<>();
@@ -247,7 +242,6 @@ public class DashboardController {
 	private void updateSummaryLabels(List<DashboardStats> stats) {
 		int totalRecords = stats.stream().mapToInt(DashboardStats::getTotalCount).sum();
 		double totalAmount = stats.stream().mapToDouble(DashboardStats::getTotalAmount).sum();
-
 		// Added Unicode icons for better visual appeal
 		totalRecordsLabel.setText("📋 ಒಟ್ಟು ದಾಖಲೆಗಳು: " + totalRecords);
 		totalAmountLabel.setText("💰 ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", totalAmount));
@@ -265,7 +259,8 @@ public class DashboardController {
 		return switch (monthName) {
 			case "JANUARY" -> 1; case "FEBRUARY" -> 2; case "MARCH" -> 3;
 			case "APRIL" -> 4; case "MAY" -> 5; case "JUNE" -> 6;
-			case "JULY" -> 7; case "AUGUST" -> 8; case "SEPTEMBER" -> 9;
+			case "JULY" -> 7; case "AUGUST" -> 8;
+			case "SEPTEMBER" -> 9;
 			case "OCTOBER" -> 10; case "NOVEMBER" -> 11; case "DECEMBER" -> 12;
 			default -> 1;
 		};
@@ -287,7 +282,6 @@ public class DashboardController {
 	private void handleExportToExcel() {
 		// 1. Get the data from the TableView
 		List<DashboardStats> data = dashboardTable.getItems();
-
 		if (data.isEmpty()) {
 			showAlert("No Data", "There is no data to export.");
 			return;
@@ -303,7 +297,6 @@ public class DashboardController {
 			// 3. Create the Excel workbook and sheet
 			try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
 				org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Dashboard Report");
-
 				// 4. Create Header Row
 				org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
 				String[] headers = {"Item Name", "Item Type", "Total Count", "Cash Count", "Online Count", "Total Amount"};

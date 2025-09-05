@@ -1,41 +1,28 @@
 package com.pranav.temple_software.utils;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
-
 public class DatabaseManager {
 	public static final String APP_DATA_FOLDER = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware";
 	public static final Path DB_FOLDER_PATH = Paths.get(APP_DATA_FOLDER, "db");
 
-	// FIXED: Simplified connection string without problematic parameters
 	public static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH.toString() + File.separator + "temple_data";
-
 	private static final String USER = "sa";
 	private static final String PASS = "";
-
 	public DatabaseManager() {
 		try {
-			// Create directories if they don't exist
 			Files.createDirectories(DB_FOLDER_PATH);
-
-			// Load H2 driver explicitly
 			Class.forName("org.h2.Driver");
-
-			// Create tables with PAN column included from the start
-			createTablesWithPanColumn();
-
-
-
+			createTablesAndRunMigrations();
 		} catch (Exception e) {
 			System.err.println("❌ Error initializing database: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
-	private void createTablesWithPanColumn() {
+	private void createTablesAndRunMigrations() {
 		try (Connection conn = getConnection()) {
 			createSevaTableIfNotExists(conn);
 			createOthersTableIfNotExists(conn);
@@ -47,28 +34,52 @@ public class DatabaseManager {
 			createShashwathaPoojaTableIfNotExists(conn);
 			createCredentialsTableIfNotExists(conn);
 
+			runMigrations(conn);
 
 		} catch (SQLException e) {
-			System.err.println("❌ Error creating tables: " + e.getMessage());
+			System.err.println("❌ Error creating tables or running migrations: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
-	private void createCredentialsTableIfNotExists(Connection conn) {
+	private void runMigrations(Connection conn) throws SQLException {
+		DatabaseMetaData meta = conn.getMetaData();
+
+		// Migration for ShashwathaPoojaReceipts table to add AMOUNT column
+		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "AMOUNT")) {
+			if (!rs.next()) {
+				System.out.println("⏳ Running migration: Adding AMOUNT column to ShashwathaPoojaReceipts...");
+				try (Statement stmt = conn.createStatement()) {
+					stmt.executeUpdate("ALTER TABLE ShashwathaPoojaReceipts ADD COLUMN amount DECIMAL(10, 2) NOT NULL DEFAULT 1000.00");
+					System.out.println("✅ Migration successful for AMOUNT column.");
+				}
+			}
+		}
+
+		// Migration for ShashwathaPoojaReceipts table to add PAYMENT_MODE column
+		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "PAYMENT_MODE")) {
+			if (!rs.next()) {
+				System.out.println("⏳ Running migration: Adding PAYMENT_MODE column to ShashwathaPoojaReceipts...");
+				try (Statement stmt = conn.createStatement()) {
+					stmt.executeUpdate("ALTER TABLE ShashwathaPoojaReceipts ADD COLUMN payment_mode VARCHAR(10) DEFAULT 'Cash'");
+					System.out.println("✅ Migration successful for PAYMENT_MODE column.");
+				}
+			}
+		}
+	}
+
+	private void createCredentialsTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Credentials (" +
 				"credential_key VARCHAR(50) PRIMARY KEY, " +
 				"credential_value TEXT NOT NULL)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			// Initialize credentials
-			initializeCredentials();
+			initializeCredentials(conn);
 			System.out.println("✅ Credentials table checked/created successfully.");
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating Credentials table: " + e.getMessage());
 		}
 	}
 
-	private void createInKindDonationTableIfNotExists(Connection conn) {
+	private void createInKindDonationTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS InKindDonations (" +
 				"in_kind_receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
 				"devotee_name VARCHAR(255), " +
@@ -83,12 +94,10 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ InKindDonations table checked/created successfully.");
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating InKindDonations table: " + e.getMessage());
 		}
 	}
 
-	private void createShashwathaPoojaTableIfNotExists(Connection conn) {
+	private void createShashwathaPoojaTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS ShashwathaPoojaReceipts (" +
 				"receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
 				"devotee_name VARCHAR(255), " +
@@ -99,53 +108,42 @@ public class DatabaseManager {
 				"nakshatra VARCHAR(20), " +
 				"receipt_date DATE, " +
 				"pooja_date TEXT, " +
+				"amount DECIMAL(10, 2), " +
+				"payment_mode VARCHAR(10), " +
 				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ ShashwathaPoojaReceipts table checked/created successfully.");
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating ShashwathaPoojaReceipts table: " + e.getMessage());
 		}
 	}
 
-	private void initializeCredentials() {
-		try (Connection conn = getConnection()) {
-			// Check if credentials exist
-			String checkSql = "SELECT COUNT(*) FROM Credentials";
-			try (Statement stmt = conn.createStatement();
-			     ResultSet rs = stmt.executeQuery(checkSql)) {
+	private void initializeCredentials(Connection conn) throws SQLException {
+		insertCredentialIfMissing(conn, "NORMAL_PASSWORD", "$2a$12$mKDI7SvSR3xVxoOgE6BRu.kNVPpc9jAThhtmgVP66tzcUVZO811k.");
+		insertCredentialIfMissing(conn, "SPECIAL_PASSWORD", "$2a$12$Z2qx6uSzEIvkmI21GuY02uIFZHnUeDf/d.xAPHvm0H3IA2EEqfK/O");
+		insertCredentialIfMissing(conn, "ADMIN_USERNAME", "Pranav");
+		insertCredentialIfMissing(conn, "ADMIN_PASSWORD", "$2a$12$KJgaWpl8PHvOWBd1Nw7yI.je6qqWBZ1ZKRtPF.vCASqbVdEmPfPlO");
+		insertCredentialIfMissing(conn, "SHASHWATHA_POOJA_PRICE", "1000.00");
+	}
 
-				if (rs.next() && rs.getInt(1) == 0) {
-					// No credentials exist, create defaults
-					String insertSql = "INSERT INTO Credentials (credential_key, credential_value) VALUES (?, ?)";
-					try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-						// Default passwords (you should change these)
-						pstmt.setString(1, "NORMAL_PASSWORD");
-						pstmt.setString(2, "$2a$12$mKDI7SvSR3xVxoOgE6BRu.kNVPpc9jAThhtmgVP66tzcUVZO811k."); // "password"
-						pstmt.executeUpdate();
+	private void insertCredentialIfMissing(Connection conn, String key, String value) throws SQLException {
+		String checkSql = "SELECT COUNT(*) FROM Credentials WHERE credential_key = ?";
+		String insertSql = "INSERT INTO Credentials (credential_key, credential_value) VALUES (?, ?)";
 
-						pstmt.setString(1, "SPECIAL_PASSWORD");
-						pstmt.setString(2, "$2a$12$Z2qx6uSzEIvkmI21GuY02uIFZHnUeDf/d.xAPHvm0H3IA2EEqfK/O"); // "password"
-						pstmt.executeUpdate();
-
-						pstmt.setString(1, "ADMIN_USERNAME");
-						pstmt.setString(2, "Pranav");
-						pstmt.executeUpdate();
-
-						pstmt.setString(1, "ADMIN_PASSWORD");
-						pstmt.setString(2, "$2a$12$KJgaWpl8PHvOWBd1Nw7yI.je6qqWBZ1ZKRtPF.vCASqbVdEmPfPlO"); // "password"
-						pstmt.executeUpdate();
-
-						System.out.println("✅ Default credentials initialized.");
-					}
+		try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+			checkStmt.setString(1, key);
+			ResultSet rs = checkStmt.executeQuery();
+			if (rs.next() && rs.getInt(1) == 0) {
+				try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+					insertStmt.setString(1, key);
+					insertStmt.setString(2, value);
+					insertStmt.executeUpdate();
+					System.out.println("✅ Initialized default credential for: " + key);
 				}
 			}
-		} catch (SQLException e) {
-			System.err.println("❌ Error initializing credentials: " + e.getMessage());
 		}
 	}
 
-	private void createReceiptTableIfNotExists(Connection conn) {
+	private void createReceiptTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Receipts(" +
 				"receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
 				"devotee_name VARCHAR(255), " +
@@ -162,12 +160,10 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ Receipts table checked/created successfully.");
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating Receipts table: " + e.getMessage());
 		}
 	}
 
-	private void createDonationReceiptTableIfNotExists(Connection conn) {
+	private void createDonationReceiptTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS DonationReceipts(" +
 				"donation_receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
 				"devotee_name VARCHAR(255), " +
@@ -185,12 +181,10 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ DonationReceipts table checked/created successfully.");
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating DonationReceipts table: " + e.getMessage());
 		}
 	}
 
-	private void createSevaTableIfNotExists(Connection conn) {
+	private void createSevaTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Sevas (" +
 				"seva_id VARCHAR(10) PRIMARY KEY, " +
 				"seva_name VARCHAR(255) NOT NULL, " +
@@ -199,14 +193,11 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ Sevas table checked/created successfully.");
-			addInitialSevasIfEmpty(conn);
 			ensureDisplayOrderExists(conn);
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating Sevas table: " + e.getMessage());
 		}
 	}
 
-	private void createOthersTableIfNotExists(Connection conn) {
+	private void createOthersTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
 				"others_id VARCHAR(10) PRIMARY KEY, " +
 				"others_name VARCHAR(100) NOT NULL, " +
@@ -215,13 +206,10 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ Others table checked/created successfully.");
-			addInitialOthersIfEmpty(conn);
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating Others table: " + e.getMessage());
 		}
 	}
 
-	private void createVisheshaPoojeTableIfNotExists(Connection conn) {
+	private void createVisheshaPoojeTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS VisheshaPooje (" +
 				"vishesha_pooje_id VARCHAR(10) PRIMARY KEY, " +
 				"vishesha_pooje_name VARCHAR(100) NOT NULL, " +
@@ -230,13 +218,7 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ VisheshaPooje table checked/created successfully.");
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating VisheshaPooje table: " + e.getMessage());
 		}
-	}
-
-	private void addInitialOthersIfEmpty(Connection conn) {
-		// This method is intentionally empty as per requirements.
 	}
 
 	private void ensureDisplayOrderExists(Connection conn) {
@@ -244,11 +226,11 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.executeUpdate(sql);
 		} catch (SQLException | NumberFormatException e) {
-			// Ignore potential errors if seva_id is not a number
+			// Ignore
 		}
 	}
 
-	private void createDonationsTableIfNotExists(Connection conn) {
+	private void createDonationsTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Donations (" +
 				"donation_id VARCHAR(10) PRIMARY KEY, " +
 				"donation_name VARCHAR(255) NOT NULL, " +
@@ -256,15 +238,8 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			System.out.println("✅ Donations table checked/created successfully.");
-			addInitialDonationsIfEmpty(conn);
 			ensureDisplayOrderExistsForDonations(conn);
-		} catch (SQLException e) {
-			System.err.println("❌ Error creating Donations table: " + e.getMessage());
 		}
-	}
-
-	private void addInitialDonationsIfEmpty(Connection conn) {
-		// This method is intentionally empty as per requirements.
 	}
 
 	private void ensureDisplayOrderExistsForDonations(Connection conn) {
@@ -272,12 +247,8 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.executeUpdate(sql);
 		} catch (SQLException | NumberFormatException e) {
-			// Ignore potential errors if donation_id is not a number
+			// Ignore
 		}
-	}
-
-	private void addInitialSevasIfEmpty(Connection conn) {
-		// This method is intentionally empty as per requirements.
 	}
 
 	public static Connection getConnection() throws SQLException {

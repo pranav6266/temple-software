@@ -1,7 +1,9 @@
-// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/ShashwathaPoojaManager/ShashwathaPoojaController.java
 package com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager;
 
+import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.ShashwathaPoojaReceipt;
+import com.pranav.temple_software.repositories.CredentialsRepository;
+import com.pranav.temple_software.repositories.DevoteeRepository;
 import com.pranav.temple_software.repositories.ShashwathaPoojaRepository;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.application.Platform;
@@ -16,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ShashwathaPoojaController {
@@ -23,17 +26,24 @@ public class ShashwathaPoojaController {
 	@FXML private TextField devoteeNameField;
 	@FXML private TextField contactField;
 	@FXML private DatePicker receiptDatePicker;
-	@FXML private TextField poojaDateField; // For the String-based date
+	@FXML private TextField poojaDateField;
 	@FXML private ComboBox<String> raashiComboBox;
 	@FXML private ComboBox<String> nakshatraComboBox;
 	@FXML private TextArea addressField;
 	@FXML private TextField panNumberField;
+	@FXML private Label amountLabel;
+	@FXML private RadioButton cashRadio;
+	@FXML private RadioButton onlineRadio;
+	@FXML private ToggleGroup paymentGroup;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
 
 	private final ShashwathaPoojaRepository repository = new ShashwathaPoojaRepository();
 	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
-	private ReceiptPrinter receiptPrinter; // Will be set
+	private ReceiptPrinter receiptPrinter;
+	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
+	private final CredentialsRepository credentialsRepository = new CredentialsRepository();
+	private double currentPoojaAmount = 1000.0;
 
 	public void setReceiptPrinter(ReceiptPrinter printer) {
 		this.receiptPrinter = printer;
@@ -44,6 +54,7 @@ public class ShashwathaPoojaController {
 		receiptDatePicker.setValue(LocalDate.now());
 		populateRashiComboBox();
 		setupRashiNakshatraListener();
+		setupPhoneNumberListener();
 		devoteeNameField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
 			return change;
@@ -52,7 +63,63 @@ public class ShashwathaPoojaController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
+		loadAndDisplayAmount();
 	}
+
+	private void loadAndDisplayAmount() {
+		Optional<String> amountOpt = credentialsRepository.getCredential("SHASHWATHA_POOJA_PRICE");
+		amountOpt.ifPresent(s -> {
+			try {
+				currentPoojaAmount = Double.parseDouble(s);
+			} catch (NumberFormatException e) {
+				System.err.println("Could not parse Shashwatha Pooja price from DB, using default.");
+			}
+		});
+		amountLabel.setText(String.format("₹%.2f", currentPoojaAmount));
+	}
+
+	private void setupPhoneNumberListener() {
+		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue != null) {
+				if (!newValue.matches("\\d*")) {
+					contactField.setText(newValue.replaceAll("[^\\d]", ""));
+				}
+				if (newValue.length() > 10) {
+					contactField.setText(newValue.substring(0, 10));
+				}
+			}
+		});
+
+		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+			if (!newVal) {
+				String phoneNumber = contactField.getText();
+				if (phoneNumber != null && phoneNumber.length() == 10) {
+					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
+					detailsOpt.ifPresent(this::populateDevoteeDetails);
+				}
+			}
+		});
+	}
+
+	private void populateDevoteeDetails(DevoteeDetails details) {
+		if (details == null) return;
+		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
+		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
+		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : "");
+		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
+			raashiComboBox.setValue(details.getRashi());
+		} else {
+			raashiComboBox.getSelectionModel().selectFirst();
+		}
+		Platform.runLater(() -> {
+			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
+				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
+					nakshatraComboBox.setValue(details.getNakshatra());
+				}
+			}
+		});
+	}
+
 
 	@FXML
 	private void handleSaveAndPrint() {
@@ -60,8 +127,10 @@ public class ShashwathaPoojaController {
 			return;
 		}
 
+		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
+
 		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(
-				0, // ID is auto-generated
+				0,
 				devoteeNameField.getText(),
 				contactField.getText(),
 				addressField.getText(),
@@ -69,51 +138,36 @@ public class ShashwathaPoojaController {
 				raashiComboBox.getValue(),
 				nakshatraComboBox.getValue(),
 				receiptDatePicker.getValue(),
-				poojaDateField.getText()
+				poojaDateField.getText(),
+				currentPoojaAmount,
+				paymentMode
 		);
 
 		boolean success = repository.saveShashwathaPooja(newReceipt);
-
 		if (success) {
-			// Re-fetch from DB to get the auto-generated ID for the receipt
 			List<ShashwathaPoojaReceipt> latest = repository.getAllShashwathaPoojaReceipts();
 			if (!latest.isEmpty()) {
-				ShashwathaPoojaReceipt savedReceipt = latest.get(0); // First item is latest
+				ShashwathaPoojaReceipt savedReceipt = latest.get(0);
 
-				// Check if receiptPrinter is null and handle appropriately
 				if (receiptPrinter != null) {
 					Consumer<Boolean> onPrintComplete = (printSuccess) -> {
-						if (printSuccess) {
-							Platform.runLater(() -> {
-								showAlert(Alert.AlertType.INFORMATION, "Success",
-										"Shashwatha Pooja receipt printed successfully!");
-								closeWindow();
-							});
-						} else {
-							Platform.runLater(() -> {
-								showAlert(Alert.AlertType.WARNING, "Print Cancelled",
-										"Receipt was saved but printing was cancelled.");
-								closeWindow();
-							});
-						}
+						Platform.runLater(() -> {
+							showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja receipt saved successfully!");
+							closeWindow();
+						});
 					};
-
-					Runnable onDialogClosed = () -> {
-						Platform.runLater(() -> closeWindow());
-					};
+					Runnable onDialogClosed = this::closeWindow;
 
 					try {
 						Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 						receiptPrinter.showShashwathaPoojaPrintPreview(savedReceipt, ownerStage, onPrintComplete, onDialogClosed);
 					} catch (Exception e) {
 						e.printStackTrace();
-						showAlert(Alert.AlertType.ERROR, "Print Error",
-								"Failed to open print preview: " + e.getMessage());
+						showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
 						closeWindow();
 					}
 				} else {
-					showAlert(Alert.AlertType.ERROR, "Print Error",
-							"Receipt printer is not initialized. Please contact support.");
+					showAlert(Alert.AlertType.ERROR, "Print Error", "Receipt printer is not initialized.");
 					closeWindow();
 				}
 			} else {
@@ -138,16 +192,13 @@ public class ShashwathaPoojaController {
 			showAlert(Alert.AlertType.WARNING, "Validation Error", "Receipt Date is required.");
 			return false;
 		}
-		return true;
-	}
-
-	private boolean validatePanRequirement() {
-		String panNumber = panNumberField.getText();
-		// Basic PAN format validation
-		if (!isValidPanFormat(panNumber.trim())) {
-			showAlert(Alert.AlertType.INFORMATION,"Invalid PAN",
-					"Please enter a valid PAN number format (e.g., AAAPL1234C)");
-			Platform.runLater(() -> panNumberField.requestFocus());
+		if (!cashRadio.isSelected() && !onlineRadio.isSelected()) {
+			showAlert(Alert.AlertType.WARNING, "Validation Error", "Please select a payment method.");
+			return false;
+		}
+		String pan = panNumberField.getText();
+		if (pan != null && !pan.trim().isEmpty() && !isValidPanFormat(pan.trim())) {
+			showAlert(Alert.AlertType.WARNING, "Invalid PAN Format", "Please enter a valid PAN number format (e.g., AAAPL1234C)");
 			return false;
 		}
 		return true;
@@ -157,7 +208,6 @@ public class ShashwathaPoojaController {
 		if (pan == null || pan.length() != 10) {
 			return false;
 		}
-		// PAN format: 5 letters, 4 digits, 1 letter
 		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
@@ -183,41 +233,18 @@ public class ShashwathaPoojaController {
 	}
 
 	private void setupRashiNakshatraListener() {
-		// ಮೇಷ (Aries)
-		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
-
-		// ವೃಷಭ (Taurus)
-		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
-
-		// ಮಿಥುನ (Gemini)
-		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರಾ", "ಪುನರ್ವಸು"));
-
-		// ಕರ್ಕ (Cancer)
-		rashiNakshatraMap.put("ಕರ್ಕಾಟಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
-
-		// ಸಿಂಹ (Leo)
-		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘಾ", "ಪೂರ್ವ ಫಲ್ಗುಣಿ", "ಉತ್ತರ ಫಲ್ಗುಣಿ"));
-
-		// ಕನ್ಯಾ (Virgo)
-		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ ಫಲ್ಗುಣಿ", "ಹಸ್ತ", "ಚಿತ್ರ"));
-
-		// ತುಲಾ (Libra)
-		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖಾ"));
-
-		// ವೃಶ್ಚಿಕ (Scorpio)
-		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖಾ", "ಅನುರಾಧ", "ಜೇಷ್ಠ"));
-
-		// ಧನುಸ್ (Sagittarius)
-		rashiNakshatraMap.put("ಧನು", Arrays.asList("ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಡ"));
-
-		// ಮಕರ (Capricorn)
-		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರಾಷಾಡ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
-
-		// ಕುಂಭ (Aquarius)
-		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಭಾದ್ರ"));
-
-		// ಮೀನ (Pisces)
-		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಭಾದ್ರ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
+		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತಿಕ"));
+		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
+		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರ", "ಪುನರ್ವಸು"));
+		rashiNakshatraMap.put("ಕರ್ಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
+		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘ", "ಪೂರ್ವ ಫಲ್ಗುನಿ", "ಉತ್ತರ ಫಲ್ಗುನಿ"));
+		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ ಫಲ್ಗುನಿ", "ಹಸ್ತ", "ಚಿತ್ರ"));
+		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖ"));
+		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖ", "ಅನುರಾಧ", "ಜ್ಯೇಷ್ಠ"));
+		rashiNakshatraMap.put("ಧನುಸ್", Arrays.asList("ಮೂಲ", "ಪೂರ್ವ ಆಷಾಢ", "ಉತ್ತರ ಆಷಾಢ"));
+		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರ ಆಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
+		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವ ಭಾದ್ರಪದ"));
+		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವ ಭಾದ್ರಪದ", "ಉತ್ತರ ಭಾದ್ರಪದ", "ರೇವತಿ"));
 
 		nakshatraComboBox.setDisable(true);
 		raashiComboBox.getSelectionModel().selectedItemProperty().addListener(

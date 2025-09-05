@@ -7,7 +7,6 @@ import com.pranav.temple_software.utils.DatabaseManager;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
 public class ShashwathaPoojaRepository {
 
 	private Connection getConnection() throws SQLException {
@@ -15,8 +14,8 @@ public class ShashwathaPoojaRepository {
 	}
 
 	public boolean saveShashwathaPooja(ShashwathaPoojaReceipt receipt) {
-		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, pooja_date) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, pooja_date, amount) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -28,6 +27,7 @@ public class ShashwathaPoojaRepository {
 			pstmt.setString(6, receipt.getNakshatra());
 			pstmt.setDate(7, Date.valueOf(receipt.getReceiptDate()));
 			pstmt.setString(8, receipt.getPoojaDate());
+			pstmt.setDouble(9, receipt.getAmount());
 
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
@@ -55,7 +55,9 @@ public class ShashwathaPoojaRepository {
 						rs.getString("rashi"),
 						rs.getString("nakshatra"),
 						rs.getDate("receipt_date").toLocalDate(),
-						rs.getString("pooja_date")
+						rs.getString("pooja_date"),
+						rs.getDouble("amount"),
+						rs.getString("payment_mode")
 				));
 			}
 		} catch (SQLException e) {

@@ -279,7 +279,6 @@ public class MainController {
 		double totalAmount = selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
 				.sum();
-
 		if (cashRadio.isSelected() && totalAmount > 2000.0) {
 			showAlert("Invalid Payment Method",
 					"Cash payment is not allowed for transactions over ₹2000.\n" +
@@ -299,7 +298,6 @@ public class MainController {
 		long successCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.count();
-
 		if (pendingCount > 0 || failedCount > 0) {
 			// Directly proceed to the print/preview process for pending or failed items
 			if (failedCount > 0 && pendingCount == 0) {
@@ -513,6 +511,28 @@ public class MainController {
 			} catch (IOException e) {
 				e.printStackTrace();
 				showAlert("Error", "Unable to load Vishesha Pooja Manager: " + e.getMessage());
+			}
+		};
+		promptForSpecialPassword(openManager);
+	}
+
+	@FXML
+	public void handleShashwathaPoojaManagerButton() {
+		Runnable openManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/ShashwathaPoojaManager/ShashwathaPoojaManagerView.fxml"));
+				Stage stage = new Stage();
+				stage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ನಿರ್ವಹಿಸಿ");
+				Scene scene = new Scene(loader.load());
+				stage.setScene(scene);
+
+				stage.initOwner(mainStage);
+				stage.initModality(Modality.WINDOW_MODAL);
+				stage.setResizable(false);
+				stage.show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				showAlert("Error", "Unable to load Shashwatha Pooja Manager: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openManager);

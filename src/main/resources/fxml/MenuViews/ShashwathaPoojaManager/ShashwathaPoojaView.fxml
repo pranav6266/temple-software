@@ -5,8 +5,10 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -14,51 +16,64 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css"
-            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager.ShashwathaPoojaController">
+<BorderPane styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager.ShashwathaPoojaController">
     <top>
-        <Label styleClass="popup-title" text="ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ" BorderPane.alignment="CENTER"/>
+        <Label styleClass="popup-title" text="ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ" BorderPane.alignment="CENTER" />
     </top>
     <center>
         <VBox styleClass="popup-content">
             <GridPane hgap="15" vgap="15">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="NEVER" minWidth="120.0"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints hgrow="NEVER" minWidth="120.0" />
+                    <ColumnConstraints hgrow="ALWAYS" />
                 </columnConstraints>
 
-                <Label styleClass="popup-field-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="0"/>
-                <TextField fx:id="devoteeNameField" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label styleClass="popup-field-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="0" />
+                <TextField fx:id="devoteeNameField" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
-                <Label styleClass="popup-field-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1"/>
-                <TextField fx:id="contactField" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label styleClass="popup-field-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1" />
+                <TextField fx:id="contactField" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
-                <Label styleClass="popup-field-label" text="ರಶೀದಿ ದಿನಾಂಕ:" GridPane.rowIndex="2"/>
-                <DatePicker fx:id="receiptDatePicker" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label styleClass="popup-field-label" text="ರಶೀದಿ ದಿನಾಂಕ:" GridPane.rowIndex="2" />
+                <DatePicker fx:id="receiptDatePicker" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-                <Label styleClass="popup-field-label" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ:" GridPane.rowIndex="3"/>
-                <TextField fx:id="poojaDateField" promptText="ಉದಾ: ಪ್ರತಿ ಸಂಕ್ರಾಂತಿ, ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <Label styleClass="popup-field-label" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ:" GridPane.rowIndex="3" />
+                <TextField fx:id="poojaDateField" promptText="ಉದಾ: ಪ್ರತಿ ಸಂಕ್ರಾಂತಿ, ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                <Label styleClass="popup-field-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.rowIndex="4"/>
-                <ComboBox fx:id="raashiComboBox" promptText="ರಾಶಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                <Label styleClass="popup-field-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.rowIndex="4" />
+                <ComboBox fx:id="raashiComboBox" promptText="ರಾಶಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
-                <Label styleClass="popup-field-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="5"/>
-                <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                <Label styleClass="popup-field-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="5" />
+                <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
-                <Label styleClass="popup-field-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.rowIndex="6"/>
-                <TextField fx:id="panNumberField" promptText="PAN ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                <Label styleClass="popup-field-label" text="ವಿಳಾಸ:" GridPane.rowIndex="6" />
+                <TextArea fx:id="addressField" prefRowCount="2" promptText="ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="6" />
 
-                <Label styleClass="popup-field-label" text="ವಿಳಾಸ:" GridPane.rowIndex="7"/>
-                <TextArea fx:id="addressField" promptText="ವಿಳಾಸ ನಮೂದಿಸಿ"  prefRowCount="3" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+                <Label styleClass="popup-field-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.rowIndex="7" />
+                <TextField fx:id="panNumberField" promptText="PAN ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+
+                <Label styleClass="popup-field-label" text="ಪಾವತಿ ವಿಧಾನ:" GridPane.rowIndex="8" />
+                <HBox alignment="CENTER_LEFT" spacing="20.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                    <children>
+                        <RadioButton fx:id="cashRadio" selected="true" text="💵 ನಗದು">
+                            <toggleGroup>
+                                <ToggleGroup fx:id="paymentGroup" />
+                            </toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="onlineRadio" text="💳 ಆನ್ಲೈನ್" toggleGroup="$paymentGroup" />
+                    </children>
+                </HBox>
+
+                <Label styleClass="popup-field-label" text="ಪೂಜಾ ಮೊತ್ತ:" GridPane.rowIndex="9" />
+                <Label fx:id="amountLabel" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;" text="₹1000.00" GridPane.columnIndex="1" GridPane.rowIndex="9" />
 
             </GridPane>
         </VBox>
     </center>
     <bottom>
         <HBox styleClass="popup-button-container">
-            <Button fx:id="saveButton" onAction="#handleSaveAndPrint" styleClass="manager-button, manager-save-button" text="ಉಳಿಸಿ ಮತ್ತು ಮುದ್ರಿಸು"/>
-            <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="manager-button, manager-cancel-button" text="ರದ್ದುಮಾಡಿ"/>
+            <Button fx:id="saveButton" onAction="#handleSaveAndPrint" styleClass="manager-button, manager-save-button" text="ಉಳಿಸಿ ಮತ್ತು ಮುದ್ರಿಸು" />
+            <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="manager-button, manager-cancel-button" text="ರದ್ದುಮಾಡಿ" />
         </HBox>
     </bottom>
 </BorderPane>

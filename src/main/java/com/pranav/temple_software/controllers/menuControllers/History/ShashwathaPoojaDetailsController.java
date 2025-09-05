@@ -9,30 +9,26 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.scene.Node;
-
 public class ShashwathaPoojaDetailsController {
 
 	@FXML private Label receiptIdLabel;
 	@FXML private Label devoteeNameLabel;
 	@FXML private Label phoneNumberLabel;
-	@FXML private Label panNumberLabel; // ADDED
+	@FXML private Label panNumberLabel;
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
-
+	@FXML private Label amountLabel; // Added
 	@FXML private Label receiptDateLabel;
 	@FXML private Text poojaDateText;
 
 	@FXML private Button reprintButton;
 	private ShashwathaPoojaReceipt currentPoojaData;
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
-
-
 	public void initializeDetails(ShashwathaPoojaReceipt data) {
 		if (data == null) return;
 		this.currentPoojaData = data;
 		receiptIdLabel.setText("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId());
-
 		// Devotee Details
 		devoteeNameLabel.setText("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName() != null && !data.getDevoteeName().isEmpty() ? data.getDevoteeName() : "---"));
 		phoneNumberLabel.setText("ದೂರವಾಣಿ: " + (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty() ? data.getPhoneNumber() : "---"));
@@ -44,6 +40,7 @@ public class ShashwathaPoojaDetailsController {
 		// Pooja Details
 		receiptDateLabel.setText("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate());
 		poojaDateText.setText(data.getPoojaDate());
+		amountLabel.setText("ಪೂಜಾ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getAmount()));
 	}
 
 	@FXML
