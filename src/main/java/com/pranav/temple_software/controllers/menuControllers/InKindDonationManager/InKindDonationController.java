@@ -53,7 +53,6 @@ public class InKindDonationController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-		validatePanRequirement();
 	}
 
 	@FXML

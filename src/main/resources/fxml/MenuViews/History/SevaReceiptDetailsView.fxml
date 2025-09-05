@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.text.Text?>
 <ScrollPane styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.SevaReceiptDetailsController">
 
     <VBox alignment="CENTER_LEFT" styleClass="details-container" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
@@ -45,8 +46,8 @@
                 <Label fx:id="sevaDateLabel" styleClass="info-label" text="ದಿನಾಂಕ:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                 <Label fx:id="rashiLabel" styleClass="info-label" text="ರಾಶಿ:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
                 <Label fx:id="nakshatraLabel" styleClass="info-label" text="ನಕ್ಷತ್ರ:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ :" GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
-                <Label fx:id="addressText" styleClass="info-label" text="ವಿಳಾಸ:" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ :" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+                <Text fx:id="addressText" styleClass="info-label" text="ವಿಳಾಸ:" GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
             </GridPane>
         </VBox>
 

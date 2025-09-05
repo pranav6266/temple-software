@@ -21,7 +21,7 @@ public class SevaReceiptDetailsController {
 	@FXML private Label panNumberLabel; // ADDED
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
-	@FXML private Label addressText;
+	@FXML private Text addressText;
 
 	@FXML private Label sevaDateLabel;
 	@FXML private Label totalAmountLabel;
@@ -49,7 +49,7 @@ public class SevaReceiptDetailsController {
 		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (data.getPanNumber() != null && !data.getPanNumber().isEmpty() ? data.getPanNumber() : "---"));
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().isEmpty() ? data.getRashi() : "---"));
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null && !data.getNakshatra().isEmpty() ? data.getNakshatra() : "---"));
-		addressText.setText(data.getAddress() != null && !data.getAddress().isEmpty() ? data.getAddress() : "---");
+		addressText.setText("ವಿಳಾಸ: "+(!data.getAddress().isEmpty() ? data.getAddress() : "---"));
 
 		// Seva Details
 		sevaDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedDate());

@@ -46,8 +46,11 @@
                 <Label styleClass="popup-field-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="5"/>
                 <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
-                <Label styleClass="popup-field-label" text="ವಿಳಾಸ:" GridPane.rowIndex="6"/>
+                <Label styleClass="popup-field-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.rowIndex="6"/>
                 <TextField fx:id="panNumberField" promptText="PAN ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+
+                <Label styleClass="popup-field-label" text="ವಿಳಾಸ:" GridPane.rowIndex="7"/>
+                <TextArea fx:id="addressField" promptText="ವಿಳಾಸ ನಮೂದಿಸಿ"  prefRowCount="3" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
 
             </GridPane>
         </VBox>

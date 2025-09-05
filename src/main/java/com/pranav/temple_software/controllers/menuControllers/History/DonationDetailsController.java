@@ -43,7 +43,7 @@ public class DonationDetailsController {
 		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (donationData.getPanNumber() != null && !donationData.getPanNumber().isEmpty() ? donationData.getPanNumber() : "---"));
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (donationData.getRashi() != null && !donationData.getRashi().isEmpty() ? donationData.getRashi() : "---"));
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (donationData.getNakshatra() != null && !donationData.getNakshatra().isEmpty() ? donationData.getNakshatra() : "---"));
-		addressText.setText(donationData.getAddress() != null && !donationData.getAddress().isEmpty() ? donationData.getAddress() : "---");
+		addressText.setText("ವಿಳಾಸ: "+(!donationData.getAddress().isEmpty() ? donationData.getAddress() : "---"));
 
 		// Donation Details
 		donationDateLabel.setText("ದಿನಾಂಕ: " + donationData.getFormattedDate());

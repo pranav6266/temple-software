@@ -52,7 +52,6 @@ public class ShashwathaPoojaController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-		validatePanRequirement();
 	}
 
 	@FXML
