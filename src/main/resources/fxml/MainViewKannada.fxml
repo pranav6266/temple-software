@@ -38,6 +38,7 @@
                                 <MenuButton fx:id="menuButton" alignment="CENTER" contentDisplay="CENTER" prefHeight="50.0" prefWidth="133.0" styleClass="menu-button" text="☰ ಮೆನು" BorderPane.alignment="CENTER">
                                     <items>
                                         <MenuItem mnemonicParsing="false" onAction="#handleHistoryButton" text="📋 ಇತಿಹಾಸ" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleDonationMenuItem" text="🎁 ದೇಣಿಗೆ" />
                                         <MenuItem mnemonicParsing="false" onAction="#handleShashwathaPoojaMenuItem" text="🕉️ ಶಾಶ್ವತ ಪೂಜೆ" />
                                         <MenuItem mnemonicParsing="false" onAction="#handleInKindDonationMenuItem" text="🎁 ವಸ್ತು ದೇಣಿಗೆ" />
                                         <Menu text="ನಿರ್ವಹಿಸಿ">
@@ -72,7 +73,7 @@
                     </BorderPane>
                     <BorderPane>
                         <center>
-                            <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" prefHeight="43.0" prefWidth="254.0" styleClass="receipt-title" text="ಸೇವಾ / ದೇಣಿಗೆ ರಶೀದಿ" />
+                            <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" prefHeight="43.0" prefWidth="254.0" styleClass="receipt-title" text="ಸೇವಾ ರಶೀದಿ" />
                         </center>
                     </BorderPane>
                 </VBox>
@@ -132,7 +133,7 @@
 
 
                         <VBox>
-                            <Label prefHeight="45.0" prefWidth="477.0" styleClass="panel-title" text="ಸೇವೆಗಳು ಮತ್ತು ದೇಣಿಗೆಗಳು" />
+                            <Label prefHeight="45.0" prefWidth="477.0" styleClass="panel-title" text="ಸೇವೆಗಳು" />
                             <VBox styleClass="service-section" VBox.vgrow="ALWAYS">
                                 <ScrollPane fitToWidth="true" styleClass="seva-scroll" VBox.vgrow="ALWAYS">
                                     <VBox fx:id="sevaCheckboxContainer" styleClass="seva-container" />
@@ -154,21 +155,6 @@
                                     <Button fx:id="addVisheshaPoojeButton" prefHeight="43.0" prefWidth="87.0" styleClass="add-button" text="➕ ಸೇರಿಸಿ" />
                                 </HBox>
                             </VBox>
-
-                            <VBox styleClass="service-section">
-                                <Label styleClass="section-title" text="💰 ದೇಣಿಗೆಗಳು" />
-                                <HBox styleClass="donation-row">
-                                    <CheckBox fx:id="donationCheck" styleClass="donation-checkbox" text="ಸಕ್ರಿಯಗೊಳಿಸಿ" />
-                                    <TextField fx:id="donationField" promptText="ಮೊತ್ತ" styleClass="amount-input" />
-                                </HBox>
-                                <HBox spacing="10.0">
-                                    <padding>
-                                        <Insets top="5.0" />
-                                    </padding>
-                                    <ComboBox fx:id="donationComboBox" promptText="ದೇಣಿಗೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="form-input" HBox.hgrow="ALWAYS" />
-                                    <Button fx:id="addDonationButton" prefHeight="54.0" prefWidth="133.0" styleClass="add-button" text="💰 ದೇಣಿಗೆ ಸೇರಿಸಿ" />
-                                </HBox>
-                            </VBox>
                             <VBox.margin>
                                 <Insets top="10.0" />
                             </VBox.margin>
@@ -182,7 +168,7 @@
                     <TableView fx:id="sevaTableView" minWidth="701.0" prefWidth="701.0" styleClass="modern-table" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="slNoColumn" minWidth="60.0" prefWidth="60.0" resizable="false" text="ಕ್ರ.ಸಂ" />
-                            <TableColumn fx:id="sevaNameColumn" minWidth="100" prefWidth="179.0" resizable="false" text="ಸೇವೆ / ದೇಣಿಗೆ" />
+                            <TableColumn fx:id="sevaNameColumn" minWidth="100" prefWidth="179.0" resizable="false" text="ಸೇವೆ" />
                             <TableColumn fx:id="quantityColumn" minWidth="61.0" prefWidth="72.0" resizable="false" text="ಪ್ರಮಾಣ" />
                             <TableColumn fx:id="amountColumn" minWidth="72.0" prefWidth="72.0" resizable="false" text="ಮೊತ್ತ" />
                             <TableColumn fx:id="totalAmountColumn" minWidth="85.0" prefWidth="125.0" resizable="false" text="ಒಟ್ಟು ಮೊತ್ತ" />

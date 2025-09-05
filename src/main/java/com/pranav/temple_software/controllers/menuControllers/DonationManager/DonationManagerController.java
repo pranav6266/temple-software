@@ -467,9 +467,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		itemsMarkedForDeletion.clear();
 		refreshGridPane();
 
-		if (mainControllerInstance != null) {
-			mainControllerInstance.refreshDonationComboBox();
-		}
+
 
 		// 4. Show Summary
 		if (changesMade) {

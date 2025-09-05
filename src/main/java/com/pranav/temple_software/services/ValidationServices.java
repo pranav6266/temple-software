@@ -20,23 +20,16 @@ public class ValidationServices {
 	MainController controller;
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 	private double devoteeDailyCashTotal = 0.0;
-
 	public ValidationServices(MainController controller) {
 		this.controller = controller;
 	}
 
-	/**
-	 * The main method to check and enforce the daily cash limit.
-	 * It considers both the current cart total and any previous transactions by the devotee.
-	 */
 	public void checkAndEnforceCashLimit() {
 		double currentCartTotal = controller.selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
 				.sum();
 
 		double grandTotal = devoteeDailyCashTotal + currentCartTotal;
-
-		// Rule 1: Disable cash if the combined total exceeds 2000
 		if (grandTotal > 2000.0) {
 			if (!controller.onlineRadio.isSelected()) {
 				Platform.runLater(() -> {
@@ -49,24 +42,16 @@ public class ValidationServices {
 			}
 			controller.cashRadio.setDisable(true);
 		} else {
-			// Re-enable the cash option if the total is within the limit
 			controller.cashRadio.setDisable(false);
 		}
 	}
 
-	/**
-	 * Fetches the devotee's past cash transactions for today and triggers the limit check.
-	 * Called when the phone number field loses focus.
-	 */
 	private void fetchPastTransactionsAndValidate() {
 		String phoneNumber = controller.contactField.getText();
 		if (phoneNumber != null && phoneNumber.length() == 10) {
-			// Fetch today's cash total from the database
 			this.devoteeDailyCashTotal = devoteeRepository.getTodaysCashTotalByPhone(phoneNumber);
-			// Run the validation check
 			checkAndEnforceCashLimit();
 		} else {
-			// If the phone number is cleared or invalid, reset the daily total
 			this.devoteeDailyCashTotal = 0.0;
 			checkAndEnforceCashLimit();
 		}
@@ -91,21 +76,18 @@ public class ValidationServices {
 				}
 			}
 		});
-
 		controller.contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (!newVal) { // When focus is lost
 				String phoneNumber = controller.contactField.getText();
 				if (phoneNumber != null && phoneNumber.length() == 10) {
-					// This now handles both auto-fill and cash limit validation
 					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
 					detailsOpt.ifPresent(details -> {
 						Platform.runLater(() -> controller.populateDevoteeDetails(details));
 					});
-					fetchPastTransactionsAndValidate(); // <-- ADD THIS LINE
+					fetchPastTransactionsAndValidate();
 				} else if (phoneNumber != null && !phoneNumber.isEmpty()) {
 					validatePhoneNumber();
 				} else {
-					// If phone number is cleared, reset and re-validate
 					fetchPastTransactionsAndValidate();
 				}
 			}
@@ -120,22 +102,18 @@ public class ValidationServices {
 	}
 
 	public void setupPanValidation() {
-		// PAN number should be uppercase and match PAN format
 		controller.panNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue != null) {
-				// Convert to uppercase and limit to 10 characters
 				String upperCase = newValue.toUpperCase();
 				if (upperCase.length() > 10) {
 					upperCase = upperCase.substring(0, 10);
 				}
-				// Only allow alphanumeric characters
 				upperCase = upperCase.replaceAll("[^A-Z0-9]", "");
 				controller.panNumberField.setText(upperCase);
 			}
 		});
-		// Validate PAN format when focus is lost
 		controller.panNumberField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-			if (!newVal) { // When focus is lost
+			if (!newVal) {
 				String pan = controller.panNumberField.getText();
 				if (pan != null && !pan.trim().isEmpty()) {
 					if (!isValidPanFormat(pan.trim())) {
@@ -148,44 +126,26 @@ public class ValidationServices {
 		});
 	}
 
-	/**
-	 * Validates PAN number format
-	 */
 	private boolean isValidPanFormat(String pan) {
 		if (pan == null || pan.length() != 10) {
 			return false;
 		}
-		// PAN format: 5 letters, 4 digits, 1 letter
 		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
-	public void setupAmountValidation() {
-		controller.donationField.textProperty().addListener((observable, oldValue, newValue) -> {
-			if (newValue != null && !newValue.matches("\\d*(\\.\\d*)?")) {
-				// Allow only digits and at most one decimal point
-				controller.donationField.setText(oldValue);
-			}
-		});
-	}
-
-	//This code implements what values the text boxes should accept.
 	public void setupNameValidation() {
-		// Create a TextFormatter with a filter to allow only letters and spaces
 		TextFormatter<String> formatter = new TextFormatter<>(change -> {
 			String newText = change.getControlNewText();
-			// Allow empty input or strings containing only letters/spaces
 			if (newText.matches("[\\p{L} ]*")) {
-				return change; // Accept the change
+				return change;
 			} else {
-				return null; // Reject the change
+				return null;
 			}
 		});
 		controller.devoteeNameField.setTextFormatter(formatter);
 	}
 
-	//This is the code to check only one of the radio buttons in cash and online
 	public void radioCheck(){
-		// Set up the checkboxes to act like radio buttons
 		controller.cashRadio.selectedProperty().addListener(
 				(observable, oldValue, newValue) -> {
 					if (newValue) {
@@ -200,7 +160,6 @@ public class ValidationServices {
 				});
 	}
 
-	// Force today's date if field is left empty or invalid
 	public void calenderChecker() {
 		controller.sevaDatePicker.getEditor().textProperty().addListener((obs, oldVal, newText) -> {
 			if (newText == null || newText.isEmpty()) {
@@ -209,7 +168,6 @@ public class ValidationServices {
 		});
 	}
 
-	//This below is to select only the 3 nakshatras for a given raashi
 	public void threeNakshatraForARashi() {
 		controller.nakshatraComboBox.setDisable(true);
 		controller.sevaListener.rashiNakshatraMap();
@@ -234,20 +192,15 @@ public class ValidationServices {
 	}
 
 	public void initializeTotalCalculation() {
-		// Create binding for total amount
 		DoubleBinding totalBinding = Bindings.createDoubleBinding(() ->
 						controller.selectedSevas.stream()
 								.mapToDouble(SevaEntry::getTotalAmount)
 								.sum(),
 				controller.selectedSevas
 		);
-
-		// Add a listener to the binding that will trigger our cash validation
 		totalBinding.addListener((obs, oldVal, newVal) -> {
 			checkAndEnforceCashLimit();
 		});
-
-		// Update total label with currency format
 		controller.totalLabel.textProperty().bind(Bindings.createStringBinding(() ->
 						String.format("₹%.2f", totalBinding.get()),
 				totalBinding

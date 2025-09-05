@@ -1,6 +1,6 @@
-// FILE: src/main/java/com/pranav/temple_software/controllers/MainController.java
 package com.pranav.temple_software.controllers;
 
+import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationController;
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
 import com.pranav.temple_software.controllers.menuControllers.OthersManager.OthersManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
@@ -8,14 +8,8 @@ import com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaMan
 import com.pranav.temple_software.controllers.menuControllers.VisheshaPoojeManager.VisheshaPoojeManagerController;
 import com.pranav.temple_software.listeners.SevaListener;
 import com.pranav.temple_software.models.DevoteeDetails;
-import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.repositories.CredentialsRepository;
-import com.pranav.temple_software.repositories.DonationRepository;
-import com.pranav.temple_software.repositories.OthersRepository;
-import com.pranav.temple_software.repositories.SevaReceiptRepository;
-import com.pranav.temple_software.repositories.SevaRepository;
-import com.pranav.temple_software.repositories.VisheshaPoojeRepository;
+import com.pranav.temple_software.repositories.*;
 import com.pranav.temple_software.services.*;
 import com.pranav.temple_software.utils.BackupService;
 import com.pranav.temple_software.utils.PasswordUtils;
@@ -30,7 +24,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
@@ -38,14 +31,17 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -57,20 +53,16 @@ public class MainController {
 	@FXML public ComboBox<String> nakshatraComboBox;
 	@FXML public ComboBox<String> othersComboBox;
 	@FXML public ComboBox<String> visheshaPoojeComboBox;
-	@FXML public ComboBox<String> donationComboBox;
-	@FXML public TextField donationField;
-	@FXML public CheckBox donationCheck;
 	@FXML public RadioButton cashRadio;
 	@FXML public RadioButton onlineRadio;
 	@FXML public TextField devoteeNameField;
 	@FXML public TextField contactField;
-	@FXML public TextField panNumberField; // New PAN field
+	@FXML public TextField panNumberField;
 	@FXML public DatePicker sevaDatePicker;
 	@FXML public VBox sevaCheckboxContainer;
 	@FXML public TableView<SevaEntry> sevaTableView;
 	@FXML public TableColumn<SevaEntry, String> slNoColumn;
 	@FXML public TableColumn<SevaEntry, String> sevaNameColumn;
-	@FXML public Button addDonationButton;
 	@FXML public Button addOthersButton;
 	@FXML public Button addVisheshaPoojeButton;
 	public TextArea addressField;
@@ -120,23 +112,16 @@ public class MainController {
 		smartActionButton.setOnAction(e -> handleSmartAction());
 		addOthersButton.setOnAction(e -> handleAddGeneric("Others", othersComboBox, OthersRepository.getAllOthers()));
 		addVisheshaPoojeButton.setOnAction(e -> handleAddGeneric("Vishesha Pooja", visheshaPoojeComboBox, VisheshaPoojeRepository.getAllVisheshaPooje()));
-		donation.setDisable();
-		donationField.setDisable(true);
-		donationComboBox.setDisable(true);
-		addDonationButton.setDisable(true);
 		sevaListener.initiateSevaListener();
-		table.donationListener();
 		validationServices.calenderChecker();
 		validationServices.radioCheck();
 		validationServices.threeNakshatraForARashi();
 		validationServices.setupNameValidation();
 		validationServices.setupPhoneValidation();
-		validationServices.setupAmountValidation();
-		validationServices.setupPanValidation(); // New PAN validation
+		validationServices.setupPanValidation();
 		sevaListener.rashiNakshatraMap();
 		refreshSevaCheckboxes();
 		populateRashiComboBox();
-		refreshDonationComboBox();
 		refreshOthersComboBox();
 		refreshVisheshaPoojeComboBox();
 
@@ -169,6 +154,28 @@ public class MainController {
 				}
 			}
 		});
+	}
+
+	@FXML
+	public void handleDonationMenuItem() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/DonationManager/DonationView.fxml"));
+			Stage donationStage = new Stage();
+			donationStage.setTitle("ದೇಣಿಗೆ ಸೇರಿಸಿ");
+			Scene scene = new Scene(loader.load());
+			donationStage.setScene(scene);
+
+			DonationController controller = loader.getController();
+			controller.setReceiptPrinter(this.receiptPrinter);
+
+			donationStage.initModality(Modality.WINDOW_MODAL);
+			donationStage.initOwner(mainStage);
+			donationStage.setResizable(false);
+			donationStage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Failed to load the Donation view: " + e.getMessage());
+		}
 	}
 
 	public void handleAddGeneric(String type, ComboBox<String> comboBox, List<SevaEntry> repositoryList) {
@@ -254,7 +261,6 @@ public class MainController {
 			shashwathaStage.setTitle("ಶಾಶ್ವತ ಪೂಜೆ ಸೇರಿಸಿ");
 			Scene scene = new Scene(loader.load());
 			shashwathaStage.setScene(scene);
-			// Pass the receipt printer instance to the new controller
 			ShashwathaPoojaController controller = loader.getController();
 			controller.setReceiptPrinter(this.receiptPrinter);
 
@@ -270,12 +276,10 @@ public class MainController {
 
 	@FXML
 	public void handleSmartAction() {
-		// PAN validation before processing receipts
 		if (!validatePanRequirement()) {
-			return; // Don't proceed if PAN validation fails
+			return;
 		}
 
-		// *** NEW: Add final cash limit validation before printing ***
 		double totalAmount = selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
 				.sum();
@@ -283,11 +287,9 @@ public class MainController {
 			showAlert("Invalid Payment Method",
 					"Cash payment is not allowed for transactions over ₹2000.\n" +
 							"Please select the 'Online' payment method to proceed.");
-			// Force the selection to Online as a helpful measure
 			onlineRadio.setSelected(true);
-			return; // Stop the process
+			return;
 		}
-		// *** END of new validation ***
 
 		long pendingCount = selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
@@ -299,7 +301,6 @@ public class MainController {
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.count();
 		if (pendingCount > 0 || failedCount > 0) {
-			// Directly proceed to the print/preview process for pending or failed items
 			if (failedCount > 0 && pendingCount == 0) {
 				receiptServices.handleRetryFailed();
 			} else {
@@ -313,10 +314,6 @@ public class MainController {
 		}
 	}
 
-	/**
-	 * Validates PAN requirement based on total cart value
-	 * Returns true if validation passes, false if PAN is required but missing
-	 */
 	private boolean validatePanRequirement() {
 		double totalAmount = selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
@@ -332,7 +329,6 @@ public class MainController {
 				return false;
 			}
 
-			// Basic PAN format validation
 			if (!isValidPanFormat(panNumber.trim())) {
 				showAlert("Invalid PAN",
 						"Please enter a valid PAN number format (e.g., AAAPL1234C)");
@@ -343,26 +339,12 @@ public class MainController {
 		return true;
 	}
 
-	/**
-	 * Validates PAN number format
-	 */
 	private boolean isValidPanFormat(String pan) {
 		if (pan == null || pan.length() != 10) {
 			return false;
 		}
-		// PAN format: 5 letters, 4 digits, 1 letter
 		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
-
-	private void showPrintOrSaveDialog() {
-		// Remove the choice dialog and directly show preview
-		if (selectedSevas.stream().anyMatch(e -> e.getPrintStatus() == SevaEntry.PrintStatus.FAILED)) {
-			receiptServices.handleRetryFailed();
-		} else {
-			receiptServices.handlePrintAllPending(); // This will now directly show preview
-		}
-	}
-
 
 	@FXML
 	private void handleCloseApp() {
@@ -581,14 +563,11 @@ public class MainController {
 	public void clearForm() {
 		devoteeNameField.clear();
 		contactField.clear();
-		panNumberField.clear(); // Clear PAN field
+		panNumberField.clear();
 		raashiComboBox.getSelectionModel().selectFirst();
 		nakshatraComboBox.getSelectionModel().clearSelection();
 		sevaDatePicker.setValue(LocalDate.now());
 		selectedSevas.clear();
-		donationCheck.setSelected(false);
-		donationField.clear();
-		donationComboBox.getSelectionModel().selectFirst();
 		cashRadio.setSelected(false);
 		onlineRadio.setSelected(false);
 		othersComboBox.getSelectionModel().selectFirst();
@@ -622,7 +601,6 @@ public class MainController {
 	ValidationServices validationServices = new ValidationServices(this);
 	public ReceiptServices receiptServices = new ReceiptServices(this);
 	Others others = new Others(this);
-	public Donation donation = new Donation(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 	public void showAlert(String title, String message) {
@@ -663,17 +641,6 @@ public class MainController {
 				}
 			}
 		});
-		donationField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-			if (!newVal) {
-				try {
-					double amount = Double.parseDouble(donationField.getText());
-					donationField.setText(String.format("%.2f", amount));
-				} catch (NumberFormatException e) {
-					donationField.clear();
-					showAlert("Invalid Input", "Please enter a valid donation amount.");
-				}
-			}
-		});
 	}
 
 	public void refreshSevaCheckboxes() {
@@ -696,17 +663,6 @@ public class MainController {
 			if (sevaListener == null) System.err.println("sevaListener is null");
 			if (sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
 		}
-	}
-
-	public void refreshDonationComboBox() {
-		DonationRepository.getInstance().loadDonationsFromDB();
-		List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
-		ObservableList<String> donationNames = FXCollections.observableArrayList(
-				donationEntries.stream().map(Donations::getName).collect(Collectors.toList())
-		);
-		donationNames.add(0, "ಆಯ್ಕೆ");
-		donationComboBox.setItems(donationNames);
-		System.out.println("DEBUG: Donation ComboBox refreshed with " + donationEntries.size() + " donations.");
 	}
 
 	public void refreshOthersComboBox() {
@@ -739,13 +695,10 @@ public class MainController {
 		List<Control> formControls = List.of(
 				devoteeNameField,
 				contactField,
-				panNumberField, // Add PAN to focus traversal
+				panNumberField,
 				raashiComboBox,
 				nakshatraComboBox,
-				sevaDatePicker,
-				donationCheck,
-				donationField,
-				donationComboBox
+				sevaDatePicker
 		);
 		for (int i = 0; i < formControls.size(); i++) {
 			Control current = formControls.get(i);
@@ -781,7 +734,6 @@ public class MainController {
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
 		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
 		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : "");
-		// Set PAN
 		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
 			raashiComboBox.setValue(details.getRashi());
 		} else {
