@@ -120,7 +120,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		Stage popupStage = new Stage();
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Add New Seva");
-
 		// Create main container with modern styling
 		VBox mainContainer = new VBox();
 		mainContainer.getStyleClass().add("popup-dialog");
@@ -134,29 +133,19 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		contentContainer.getStyleClass().add("popup-content");
 
 		// Form fields
-		Label idLabel = new Label("Seva ID:");
-		idLabel.getStyleClass().add("popup-field-label");
-		TextField idField = new TextField();
-		idField.getStyleClass().add("popup-text-field");
-		idField.setEditable(false);
-		int maxId = sevaRepository.getMaxSevaId();
-		int defaultId = maxId + 1;
-		idField.setText(String.valueOf(defaultId));
-
+		// --- REMOVED ID FIELD ---
 		Label nameLabel = new Label("Seva Name:");
 		nameLabel.getStyleClass().add("popup-field-label");
 		TextField nameField = new TextField();
 		nameField.getStyleClass().add("popup-text-field");
 		nameField.setPromptText("Enter Seva Name");
-
 		Label amountLabel = new Label("Amount (₹):");
 		amountLabel.getStyleClass().add("popup-field-label");
 		TextField amountField = new TextField();
 		amountField.getStyleClass().add("popup-text-field");
 		amountField.setPromptText("Enter Amount");
-
 		contentContainer.getChildren().addAll(
-				idLabel, idField, nameLabel, nameField, amountLabel, amountField
+				nameLabel, nameField, amountLabel, amountField
 		);
 
 		// Button container
@@ -194,9 +183,12 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 				showAlert(Alert.AlertType.ERROR, "Input Error", "Please enter a valid number for the Amount.");
 				return;
 			}
-			String id = idField.getText();
-			Seva newSeva = new Seva(id, name, amount);
-			// *** Add to temporary list ONLY ***
+
+			// --- CHANGED: Use a temporary, unique placeholder ID ---
+			String tempId = "NEW_" + System.currentTimeMillis();
+			Seva newSeva = new Seva(tempId, name, amount);
+
+			// Add to temporary list ONLY
 			tempItemList.add(newSeva);
 			refreshGridPane(); // Update the main grid view
 			showAlert(Alert.AlertType.INFORMATION, "Success", "Seva '" + name + "' staged for addition. Press 'Save' to commit."); // Modified message
@@ -439,54 +431,57 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	protected void handleSave(ActionEvent actionEvent) {
 		StringBuilder summary = new StringBuilder();
 		boolean changesMade = false;
-
 		// 1. Process Deletions
 		if (!itemsMarkedForDeletion.isEmpty()) {
 			for (Seva sevaToDelete : itemsMarkedForDeletion) {
-				boolean deleted = sevaRepository.deleteSevaFromDB(sevaToDelete.getId());
-				if (deleted) {
-					summary.append("🗑️ Deleted: ").append(sevaToDelete.getName()).append("\n");
-					changesMade = true;
-				} else {
-					summary.append("❌ Delete Failed: ").append(sevaToDelete.getName()).append("\n");
+				// Only try to delete items that actually exist in the DB
+				if (!sevaToDelete.getId().startsWith("NEW_")) {
+					boolean deleted = sevaRepository.deleteSevaFromDB(sevaToDelete.getId());
+					if (deleted) {
+						summary.append("🗑️ Deleted: ").append(sevaToDelete.getName()).append("\n");
+						changesMade = true;
+					} else {
+						summary.append("❌ Delete Failed: ").append(sevaToDelete.getName()).append("\n");
+					}
 				}
 			}
 		}
 
 		// 2. Process Additions and Modifications
-		Map<String, Seva> currentItemsMap = new HashMap<>();
-		for(Seva currentSeva : tempItemList) {
-			currentItemsMap.put(currentSeva.getId(), currentSeva);
-		}
-
 		for (int i = 0; i < tempItemList.size(); i++) {
 			Seva currentSeva = tempItemList.get(i);
 			String currentId = currentSeva.getId();
 			int desiredOrder = i + 1;
 
-			if (!originalState.containsKey(currentId)) {
-				// It's a new Seva
-				currentSeva.setDisplayOrder(desiredOrder);
-				boolean added = sevaRepository.addSevaToDB(currentSeva);
+			// --- CHANGED: This block now handles adding new items ---
+			if (currentId != null && currentId.startsWith("NEW_")) {
+				// It's a new Seva, get a real ID now
+				int newId = sevaRepository.getMaxSevaId() + 1;
+				Seva sevaToSave = new Seva(String.valueOf(newId), currentSeva.getName(), currentSeva.getAmount());
+				sevaToSave.setDisplayOrder(desiredOrder);
+
+				boolean added = sevaRepository.addSevaToDB(sevaToSave);
 				if (added) {
-					summary.append("✅ Added: ").append(currentSeva.getName())
-							.append(" (₹").append(currentSeva.getAmount()).append(") at #").append(desiredOrder).append("\n");
+					summary.append("✅ Added: ").append(sevaToSave.getName())
+							.append(" (₹").append(String.format("%.2f", sevaToSave.getAmount())).append(") at #").append(desiredOrder).append("\n");
 					changesMade = true;
 				} else {
-					summary.append("❌ Add Failed: ").append(currentSeva.getName()).append("\n");
+					summary.append("❌ Add Failed: ").append(sevaToSave.getName()).append("\n");
 				}
 			} else {
 				// It's an existing Seva, check for modifications
 				Seva originalSeva = originalState.get(currentId);
+				if (originalSeva == null) continue; // Should not happen, but a safeguard
+
 				boolean amountChanged = currentSeva.getAmount() != originalSeva.getAmount();
-				boolean orderChanged = !originalOrder.containsKey(currentId) || desiredOrder != originalOrder.get(currentId);
+				boolean orderChanged = desiredOrder != originalOrder.getOrDefault(currentId, -1);
 
 				if (amountChanged) {
 					boolean updated = sevaRepository.updateAmount(currentId, currentSeva.getAmount());
 					if(updated) {
 						summary.append("✏️ Amount changed: ").append(currentSeva.getName())
-								.append(" ₹").append(originalSeva.getAmount())
-								.append(" → ₹").append(currentSeva.getAmount()).append("\n");
+								.append(" ₹").append(String.format("%.2f", originalSeva.getAmount()))
+								.append(" → ₹").append(String.format("%.2f", currentSeva.getAmount())).append("\n");
 						changesMade = true;
 					} else {
 						summary.append("❌ Amount Update Failed: ").append(currentSeva.getName()).append("\n");
@@ -511,7 +506,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		storeOriginalState();
 		itemsMarkedForDeletion.clear();
 		refreshGridPane();
-
 		if (mainControllerInstance != null) {
 			mainControllerInstance.refreshSevaCheckboxes();
 		}
