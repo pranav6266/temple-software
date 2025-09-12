@@ -5,6 +5,7 @@ import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.*;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.print.*;
@@ -17,9 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -55,6 +54,23 @@ public class ReceiptPrinter {
 
 	public ReceiptPrinter(MainController controller) {
 		this.controller = controller;
+	}
+
+	/**
+	 * Creates a row for the details section with a bold label and a normal value.
+	 * @param label The bolded heading text.
+	 * @param value The normal font data text.
+	 * @return An HBox containing the formatted label and value.
+	 */
+	private HBox createDetailRow(String label, String value) {
+		HBox row = new HBox(4); // spacing
+		Text labelText = new Text(label);
+		// Apply a thin stroke to simulate a bold effect that renders in PDF
+		labelText.setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-stroke: black; -fx-stroke-width: 0.15;");
+		Text valueText = new Text(value);
+		valueText.setFont(Font.font("Noto Sans Kannada", FontWeight.NORMAL, 9));
+		row.getChildren().addAll(labelText, valueText);
+		return row;
 	}
 
 	public void printNode(Node nodeToPrint, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
@@ -128,7 +144,6 @@ public class ReceiptPrinter {
 		});
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
-
 		previewStage.setOnCloseRequest(e -> {
 			if (onDialogClosed != null) {
 				onDialogClosed.run();
@@ -137,7 +152,6 @@ public class ReceiptPrinter {
 		HBox buttonBox = new HBox(10, printButton, savePdfButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
-
 		VBox layout = new VBox(10, scrollPane, buttonBox);
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);
@@ -151,14 +165,12 @@ public class ReceiptPrinter {
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
 		previewStage.setTitle("Donation Print Preview");
-
 		Node receiptNode = createDonationReceiptNode(data);
 
 		VBox previewContainer = new VBox(receiptNode);
 		previewContainer.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		previewContainer.setMaxWidth(RECEIPT_WIDTH_POINTS);
 		previewContainer.setStyle("-fx-border-color: #cccccc; -fx-border-width: 1; -fx-background-color: white;");
-
 		double scaleFactor = 1.3;
 		previewContainer.setScaleX(scaleFactor);
 		previewContainer.setScaleY(scaleFactor);
@@ -191,7 +203,6 @@ public class ReceiptPrinter {
 		});
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
-
 		previewStage.setOnCloseRequest(e -> {
 			if (onDialogClosed != null) {
 				onDialogClosed.run();
@@ -253,7 +264,6 @@ public class ReceiptPrinter {
 		});
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
-
 		previewStage.setOnCloseRequest(e -> {
 			if (onDialogClosed != null) {
 				onDialogClosed.run();
@@ -262,7 +272,6 @@ public class ReceiptPrinter {
 		HBox buttonBox = new HBox(10, printButton, savePdfButton, cancelButton);
 		buttonBox.setAlignment(Pos.CENTER);
 		buttonBox.setPadding(new Insets(10));
-
 		VBox layout = new VBox(10, scrollPane, buttonBox);
 		layout.setAlignment(Pos.CENTER);
 		scrollPane.setPrefViewportHeight(800);
@@ -315,7 +324,6 @@ public class ReceiptPrinter {
 		});
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(e -> previewStage.close());
-
 		previewStage.setOnCloseRequest(e -> {
 			if (onDialogClosed != null) {
 				onDialogClosed.run();
@@ -497,65 +505,88 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()));
-		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
-
+		detailsVBox.getChildren().add(createDetailRow("ರಶೀದಿ ಸಂಖ್ಯೆ: ", String.valueOf(data.getReceiptId())));
+		detailsVBox.getChildren().add(createDetailRow("ಭಕ್ತರ ಹೆಸರು: ", (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
 		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+			detailsVBox.getChildren().add(createDetailRow("ದೂರವಾಣಿ: ", data.getPhoneNumber()));
 		}
 		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ನಕ್ಷತ್ರ: ", data.getNakshatra()));
 		}
 		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ರಾಶಿ: ", data.getRashi()));
 		}
-
-		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
-		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
 
-		HBox headerRow = new HBox();
-		headerRow.setPadding(new Insets(2, 0, 2, 0));
+		// --- MODIFIED: The following block handles the table layout as requested ---
+
+		// 1. Create a GridPane for just the header
+		GridPane headerGrid = new GridPane();
+		headerGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
+		headerGrid.setMaxWidth(RECEIPT_WIDTH_POINTS - 10);
+
+		ColumnConstraints col1 = new ColumnConstraints();
+		col1.setPercentWidth(60);
+		col1.setHalignment(HPos.LEFT);
+		col1.setHgrow(Priority.ALWAYS);
+
+		ColumnConstraints col2 = new ColumnConstraints();
+		col2.setPercentWidth(20);
+		col2.setHalignment(HPos.CENTER);
+
+		ColumnConstraints col3 = new ColumnConstraints();
+		col3.setPercentWidth(20);
+		col3.setHalignment(HPos.RIGHT);
+
+		headerGrid.getColumnConstraints().addAll(col1, col2, col3);
+
 		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
-		sevaLabel.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9));
-		HBox.setHgrow(sevaLabel, Priority.ALWAYS);
+		sevaLabel.setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-stroke: black; -fx-stroke-width: 0.15;");
 		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
-		pramanaLabel.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9));
-		pramanaLabel.setPrefWidth(40);
-		pramanaLabel.setAlignment(Pos.CENTER);
-
-
+		pramanaLabel.setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-stroke: black; -fx-stroke-width: 0.15;");
 		Label mottaLabel = new Label("ಮೊತ್ತ");
-		mottaLabel.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9));
-		mottaLabel.setPrefWidth(55);
-		mottaLabel.setAlignment(Pos.CENTER_RIGHT);
+		mottaLabel.setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-stroke: black; -fx-stroke-width: 0.15;");
 
-		headerRow.getChildren().addAll(sevaLabel, pramanaLabel, mottaLabel);
-		receiptBox.getChildren().add(headerRow);
-		receiptBox.getChildren().add(new Text("-".repeat(50)));
+		headerGrid.add(sevaLabel, 0, 0);
+		headerGrid.add(pramanaLabel, 1, 0);
+		headerGrid.add(mottaLabel, 2, 0);
+
+		// 2. Create a separate GridPane for the data rows
+		GridPane dataGrid = new GridPane();
+		dataGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
+		dataGrid.setMaxWidth(RECEIPT_WIDTH_POINTS - 10);
+		dataGrid.getColumnConstraints().addAll(col1, col2, col3); // Use same constraints
+
 		for (SevaEntry seva : data.getSevas()) {
-			HBox sevaRow = new HBox();
 			Label name = new Label(seva.getName());
 			name.setWrapText(true);
 			name.setStyle("-fx-font-size: 9px;");
-			HBox.setHgrow(name, Priority.ALWAYS);
-			Label qty = new Label(String.valueOf(seva.getQuantity()));
-			qty.setStyle("-fx-font-size: 9px; -fx-alignment: center;");
-			qty.setPrefWidth(40);
-			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
-			total.setStyle("-fx-font-size: 9px; -fx-alignment: center-right;");
-			total.setPrefWidth(55);
 
-			sevaRow.getChildren().addAll(name, qty, total);
-			receiptBox.getChildren().add(sevaRow);
+			Label qty = new Label(String.valueOf(seva.getQuantity()));
+			qty.setStyle("-fx-font-size: 9px;");
+
+			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
+			total.setStyle("-fx-font-size: 9px;");
+
+			// Add row to dataGrid. The row index is relative to this grid.
+			dataGrid.addRow(dataGrid.getRowCount(), name, qty, total);
 		}
+
+		// 3. Add elements to the main receipt VBox in the correct order
+		receiptBox.getChildren().add(headerGrid);
+		receiptBox.getChildren().add(new Text("-".repeat(50)));
+		receiptBox.getChildren().add(dataGrid);
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		receiptBox.getChildren().add(new Text(""));
+
+		// --- END OF MODIFICATION ---
+
 		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
 		totalText.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 11));
 		HBox totalBox = new HBox(totalText);
-		totalBox.setAlignment(Pos.CENTER_RIGHT);
+		totalBox.setAlignment(Pos.CENTER);
 		receiptBox.getChildren().add(totalBox);
 		receiptBox.getChildren().add(new Text(""));
 
@@ -605,34 +636,29 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getDonationReceiptId()));
-		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
-
+		detailsVBox.getChildren().add(createDetailRow("ರಶೀದಿ ಸಂಖ್ಯೆ: ", String.valueOf(data.getDonationReceiptId())));
+		detailsVBox.getChildren().add(createDetailRow("ಭಕ್ತರ ಹೆಸರು: ", (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
 		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+			detailsVBox.getChildren().add(createDetailRow("ದೂರವಾಣಿ: ", data.getPhoneNumber()));
 		}
 		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ನಕ್ಷತ್ರ: ", data.getNakshatra()));
 		}
 		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ರಾಶಿ: ", data.getRashi()));
 		}
-
-		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
-		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox donationDetailsVBox = new VBox(2);
 		donationDetailsVBox.getChildren().addAll(
-				new Text("ದೇಣಿಗೆ ವಿಧ: " + data.getDonationName()),
-				new Text("ಪಾವತಿ ವಿಧಾನ: " + data.getPaymentMode()),
-				new Text("ದೇಣಿಗೆ ಮೊತ್ತ: ₹" + String.format("%.2f", data.getDonationAmount()))
+				createDetailRow("ದೇಣಿಗೆ ವಿಧ: ", data.getDonationName()),
+				createDetailRow("ಪಾವತಿ ವಿಧಾನ: ", data.getPaymentMode()),
+				createDetailRow("ದೇಣಿಗೆ ಮೊತ್ತ: ", "₹" + String.format("%.2f", data.getDonationAmount()))
 		);
-		donationDetailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 9)));
 		receiptBox.getChildren().add(donationDetailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
 		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
 		VBox blessingBox = new VBox(blessing);
@@ -647,7 +673,6 @@ public class ReceiptPrinter {
 		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
-
 		Text asteriskLine = new Text("****************************************");
 		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
 		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
@@ -679,22 +704,19 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getReceiptId()));
-		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
-
+		detailsVBox.getChildren().add(createDetailRow("ರಶೀದಿ ಸಂಖ್ಯೆ: ", String.valueOf(data.getReceiptId())));
+		detailsVBox.getChildren().add(createDetailRow("ಭಕ್ತರ ಹೆಸರು: ", (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
 		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+			detailsVBox.getChildren().add(createDetailRow("ದೂರವಾಣಿ: ", data.getPhoneNumber()));
 		}
 		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ನಕ್ಷತ್ರ: ", data.getNakshatra()));
 		}
 		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ರಾಶಿ: ", data.getRashi()));
 		}
-
-		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate()));
-		detailsVBox.getChildren().add(new Text("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ: " + data.getPoojaDate()));
-		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		detailsVBox.getChildren().add(createDetailRow("ರಶೀದಿ ದಿನಾಂಕ: ", data.getFormattedReceiptDate()));
+		detailsVBox.getChildren().add(createDetailRow("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ: ", data.getPoojaDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
 
@@ -712,7 +734,6 @@ public class ReceiptPrinter {
 		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
-
 		Text asteriskLine = new Text("****************************************");
 		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
 		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
@@ -744,21 +765,18 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new Text(""));
 
 		VBox detailsVBox = new VBox(2);
-		detailsVBox.getChildren().add(new Text("ರಶೀದಿ ಸಂಖ್ಯೆ: " + data.getInKindReceiptId()));
-		detailsVBox.getChildren().add(new Text("ಭಕ್ತರ ಹೆಸರು: " + (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
-
+		detailsVBox.getChildren().add(createDetailRow("ರಶೀದಿ ಸಂಖ್ಯೆ: ", String.valueOf(data.getInKindReceiptId())));
+		detailsVBox.getChildren().add(createDetailRow("ಭಕ್ತರ ಹೆಸರು: ", (data.getDevoteeName().isEmpty() ? "---" : data.getDevoteeName())));
 		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ದೂರವಾಣಿ: " + data.getPhoneNumber()));
+			detailsVBox.getChildren().add(createDetailRow("ದೂರವಾಣಿ: ", data.getPhoneNumber()));
 		}
 		if (data.getNakshatra() != null && !data.getNakshatra().isEmpty()) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ನಕ್ಷತ್ರ: ", data.getNakshatra()));
 		}
 		if (data.getRashi() != null && !data.getRashi().isEmpty() && !data.getRashi().equals("ಆಯ್ಕೆ")) {
-			detailsVBox.getChildren().add(new Text("ಜನ್ಮ ರಾಶಿ: " + data.getRashi()));
+			detailsVBox.getChildren().add(createDetailRow("ಜನ್ಮ ರಾಶಿ: ", data.getRashi()));
 		}
-
-		detailsVBox.getChildren().add(new Text("ದಿನಾಂಕ: " + data.getFormattedDate()));
-		detailsVBox.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 
 		receiptBox.getChildren().add(new Text(""));
