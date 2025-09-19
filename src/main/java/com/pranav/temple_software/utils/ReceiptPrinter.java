@@ -17,6 +17,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -81,10 +82,21 @@ public class ReceiptPrinter {
 			return;
 		}
 
+		// *** MODIFICATION START ***
+		// Take a snapshot of the node. This converts the complex JavaFX node into a simple image.
+		// Thermal printers can print images much more reliably than complex layouts.
+		SnapshotParameters params = new SnapshotParameters();
+		params.setFill(Color.WHITE); // Ensure a non-transparent background
+		WritableImage image = nodeToPrint.snapshot(params, null);
+		ImageView imageViewToPrint = new ImageView(image);
+		// *** MODIFICATION END ***
+
 		if (job.showPrintDialog(ownerStage)) {
 			PageLayout pageLayout = job.getPrinter().getDefaultPageLayout();
 
-			boolean printed = job.printPage(pageLayout, nodeToPrint);
+			// *** MODIFICATION ***
+			// We now print the 'ImageView' instead of the original 'nodeToPrint'.
+			boolean printed = job.printPage(pageLayout, imageViewToPrint);
 			if (printed) {
 				boolean success = job.endJob();
 				onPrintComplete.accept(success);
@@ -519,7 +531,6 @@ public class ReceiptPrinter {
 		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-
 		// --- MODIFIED: The following block handles the table layout as requested ---
 
 		// 1. Create a GridPane for just the header
@@ -569,7 +580,6 @@ public class ReceiptPrinter {
 
 			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
 			total.setStyle("-fx-font-size: 9px;");
-
 			// Add row to dataGrid. The row index is relative to this grid.
 			dataGrid.addRow(dataGrid.getRowCount(), name, qty, total);
 		}
@@ -580,7 +590,6 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(dataGrid);
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		receiptBox.getChildren().add(new Text(""));
-
 		// --- END OF MODIFICATION ---
 
 		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
@@ -650,7 +659,6 @@ public class ReceiptPrinter {
 		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-
 		VBox donationDetailsVBox = new VBox(2);
 		donationDetailsVBox.getChildren().addAll(
 				createDetailRow("ದೇಣಿಗೆ ವಿಧ: ", data.getDonationName()),
@@ -676,13 +684,11 @@ public class ReceiptPrinter {
 		Text asteriskLine = new Text("****************************************");
 		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
 		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
-
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
 		VBox heading = new VBox(templeName);
 		heading.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(heading);
-
 		VBox subHeadings = new VBox(1);
 		subHeadings.setStyle("-fx-alignment: center;");
 		subHeadings.getChildren().addAll(
@@ -737,13 +743,11 @@ public class ReceiptPrinter {
 		Text asteriskLine = new Text("****************************************");
 		asteriskLine.setFont(Font.font("Noto Sans Kannada", 9));
 		receiptBox.getChildren().add(new VBox(asteriskLine) {{ setAlignment(Pos.CENTER); }});
-
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
 		VBox heading = new VBox(templeName);
 		heading.setStyle("-fx-alignment: center;");
 		receiptBox.getChildren().add(heading);
-
 		VBox subHeadings = new VBox(1);
 		subHeadings.setStyle("-fx-alignment: center;");
 		subHeadings.getChildren().addAll(
