@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="700.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.KaryakramaManager.KaryakramaManagerController">
+    <top>
+        <Label styleClass="popup-title" text="ಕಾರ್ಯಕ್ರಮ ನಿರ್ವಹಿಸಿ" BorderPane.alignment="CENTER" />
+    </top>
+    <center>
+        <VBox spacing="15.0" styleClass="popup-content" BorderPane.alignment="CENTER">
+            <Label text="Existing Karyakramas:" styleClass="popup-field-label" />
+            <TableView fx:id="karyakramaTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameColumn" prefWidth="700.0" text="Karyakrama Name" />
+                </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+            </TableView>
+        </VBox>
+    </center>
+    <bottom>
+        <HBox styleClass="popup-button-container">
+            <Button onAction="#handleAddKaryakrama" styleClass="manager-button, manager-save-button" text="Add New" />
+            <Button onAction="#handleEditKaryakrama" styleClass="manager-button" text="Edit Selected" />
+            <Button onAction="#handleDeleteKaryakrama" styleClass="manager-button, manager-delete-button" text="Delete Selected" />
+            <Button onAction="#closeWindow" styleClass="manager-button, manager-cancel-button" text="Close" />
+        </HBox>
+    </bottom>
+</BorderPane>

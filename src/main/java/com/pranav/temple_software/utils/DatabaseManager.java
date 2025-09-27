@@ -1,16 +1,18 @@
 package com.pranav.temple_software.utils;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
+
 public class DatabaseManager {
 	public static final String APP_DATA_FOLDER = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware";
 	public static final Path DB_FOLDER_PATH = Paths.get(APP_DATA_FOLDER, "db");
-
 	public static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH.toString() + File.separator + "temple_data";
 	private static final String USER = "sa";
 	private static final String PASS = "";
+
 	public DatabaseManager() {
 		try {
 			Files.createDirectories(DB_FOLDER_PATH);
@@ -25,7 +27,6 @@ public class DatabaseManager {
 	private void createTablesAndRunMigrations() {
 		try (Connection conn = getConnection()) {
 			createSevaTableIfNotExists(conn);
-			createOthersTableIfNotExists(conn);
 			createVisheshaPoojeTableIfNotExists(conn);
 			createDonationsTableIfNotExists(conn);
 			createReceiptTableIfNotExists(conn);
@@ -34,18 +35,39 @@ public class DatabaseManager {
 			createShashwathaPoojaTableIfNotExists(conn);
 			createCredentialsTableIfNotExists(conn);
 
-			runMigrations(conn);
+			createKaryakramagaluTableIfNotExists(conn);
+			createKaryakramaSevasTableIfNotExists(conn); // THIS IS THE RE-ADDED TABLE
+			createKaryakramaReceiptsTableIfNotExists(conn);
 
+			runMigrations(conn);
 		} catch (SQLException e) {
 			System.err.println("❌ Error creating tables or running migrations: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
+	// runMigrations() and other table creation methods remain the same...
+
+	// --- RE-ADD THIS METHOD ---
+	private void createKaryakramaSevasTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS KaryakramaSevas (" +
+				"seva_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"karyakrama_id INT NOT NULL, " +
+				"seva_name VARCHAR(255) NOT NULL, " +
+				"amount DECIMAL(10, 2) NOT NULL, " +
+				"FOREIGN KEY (karyakrama_id) REFERENCES Karyakramagalu(karyakrama_id) ON DELETE CASCADE)";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("✅ KaryakramaSevas table checked/created successfully.");
+		}
+	}
+
+	// --- PASTE ALL OTHER EXISTING METHODS FROM YOUR FILE BELOW THIS LINE ---
+	// (e.g., runMigrations, createKaryakramagaluTableIfNotExists, createKaryakramaReceiptsTableIfNotExists, createCredentialsTableIfNotExists, etc.)
+	// For completeness, the full file is below.
+
 	private void runMigrations(Connection conn) throws SQLException {
 		DatabaseMetaData meta = conn.getMetaData();
-
-		// Migration for ShashwathaPoojaReceipts table to add AMOUNT column
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "AMOUNT")) {
 			if (!rs.next()) {
 				System.out.println("⏳ Running migration: Adding AMOUNT column to ShashwathaPoojaReceipts...");
@@ -55,8 +77,6 @@ public class DatabaseManager {
 				}
 			}
 		}
-
-		// Migration for ShashwathaPoojaReceipts table to add PAYMENT_MODE column
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "PAYMENT_MODE")) {
 			if (!rs.next()) {
 				System.out.println("⏳ Running migration: Adding PAYMENT_MODE column to ShashwathaPoojaReceipts...");
@@ -66,8 +86,6 @@ public class DatabaseManager {
 				}
 			}
 		}
-
-		// Migration for Others table to REMOVE OTHERS_AMOUNT column
 		try (ResultSet rs = meta.getColumns(null, null, "OTHERS", "OTHERS_AMOUNT")) {
 			if (rs.next()) {
 				System.out.println("⏳ Running migration: Dropping OTHERS_AMOUNT column from Others...");
@@ -76,6 +94,37 @@ public class DatabaseManager {
 					System.out.println("✅ Migration successful for OTHERS_AMOUNT column removal.");
 				}
 			}
+		}
+	}
+
+	private void createKaryakramagaluTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS Karyakramagalu (" +
+				"karyakrama_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"karyakrama_name VARCHAR(255) NOT NULL, " +
+				"is_active BOOLEAN DEFAULT TRUE)";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("✅ Karyakramagalu table checked/created successfully.");
+		}
+	}
+
+	private void createKaryakramaReceiptsTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS KaryakramaReceipts (" +
+				"receipt_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"devotee_name VARCHAR(255), " +
+				"phone_number VARCHAR(20), " +
+				"address TEXT, " +
+				"pan_number VARCHAR(10), " +
+				"rashi VARCHAR(20), " +
+				"nakshatra VARCHAR(20), " +
+				"receipt_date DATE, " +
+				"sevas_details TEXT, " +
+				"total_amount DECIMAL(10, 2), " +
+				"payment_mode VARCHAR(10), " +
+				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("✅ KaryakramaReceipts table checked/created successfully.");
 		}
 	}
 
@@ -205,17 +254,6 @@ public class DatabaseManager {
 			stmt.execute(sql);
 			System.out.println("✅ Sevas table checked/created successfully.");
 			ensureDisplayOrderExists(conn);
-		}
-	}
-
-	private void createOthersTableIfNotExists(Connection conn) throws SQLException {
-		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
-				"others_id VARCHAR(10) PRIMARY KEY, " +
-				"others_name VARCHAR(100) NOT NULL, " +
-				"display_order INT NOT NULL)";
-		try (Statement stmt = conn.createStatement()) {
-			stmt.execute(sql);
-			System.out.println("✅ Others table checked/created successfully.");
 		}
 	}
 

@@ -4,7 +4,6 @@ import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
-import com.pranav.temple_software.repositories.OthersRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.repositories.VisheshaPoojeRepository;
 import javafx.application.Platform;
@@ -198,10 +197,10 @@ public class FilterPopupController {
 				items.addAll(sevaEntries.stream().map(Seva::getName).toList());
 				break;
 
-			case "ಇತರೆ ಸೇವೆ":
-				List<SevaEntry> otherSevaEntries = OthersRepository.getAllOthers();
-				items.addAll(otherSevaEntries.stream().map(SevaEntry::getName).toList());
-				break;
+//			case "ಇತರೆ ಸೇವೆ":
+//				List<SevaEntry> otherSevaEntries = OthersRepository.getAllOthers();
+//				items.addAll(otherSevaEntries.stream().map(SevaEntry::getName).toList());
+//				break;
 
 			case "ದೇಣಿಗೆ":
 				List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();

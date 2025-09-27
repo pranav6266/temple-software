@@ -63,7 +63,7 @@
                         <TableView fx:id="sevaTableView" styleClass="details-table">
                       <columns>
                           <!-- UPDATED the text for this column -->
-                          <TableColumn fx:id="sevaNameColumn" prefWidth="269.0" resizable="false" styleClass="seva-name-cell" text="ಸೇವೆ / ಇತರೆ ಸೇವೆ" />
+                          <TableColumn fx:id="sevaNameColumn" prefWidth="269.0" resizable="false" styleClass="seva-name-cell" text="ಸೇವೆ" />
                           <TableColumn fx:id="priceColumn" prefWidth="101.0" resizable="false" styleClass="price-cell" text="ಬೆಲೆ" />
                           <TableColumn fx:id="quantityColumn" prefWidth="81.0" resizable="false" styleClass="quantity-cell" text="ಪ್ರಮಾಣ" />
                           <TableColumn fx:id="totalColumn" prefWidth="147.0" resizable="false" styleClass="total-cell" text="ಒಟ್ಟು ಮೊತ್ತ" />

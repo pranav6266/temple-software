@@ -2,7 +2,6 @@ package com.pranav.temple_software.controllers;
 
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationController;
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
-import com.pranav.temple_software.controllers.menuControllers.OthersManager.OthersManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
 import com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager.ShashwathaPoojaController;
 import com.pranav.temple_software.controllers.menuControllers.VisheshaPoojeManager.VisheshaPoojeManagerController;
@@ -33,7 +32,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.Duration;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -51,7 +49,6 @@ public class MainController {
 
 	@FXML public ComboBox<String> raashiComboBox;
 	@FXML public ComboBox<String> nakshatraComboBox;
-	@FXML public ComboBox<String> othersComboBox;
 	@FXML public ComboBox<String> visheshaPoojeComboBox;
 	@FXML public RadioButton cashRadio;
 	@FXML public RadioButton onlineRadio;
@@ -63,7 +60,6 @@ public class MainController {
 	@FXML public TableView<SevaEntry> sevaTableView;
 	@FXML public TableColumn<SevaEntry, String> slNoColumn;
 	@FXML public TableColumn<SevaEntry, String> sevaNameColumn;
-	@FXML public Button addOthersButton;
 	@FXML public Button addVisheshaPoojeButton;
 	public TextArea addressField;
 	public Button closeButton;
@@ -77,7 +73,7 @@ public class MainController {
 	@FXML private Button smartActionButton;
 	@FXML private Button clearFormButton;
 	@FXML private Label statusLabel;
-	@FXML public TextField othersAmountField;
+
 
 	@FXML
 	public void initialize() {
@@ -111,7 +107,6 @@ public class MainController {
 		table.setupTableView();
 		validationServices.initializeTotalCalculation();
 		smartActionButton.setOnAction(e -> handleSmartAction());
-		addOthersButton.setOnAction(e -> handleAddOtherSeva());
 		addVisheshaPoojeButton.setOnAction(e -> handleAddGeneric("Vishesha Pooja", visheshaPoojeComboBox, VisheshaPoojeRepository.getAllVisheshaPooje()));
 		sevaListener.initiateSevaListener();
 		validationServices.calenderChecker();
@@ -123,7 +118,6 @@ public class MainController {
 		sevaListener.rashiNakshatraMap();
 		refreshSevaCheckboxes();
 		populateRashiComboBox();
-		refreshOthersComboBox();
 		refreshVisheshaPoojeComboBox();
 
 		Platform.runLater(() -> devoteeNameField.requestFocus());
@@ -157,40 +151,6 @@ public class MainController {
 		});
 	}
 
-	private void handleAddOtherSeva() {
-		String sevaType = othersComboBox.getValue();
-		String amountText = othersAmountField.getText();
-
-		if (sevaType == null || sevaType.equals("ಆಯ್ಕೆ") || amountText == null || amountText.trim().isEmpty()) {
-			showAlert("Incomplete Input", "Please select an 'Other Seva' type and enter an amount.");
-			return;
-		}
-
-		try {
-			double amount = Double.parseDouble(amountText);
-			if (amount <= 0) {
-				showAlert("Invalid Amount", "Amount must be greater than zero.");
-				return;
-			}
-
-			// Check for duplicates
-			boolean exists = selectedSevas.stream().anyMatch(entry -> entry.getName().equals(sevaType));
-			if (exists) {
-				showAlert("Duplicate Entry", "The selected Other Seva is already added.");
-				return;
-			}
-
-			SevaEntry newEntry = new SevaEntry(sevaType, amount);
-			selectedSevas.add(newEntry);
-
-			// Clear fields for next entry
-			othersComboBox.getSelectionModel().selectFirst();
-			othersAmountField.clear();
-
-		} catch (NumberFormatException e) {
-			showAlert("Invalid Amount", "Please enter a valid number for the amount.");
-		}
-	}
 
 	@FXML
 	public void handleDonationMenuItem() {
@@ -473,35 +433,7 @@ public class MainController {
 		promptForSpecialPassword(openSevaManager);
 	}
 
-	@FXML
-	public void handleOthersManagerButton() {
-		Runnable openManager = () -> {
-			try {
-				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/OthersManager/OthersManagerView.fxml"));
-				Stage stage = new Stage();
-				stage.setTitle("ಇತರೆ ನಿರ್ವಹಿಸಿ");
-				Scene scene = new Scene(loader.load());
-				stage.setScene(scene);
 
-				OthersManagerController controller = loader.getController();
-				if (controller != null) {
-					controller.setMainController(this);
-				} else {
-					System.err.println("Error: Could not get OthersManagerController instance.");
-					return;
-				}
-				stage.initOwner(mainStage);
-				stage.initModality(Modality.WINDOW_MODAL);
-				stage.setMaxWidth(800);
-				stage.setMaxHeight(650);
-				stage.show();
-			} catch (IOException e) {
-				e.printStackTrace();
-				showAlert("Error", "Unable to load Others Manager: " + e.getMessage());
-			}
-		};
-		promptForSpecialPassword(openManager);
-	}
 
 	@FXML
 	public void handleVisheshaPoojeManagerButton() {
@@ -605,7 +537,6 @@ public class MainController {
 		selectedSevas.clear();
 		cashRadio.setSelected(false);
 		onlineRadio.setSelected(false);
-		othersComboBox.getSelectionModel().selectFirst();
 		visheshaPoojeComboBox.getSelectionModel().selectFirst();
 		addressField.clear();
 		updatePrintStatusLabel();
@@ -635,7 +566,7 @@ public class MainController {
 	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
 	public ReceiptServices receiptServices = new ReceiptServices(this);
-	Others others = new Others(this);
+//	Others others = new Others(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 	public void showAlert(String title, String message) {
@@ -700,19 +631,6 @@ public class MainController {
 		}
 	}
 
-	public void refreshOthersComboBox() {
-		OthersRepository.loadOthersFromDB();
-		List<SevaEntry> entries = OthersRepository.getAllOthers();
-		// Now, just map to the names, not the amount
-		ObservableList<String> names = FXCollections.observableArrayList(
-				entries.stream()
-						.map(SevaEntry::getName)
-						.collect(Collectors.toList())
-		);
-		names.add(0, "ಆಯ್ಕೆ");
-		othersComboBox.setItems(names);
-		System.out.println("DEBUG: Others ComboBox refreshed with " + entries.size() + " items.");
-	}
 
 	public void refreshVisheshaPoojeComboBox() {
 		VisheshaPoojeRepository.loadVisheshaPoojeFromDB();
@@ -787,5 +705,43 @@ public class MainController {
 	@FXML
 	public void handleBackupAndRestore(ActionEvent event) {
 		BackupService.showBackupRestoreDialog(mainStage);
+	}
+
+	@FXML
+	public void handleKaryakramaMenuItem() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/Karyakrama/KaryakramaView.fxml"));
+			Stage stage = new Stage();
+			stage.setTitle("ಕಾರ್ಯಕ್ರಮ ಸೇವಾ");
+			stage.setScene(new Scene(loader.load()));
+			stage.initModality(Modality.WINDOW_MODAL);
+			stage.initOwner(mainStage);
+			stage.setResizable(false);
+			stage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Failed to load the Karyakrama view: " + e.getMessage());
+		}
+	}
+
+	@FXML
+	public void handleKaryakramaManagerButton() {
+		Runnable openManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/KaryakramaManager/KaryakramaManagerView.fxml"));
+				Stage stage = new Stage();
+				stage.setTitle("ಕಾರ್ಯಕ್ರಮ ನಿರ್ವಹಿಸಿ");
+				stage.setScene(new Scene(loader.load()));
+				stage.initOwner(mainStage);
+				stage.initModality(Modality.WINDOW_MODAL);
+				stage.setWidth(800);
+				stage.setHeight(500);
+				stage.show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				showAlert("Error", "Unable to load Karyakrama Manager: " + e.getMessage());
+			}
+		};
+		promptForSpecialPassword(openManager);
 	}
 }

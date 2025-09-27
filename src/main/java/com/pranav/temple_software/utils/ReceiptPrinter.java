@@ -1,4 +1,6 @@
-// FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
+// I will provide the full file as it's cleaner than patching.
+// The new methods are createKaryakramaReceiptNode, showKaryakramaPrintPreview, and saveKaryakramaReceiptAsPdf.
+
 package com.pranav.temple_software.utils;
 
 import com.pranav.temple_software.controllers.MainController;
@@ -57,16 +59,9 @@ public class ReceiptPrinter {
 		this.controller = controller;
 	}
 
-	/**
-	 * Creates a row for the details section with a bold label and a normal value.
-	 * @param label The bolded heading text.
-	 * @param value The normal font data text.
-	 * @return An HBox containing the formatted label and value.
-	 */
 	private HBox createDetailRow(String label, String value) {
-		HBox row = new HBox(4); // spacing
+		HBox row = new HBox(4);
 		Text labelText = new Text(label);
-		// Apply a thin stroke to simulate a bold effect that renders in PDF
 		labelText.setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-stroke: black; -fx-stroke-width: 0.15;");
 		Text valueText = new Text(value);
 		valueText.setFont(Font.font("Noto Sans Kannada", FontWeight.NORMAL, 9));
@@ -82,20 +77,13 @@ public class ReceiptPrinter {
 			return;
 		}
 
-		// *** MODIFICATION START ***
-		// Take a snapshot of the node. This converts the complex JavaFX node into a simple image.
-		// Thermal printers can print images much more reliably than complex layouts.
 		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.WHITE); // Ensure a non-transparent background
+		params.setFill(Color.WHITE);
 		WritableImage image = nodeToPrint.snapshot(params, null);
 		ImageView imageViewToPrint = new ImageView(image);
-		// *** MODIFICATION END ***
 
 		if (job.showPrintDialog(ownerStage)) {
 			PageLayout pageLayout = job.getPrinter().getDefaultPageLayout();
-
-			// *** MODIFICATION ***
-			// We now print the 'ImageView' instead of the original 'nodeToPrint'.
 			boolean printed = job.printPage(pageLayout, imageViewToPrint);
 			if (printed) {
 				boolean success = job.endJob();
@@ -111,7 +99,58 @@ public class ReceiptPrinter {
 		}
 	}
 
+	// --- NEW METHOD for Karyakrama Preview ---
+	public void showKaryakramaPrintPreview(KaryakramaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
+		Stage previewStage = new Stage();
+		previewStage.initModality(Modality.WINDOW_MODAL);
+		previewStage.initOwner(ownerStage);
+		previewStage.setTitle("Karyakrama Receipt Preview");
+		Node receiptNode = createKaryakramaReceiptNode(data);
 
+		// Standard preview boilerplate
+		VBox previewContainer = new VBox(receiptNode);
+		previewContainer.setPrefWidth(RECEIPT_WIDTH_POINTS);
+		previewContainer.setMaxWidth(RECEIPT_WIDTH_POINTS);
+		previewContainer.setStyle("-fx-border-color: #cccccc; -fx-border-width: 1; -fx-background-color: white;");
+		double scaleFactor = 1.3;
+		previewContainer.setScaleX(scaleFactor);
+		previewContainer.setScaleY(scaleFactor);
+		Group scaledContainer = new Group(previewContainer);
+		ScrollPane scrollPane = new ScrollPane(scaledContainer);
+		scrollPane.setPrefViewportWidth(RECEIPT_WIDTH_POINTS * scaleFactor + 20);
+		scrollPane.setPrefViewportHeight(450);
+
+		Button printButton = new Button("Print");
+		printButton.setOnAction(e -> {
+			printNode(receiptNode, previewStage, success -> {
+				if (onPrintComplete != null) Platform.runLater(() -> onPrintComplete.accept(success));
+			});
+			previewStage.close();
+		});
+		Button savePdfButton = new Button("Save as PDF");
+		savePdfButton.setOnAction(e -> {
+			saveKaryakramaReceiptAsPdf(data, success -> {
+				if (onPrintComplete != null) Platform.runLater(() -> onPrintComplete.accept(success));
+			});
+			previewStage.close();
+		});
+		Button cancelButton = new Button("Cancel");
+		cancelButton.setOnAction(e -> previewStage.close());
+		previewStage.setOnCloseRequest(e -> {
+			if (onDialogClosed != null) onDialogClosed.run();
+		});
+
+		HBox buttonBox = new HBox(10, printButton, savePdfButton, cancelButton);
+		buttonBox.setAlignment(Pos.CENTER);
+		buttonBox.setPadding(new Insets(10));
+		VBox layout = new VBox(10, scrollPane, buttonBox);
+		layout.setAlignment(Pos.CENTER);
+		Scene scene = new Scene(layout, 450, 600);
+		previewStage.setScene(scene);
+		previewStage.show();
+	}
+
+	// Other show...Preview methods remain the same...
 	public void showPrintPreview(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
@@ -352,6 +391,7 @@ public class ReceiptPrinter {
 		previewStage.show();
 	}
 
+	// ... save...AsPdf methods remain the same ...
 	private void saveNodeAsPdf(Node nodeToSave, File outputFile, Consumer<Boolean> onSaveComplete) {
 		try {
 			if (nodeToSave.getScene() == null) {
@@ -410,6 +450,28 @@ public class ReceiptPrinter {
 		}
 	}
 
+	// --- NEW METHOD ---
+	public void saveKaryakramaReceiptAsPdf(KaryakramaReceiptData data, Consumer<Boolean> onSaveComplete) {
+		try {
+			String userDesktop = System.getProperty("user.home") + File.separator + "Desktop";
+			Path directoryPath = Paths.get(userDesktop, "CHERKABE_SEVAS", "KARYAKRAMA_RECEIPTS");
+			Files.createDirectories(directoryPath);
+
+			String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+			String fileName = String.format("Karyakrama-%d-%s.pdf", data.getReceiptId(), timestamp);
+			File file = new File(directoryPath.toFile(), fileName);
+
+			Node receiptNode = createKaryakramaReceiptNode(data);
+			saveNodeAsPdf(receiptNode, file, onSaveComplete);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert(controller.mainStage, "File Error", "Could not create directory for PDF: " + e.getMessage());
+			onSaveComplete.accept(false);
+		}
+	}
+
+	// Other save...AsPdf methods...
 	public void saveDonationReceiptAsPdf(DonationReceiptData data, Consumer<Boolean> onSaveComplete) {
 		try {
 			String userDesktop = System.getProperty("user.home") + File.separator + "Desktop";
@@ -480,6 +542,95 @@ public class ReceiptPrinter {
 		});
 	}
 
+	// --- NEW METHOD ---
+	public Node createKaryakramaReceiptNode(KaryakramaReceiptData data) {
+		// This is essentially the same as the main Seva Receipt, but with a different title.
+		VBox receiptBox = new VBox(1);
+		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
+		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
+		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
+
+		// Header (temple name, address, etc)
+		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
+		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
+		VBox heading = new VBox(templeName);
+		heading.setStyle("-fx-alignment: center;");
+		receiptBox.getChildren().add(heading);
+
+		VBox subHeadings = new VBox(1);
+		subHeadings.setStyle("-fx-alignment: center;");
+		subHeadings.getChildren().addAll(
+				new Text(ConfigManager.getInstance().getProperty("temple.location")),
+				new Text(ConfigManager.getInstance().getProperty("temple.postal")),
+				new Text(ConfigManager.getInstance().getProperty("temple.phone"))
+		);
+		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
+		receiptBox.getChildren().add(subHeadings);
+		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
+
+		// Title
+		Text receiptTitle = new Text("ಕಾರ್ಯಕ್ರಮ ಸೇವಾ ರಶೀದಿ");
+		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
+		receiptTitle.setUnderline(true);
+		VBox titleBox = new VBox(receiptTitle);
+		titleBox.setStyle("-fx-alignment: center; -fx-padding: 5 0;");
+		receiptBox.getChildren().add(titleBox);
+
+		// Devotee Details
+		VBox detailsVBox = new VBox(2);
+		detailsVBox.getChildren().add(createDetailRow("ರಶೀದಿ ಸಂಖ್ಯೆ: ", String.valueOf(data.getReceiptId())));
+		detailsVBox.getChildren().add(createDetailRow("ಭಕ್ತರ ಹೆಸರು: ", data.getDevoteeName()));
+		if (data.getPhoneNumber() != null && !data.getPhoneNumber().isEmpty()) {
+			detailsVBox.getChildren().add(createDetailRow("ದೂರವಾಣಿ: ", data.getPhoneNumber()));
+		}
+		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedReceiptDate()));
+		receiptBox.getChildren().add(detailsVBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		// Seva Table
+		GridPane headerGrid = new GridPane();
+		headerGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
+		ColumnConstraints col1 = new ColumnConstraints() {{ setPercentWidth(60); setHalignment(HPos.LEFT); }};
+		ColumnConstraints col2 = new ColumnConstraints() {{ setPercentWidth(20); setHalignment(HPos.CENTER); }};
+		ColumnConstraints col3 = new ColumnConstraints() {{ setPercentWidth(20); setHalignment(HPos.RIGHT); }};
+		headerGrid.getColumnConstraints().addAll(col1, col2, col3);
+		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
+		Label pramanaLabel = new Label("ಪ್ರಮಾಣ") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
+		Label mottaLabel = new Label("ಮೊತ್ತ") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
+		headerGrid.add(sevaLabel, 0, 0);
+		headerGrid.add(pramanaLabel, 1, 0);
+		headerGrid.add(mottaLabel, 2, 0);
+
+		GridPane dataGrid = new GridPane();
+		dataGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
+		dataGrid.getColumnConstraints().addAll(col1, col2, col3);
+
+		for (SevaEntry seva : data.getSevas()) {
+			dataGrid.addRow(dataGrid.getRowCount(),
+					new Label(seva.getName()) {{ setWrapText(true); setStyle("-fx-font-size: 9px;"); }},
+					new Label(String.valueOf(seva.getQuantity())) {{ setStyle("-fx-font-size: 9px;"); }},
+					new Label("₹" + String.format("%.2f", seva.getTotalAmount())) {{ setStyle("-fx-font-size: 9px;"); }}
+			);
+		}
+
+		receiptBox.getChildren().addAll(headerGrid, new Text("-".repeat(50)), dataGrid, new Text("-".repeat(50)), new Text(""));
+
+		// Total and Footer
+		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
+		totalText.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 11));
+		HBox totalBox = new HBox(totalText) {{ setAlignment(Pos.CENTER); }};
+		receiptBox.getChildren().add(totalBox);
+		receiptBox.getChildren().add(new Text(""));
+
+		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
+		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
+		VBox blessingBox = new VBox(blessing) {{ setStyle("-fx-alignment: center;"); }};
+		receiptBox.getChildren().add(blessingBox);
+
+		return receiptBox;
+	}
+
+	// Other create...Node methods remain the same...
 	public Node createReceiptNode(SevaReceiptData data) {
 		VBox receiptBox = new VBox(1);
 		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
@@ -531,9 +682,7 @@ public class ReceiptPrinter {
 		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-		// --- MODIFIED: The following block handles the table layout as requested ---
 
-		// 1. Create a GridPane for just the header
 		GridPane headerGrid = new GridPane();
 		headerGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
 		headerGrid.setMaxWidth(RECEIPT_WIDTH_POINTS - 10);
@@ -564,11 +713,10 @@ public class ReceiptPrinter {
 		headerGrid.add(pramanaLabel, 1, 0);
 		headerGrid.add(mottaLabel, 2, 0);
 
-		// 2. Create a separate GridPane for the data rows
 		GridPane dataGrid = new GridPane();
 		dataGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
 		dataGrid.setMaxWidth(RECEIPT_WIDTH_POINTS - 10);
-		dataGrid.getColumnConstraints().addAll(col1, col2, col3); // Use same constraints
+		dataGrid.getColumnConstraints().addAll(col1, col2, col3);
 
 		for (SevaEntry seva : data.getSevas()) {
 			Label name = new Label(seva.getName());
@@ -580,17 +728,14 @@ public class ReceiptPrinter {
 
 			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
 			total.setStyle("-fx-font-size: 9px;");
-			// Add row to dataGrid. The row index is relative to this grid.
 			dataGrid.addRow(dataGrid.getRowCount(), name, qty, total);
 		}
 
-		// 3. Add elements to the main receipt VBox in the correct order
 		receiptBox.getChildren().add(headerGrid);
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		receiptBox.getChildren().add(dataGrid);
 		receiptBox.getChildren().add(new Text("-".repeat(50)));
 		receiptBox.getChildren().add(new Text(""));
-		// --- END OF MODIFICATION ---
 
 		Text totalText = new Text("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
 		totalText.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 11));

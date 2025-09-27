@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<ScrollPane fitToWidth="true" styleClass="details-root" stylesheets="@../../../css/modern-details.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.KaryakramaDetailsController">
+    <VBox styleClass="details-container">
+        <Label styleClass="details-header" text="ಕಾರ್ಯಕ್ರಮ ರಶೀದಿ ವಿವರಗಳು" />
+        <Label fx:id="receiptIdLabel" styleClass="receipt-id-label" text="ರಶೀದಿ ಸಂಖ್ಯೆ: " />
+
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
+            <GridPane styleClass="info-grid">
+                <Label fx:id="devoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="0" />
+                <Label fx:id="phoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ:" GridPane.rowIndex="1" />
+                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.rowIndex="2" />
+                <Label fx:id="rashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.rowIndex="3" />
+                <Label fx:id="nakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="4" />
+                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ:" wrappingWidth="400" GridPane.rowIndex="5" />
+            </GridPane>
+        </VBox>
+
+        <Label fx:id="receiptDateLabel" styleClass="info-label" text="ದಿನಾಂಕ: " />
+        <Label fx:id="totalAmountLabel" styleClass="amount-label" text="ಒಟ್ಟು ಮೊತ್ತ: " />
+
+        <VBox styleClass="section-container">
+            <Label styleClass="section-title" text="ಸೇವಾ ವಿವರಗಳು" />
+            <TableView fx:id="sevaTableView" styleClass="details-table">
+                <columns>
+                    <TableColumn fx:id="sevaNameColumn" prefWidth="250.0" styleClass="seva-name-cell" text="ವಿವರ" />
+                    <TableColumn fx:id="priceColumn" prefWidth="100.0" styleClass="price-cell" text="ಬೆಲೆ" />
+                    <TableColumn fx:id="quantityColumn" prefWidth="80.0" styleClass="quantity-cell" text="ಪ್ರಮಾಣ" />
+                    <TableColumn fx:id="totalColumn" prefWidth="120.0" styleClass="total-cell" text="ಒಟ್ಟು ಮೊತ್ತ" />
+                </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+            </TableView>
+        </VBox>
+
+        <HBox styleClass="button-container" spacing="15">
+            <Button fx:id="reprintButton" onAction="#handleReprint" styleClass="close-button" text="ಮರುಮುದ್ರಣ" />
+            <Button onAction="#handleClose" styleClass="close-button" text="ಮುಚ್ಚಿ" />
+        </HBox>
+    </VBox>
+</ScrollPane>

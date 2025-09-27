@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -10,19 +11,13 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.control.ComboBox?>
-<BorderPane prefHeight="760.0" prefWidth="1360.0" styleClass="history-root"
-            stylesheets="@../../../css/modern-history.css"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
-
-    <!-- Header Section -->
+<BorderPane prefHeight="760.0" prefWidth="1360.0" styleClass="history-root" stylesheets="@../../../css/modern-history.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
     <top>
         <VBox styleClass="header-section">
             <HBox styleClass="title-bar">
                 <Label styleClass="page-title" text="📋 ರಶೀದಿ ಇತಿಹಾಸ" />
                 <Region HBox.hgrow="ALWAYS" />
-                <ComboBox fx:id="viewSelectionComboBox" promptText="ವೀಕ್ಷಣೆ ಆಯ್ಕೆ ಮಾಡಿ" styleClass="view-selection-combo"/>
+                <ComboBox fx:id="viewSelectionComboBox" promptText="ವೀಕ್ಷಣೆ ಆಯ್ಕೆ ಮಾಡಿ" styleClass="view-selection-combo" />
             </HBox>
             <Label fx:id="currentViewLabel" styleClass="current-view-label" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" />
             <HBox styleClass="filter-section">
@@ -31,28 +26,20 @@
             </HBox>
         </VBox>
     </top>
-
-    <!-- Main Content -->
     <center>
         <StackPane styleClass="content-area">
-            <!-- Seva Receipts Table -->
             <TableView fx:id="historyTable" styleClass="modern-history-table">
                 <columns>
                     <TableColumn fx:id="receiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
                     <TableColumn fx:id="devoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
                     <TableColumn fx:id="sevaDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ" />
                     <TableColumn fx:id="sevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಸೇವೆಗಳು (₹)" />
-                    <TableColumn fx:id="otherSevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಇತರೆ ಸೇವೆಗಳು (₹)" />
                     <TableColumn fx:id="visheshaPoojeColumn" prefWidth="140.0" styleClass="amount-column" text="ವಿಶೇಷ ಪೂಜೆ (₹)" />
-                    <!-- REMOVED Donation Column -->
                     <TableColumn fx:id="totalAmountColumn" prefWidth="140.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
                     <TableColumn fx:id="paymentMode" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ" />
-                    <!-- REMOVED isDonation Column -->
                     <TableColumn fx:id="detailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
             </TableView>
-
-            <!-- Donation Receipts Table -->
             <TableView fx:id="donationHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
                     <TableColumn fx:id="donationReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
@@ -64,7 +51,6 @@
                     <TableColumn fx:id="donationDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
             </TableView>
-
             <TableView fx:id="inKindDonationHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
                     <TableColumn fx:id="inKindReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
@@ -74,7 +60,6 @@
                     <TableColumn fx:id="inKindDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
             </TableView>
-
             <TableView fx:id="shashwathaPoojaHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
                     <TableColumn fx:id="shashwathaReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
@@ -84,10 +69,17 @@
                     <TableColumn fx:id="shashwathaDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
             </TableView>
+            <TableView fx:id="karyakramaHistoryTable" styleClass="modern-history-table" visible="false">
+                <columns>
+                    <TableColumn fx:id="karyakramaReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="karyakramaDevoteeNameColumn" prefWidth="250.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="karyakramaReceiptDateColumn" prefWidth="150.0" resizable="false" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
+                    <TableColumn fx:id="karyakramaTotalAmountColumn" prefWidth="180.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
+                    <TableColumn fx:id="karyakramaDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                </columns>
+            </TableView>
         </StackPane>
     </center>
-
-    <!-- Footer -->
     <bottom>
         <HBox styleClass="footer-section">
             <Label styleClass="footer-label" text="ಒಟ್ಟು ದಾಖಲೆಗಳು: " />
@@ -96,5 +88,4 @@
             <Label styleClass="footer-copyright" text="© ಶ್ರೀ ಶಾಸ್ತಾರ ಸುಬ್ರಹ್ಮಣ್ಯೇಶ್ವರ ದೇವಸ್ಥಾನ" />
         </HBox>
     </bottom>
-
 </BorderPane>

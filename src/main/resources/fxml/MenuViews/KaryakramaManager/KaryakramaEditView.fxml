@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15.0" styleClass="popup-dialog" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.KaryakramaManager.KaryakramaEditController">
+    <Label fx:id="titleLabel" styleClass="popup-title" text="Edit Karyakrama" />
+    <VBox spacing="15.0" styleClass="popup-content">
+        <GridPane hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" minWidth="120.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <Label text="Karyakrama Name:" styleClass="popup-field-label" GridPane.rowIndex="0" />
+            <TextField fx:id="karyakramaNameField" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        </GridPane>
+
+        <Separator/>
+
+        <Label text="Sevas for this Karyakrama:" styleClass="popup-field-label" />
+        <TableView fx:id="sevasTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="sevaNameColumn" prefWidth="350.0" text="Seva Name" />
+                <TableColumn fx:id="sevaAmountColumn" prefWidth="150.0" text="Amount (₹)" />
+            </columns>
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+        </TableView>
+
+        <HBox spacing="10" alignment="CENTER">
+            <Button onAction="#handleAddSeva" styleClass="manager-button" text="Add Seva" />
+            <Button onAction="#handleDeleteSeva" styleClass="manager-button, manager-delete-button" text="Delete Seva" />
+        </HBox>
+    </VBox>
+    <HBox styleClass="popup-button-container">
+        <Button onAction="#handleSaveAll" styleClass="manager-button, manager-save-button" text="Save &amp; Close" />
+    </HBox>
+</VBox>
