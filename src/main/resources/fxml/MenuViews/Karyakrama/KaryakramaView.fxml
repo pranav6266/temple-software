@@ -20,12 +20,12 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.Karyakrama.KaryakramaController">
+<BorderPane maxHeight="550.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.Karyakrama.KaryakramaController">
     <top>
-        <Label styleClass="popup-title" text="ಕಾರ್ಯಕ್ರಮ ಸೇವಾ ರಶೀದಿ" BorderPane.alignment="CENTER" />
+        <Label styleClass="popup-title" text="ಕಾರ್ಯಕ್ರಮದ ಇತರೆ ರಶೀದಿ" BorderPane.alignment="CENTER" />
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxWidth="450.0">
             <VBox spacing="15.0" styleClass="popup-content">
                 <Label styleClass="section-title" text="ಭಕ್ತರ ವಿವರಗಳು" />
                 <GridPane hgap="10" vgap="10">
@@ -62,8 +62,8 @@
                     </columnConstraints>
                     <Label styleClass="popup-field-label" text="ಕಾರ್ಯಕ್ರಮ:" GridPane.rowIndex="0" />
                     <ComboBox fx:id="karyakramaComboBox" prefWidth="300.0" promptText="ಕಾರ್ಯಕ್ರಮ ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                    <Label styleClass="popup-field-label" text="ಸೇವೆ:" GridPane.rowIndex="1" />
-                    <ComboBox fx:id="sevaComboBox" prefWidth="300.0" promptText="ಸೇವೆ ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <Label styleClass="popup-field-label" text="ಇತರೆ:" GridPane.rowIndex="1" />
+                    <ComboBox fx:id="sevaComboBox" prefWidth="300.0" promptText="ಇತರೆ ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                     <Label styleClass="popup-field-label" text="ಪ್ರಮಾಣ:" GridPane.rowIndex="2" />
                     <Spinner fx:id="quantitySpinner" editable="true" initialValue="1" max="100" min="1" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                <rowConstraints>

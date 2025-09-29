@@ -569,7 +569,7 @@ public class ReceiptPrinter {
 		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
 
 		// Title
-		Text receiptTitle = new Text("ಕಾರ್ಯಕ್ರಮ ಸೇವಾ ರಶೀದಿ");
+		Text receiptTitle = new Text("ಕಾರ್ಯಕ್ರಮದ ಇತರೆ ರಶೀದಿ");
 		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
 		receiptTitle.setUnderline(true);
 		VBox titleBox = new VBox(receiptTitle);
@@ -594,7 +594,7 @@ public class ReceiptPrinter {
 		ColumnConstraints col2 = new ColumnConstraints() {{ setPercentWidth(20); setHalignment(HPos.CENTER); }};
 		ColumnConstraints col3 = new ColumnConstraints() {{ setPercentWidth(20); setHalignment(HPos.RIGHT); }};
 		headerGrid.getColumnConstraints().addAll(col1, col2, col3);
-		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
+		Label sevaLabel = new Label("ಇತರೆಯ ಹೆಸರು") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
 		Label pramanaLabel = new Label("ಪ್ರಮಾಣ") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
 		Label mottaLabel = new Label("ಮೊತ್ತ") {{ setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold;"); }};
 		headerGrid.add(sevaLabel, 0, 0);

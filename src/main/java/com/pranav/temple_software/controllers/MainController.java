@@ -712,7 +712,7 @@ public class MainController {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/Karyakrama/KaryakramaView.fxml"));
 			Stage stage = new Stage();
-			stage.setTitle("ಕಾರ್ಯಕ್ರಮ ಸೇವಾ");
+			stage.setTitle("ಕಾರ್ಯಕ್ರಮದ ಇತರೆ ರಶೀದಿ");
 			stage.setScene(new Scene(loader.load()));
 			stage.initModality(Modality.WINDOW_MODAL);
 			stage.initOwner(mainStage);
