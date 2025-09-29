@@ -10,7 +10,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.print.*;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -19,7 +18,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -34,9 +32,14 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.printing.PDFPageable;
 
 import javax.imageio.ImageIO;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
 import java.awt.image.BufferedImage;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -69,35 +72,83 @@ public class ReceiptPrinter {
 		return row;
 	}
 
+	/**
+	 * FULLY REVISED METHOD: Prints a JavaFX node by creating an in-memory PDF
+	 * and sending it directly to the default printer using PDFBox and the Java Print Service.
+	 * This method is self-contained and does not rely on OS file associations.
+	 *
+	 * @param nodeToPrint     The JavaFX node to be printed.
+	 * @param ownerStage      The parent stage for any alerts.
+	 * @param onPrintComplete A callback to report whether the print job was successful.
+	 */
 	public void printNode(Node nodeToPrint, Stage ownerStage, Consumer<Boolean> onPrintComplete) {
-		PrinterJob job = PrinterJob.createPrinterJob();
-		if (job == null) {
-			showAlert(ownerStage, "Printing Error", "Could not create a printer job.");
-			onPrintComplete.accept(false);
-			return;
-		}
-
-		SnapshotParameters params = new SnapshotParameters();
-		params.setFill(Color.WHITE);
-		WritableImage image = nodeToPrint.snapshot(params, null);
-		ImageView imageViewToPrint = new ImageView(image);
-
-		if (job.showPrintDialog(ownerStage)) {
-			PageLayout pageLayout = job.getPrinter().getDefaultPageLayout();
-			boolean printed = job.printPage(pageLayout, imageViewToPrint);
-			if (printed) {
-				boolean success = job.endJob();
-				onPrintComplete.accept(success);
-			} else {
-				showAlert(ownerStage, "Printing Failed", "The print command failed.");
-				job.cancelJob();
+		PDDocument document = null;
+		try {
+			// Step 1: Find the default system printer
+			PrintService defaultPrinter = PrintServiceLookup.lookupDefaultPrintService();
+			if (defaultPrinter == null) {
+				showAlert(ownerStage, "Printing Error", "No default printer found. Please configure a printer in your system settings.");
 				onPrintComplete.accept(false);
+				return;
 			}
-		} else {
-			job.cancelJob();
+			System.out.println("✅ Found default printer: " + defaultPrinter.getName());
+
+			// Step 2: Create the PDF document from the JavaFX node in memory
+			if (nodeToPrint.getScene() == null) {
+				new Scene(new Group(nodeToPrint)); // Node must be in a scene to be rendered
+			}
+			final int scale = 3; // Use a higher scale for better quality
+			SnapshotParameters params = new SnapshotParameters();
+			params.setFill(Color.WHITE);
+			params.setTransform(javafx.scene.transform.Transform.scale(scale, scale));
+			WritableImage image = nodeToPrint.snapshot(params, null);
+			BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+
+			document = new PDDocument();
+			float width = (float) image.getWidth();
+			float height = (float) image.getHeight();
+			PDPage page = new PDPage(new PDRectangle(width, height));
+			document.addPage(page);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(bufferedImage, "png", baos);
+			byte[] imageInByte = baos.toByteArray();
+
+			PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageInByte, "receipt");
+			try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+				contentStream.drawImage(pdImage, 0, 0, width, height);
+			}
+
+			// Step 3: Create a Java PrinterJob and set the PDF document as printable
+			PrinterJob job = PrinterJob.getPrinterJob();
+			job.setPrintService(defaultPrinter);
+			job.setPageable(new PDFPageable(document));
+
+			// Step 4: Print the job
+			job.print();
+			System.out.println("✅ Print job sent to printer successfully.");
+			onPrintComplete.accept(true);
+
+		} catch (PrinterException e) {
+			showAlert(ownerStage, "Printing Error", "Failed to print document: " + e.getMessage());
+			e.printStackTrace();
 			onPrintComplete.accept(false);
+		} catch (IOException e) {
+			showAlert(ownerStage, "PDF Creation Error", "Failed to create PDF for printing: " + e.getMessage());
+			e.printStackTrace();
+			onPrintComplete.accept(false);
+		} finally {
+			// Step 5: Clean up the in-memory PDF document
+			if (document != null) {
+				try {
+					document.close();
+				} catch (IOException e) {
+					System.err.println("Error closing PDDocument: " + e.getMessage());
+				}
+			}
 		}
 	}
+
 
 	// --- NEW METHOD for Karyakrama Preview ---
 	public void showKaryakramaPrintPreview(KaryakramaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
@@ -168,7 +219,6 @@ public class ReceiptPrinter {
 
 		Group scaledContainer = new Group(previewContainer);
 		scaledContainer.setAutoSizeChildren(true);
-
 		ScrollPane scrollPane = new ScrollPane(scaledContainer);
 		scrollPane.setFitToWidth(false);
 		scrollPane.setFitToHeight(false);
@@ -549,7 +599,6 @@ public class ReceiptPrinter {
 		receiptBox.setStyle("-fx-padding: 5; -fx-background-color: white;");
 		receiptBox.setPrefWidth(RECEIPT_WIDTH_POINTS);
 		receiptBox.setMaxWidth(RECEIPT_WIDTH_POINTS);
-
 		// Header (temple name, address, etc)
 		Text templeName = new Text(ConfigManager.getInstance().getProperty("temple.name"));
 		templeName.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 12));
@@ -567,7 +616,6 @@ public class ReceiptPrinter {
 		subHeadings.getChildren().forEach(node -> ((Text) node).setFont(Font.font("Noto Sans Kannada", 9)));
 		receiptBox.getChildren().add(subHeadings);
 		receiptBox.getChildren().add(new VBox(new Text("****************************************")) {{ setAlignment(Pos.CENTER); }});
-
 		// Title
 		Text receiptTitle = new Text("ಕಾರ್ಯಕ್ರಮದ ಇತರೆ ರಶೀದಿ");
 		receiptTitle.setFont(Font.font("Noto Sans Kannada", FontWeight.BOLD, 10));
@@ -586,7 +634,6 @@ public class ReceiptPrinter {
 		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedReceiptDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-
 		// Seva Table
 		GridPane headerGrid = new GridPane();
 		headerGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
@@ -604,7 +651,6 @@ public class ReceiptPrinter {
 		GridPane dataGrid = new GridPane();
 		dataGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
 		dataGrid.getColumnConstraints().addAll(col1, col2, col3);
-
 		for (SevaEntry seva : data.getSevas()) {
 			dataGrid.addRow(dataGrid.getRowCount(),
 					new Label(seva.getName()) {{ setWrapText(true); setStyle("-fx-font-size: 9px;"); }},
@@ -621,7 +667,6 @@ public class ReceiptPrinter {
 		HBox totalBox = new HBox(totalText) {{ setAlignment(Pos.CENTER); }};
 		receiptBox.getChildren().add(totalBox);
 		receiptBox.getChildren().add(new Text(""));
-
 		Text blessing = new Text("ಶ್ರೀ ದೇವರ ಕೃಪೆ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ!");
 		blessing.setFont(Font.font("Noto Sans Kannada", FontPosture.ITALIC, 10));
 		VBox blessingBox = new VBox(blessing) {{ setStyle("-fx-alignment: center;"); }};
@@ -682,7 +727,6 @@ public class ReceiptPrinter {
 		detailsVBox.getChildren().add(createDetailRow("ದಿನಾಂಕ: ", data.getFormattedDate()));
 		receiptBox.getChildren().add(detailsVBox);
 		receiptBox.getChildren().add(new Text(""));
-
 		GridPane headerGrid = new GridPane();
 		headerGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
 		headerGrid.setMaxWidth(RECEIPT_WIDTH_POINTS - 10);
@@ -691,7 +735,6 @@ public class ReceiptPrinter {
 		col1.setPercentWidth(60);
 		col1.setHalignment(HPos.LEFT);
 		col1.setHgrow(Priority.ALWAYS);
-
 		ColumnConstraints col2 = new ColumnConstraints();
 		col2.setPercentWidth(20);
 		col2.setHalignment(HPos.CENTER);
@@ -701,7 +744,6 @@ public class ReceiptPrinter {
 		col3.setHalignment(HPos.RIGHT);
 
 		headerGrid.getColumnConstraints().addAll(col1, col2, col3);
-
 		Label sevaLabel = new Label("ಸೇವೆಯ ಹೆಸರು");
 		sevaLabel.setStyle("-fx-font-family: 'Noto Sans Kannada'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-stroke: black; -fx-stroke-width: 0.15;");
 		Label pramanaLabel = new Label("ಪ್ರಮಾಣ");
@@ -717,7 +759,6 @@ public class ReceiptPrinter {
 		dataGrid.setPrefWidth(RECEIPT_WIDTH_POINTS - 10);
 		dataGrid.setMaxWidth(RECEIPT_WIDTH_POINTS - 10);
 		dataGrid.getColumnConstraints().addAll(col1, col2, col3);
-
 		for (SevaEntry seva : data.getSevas()) {
 			Label name = new Label(seva.getName());
 			name.setWrapText(true);
@@ -725,7 +766,6 @@ public class ReceiptPrinter {
 
 			Label qty = new Label(String.valueOf(seva.getQuantity()));
 			qty.setStyle("-fx-font-size: 9px;");
-
 			Label total = new Label("₹" + String.format("%.2f", seva.getTotalAmount()));
 			total.setStyle("-fx-font-size: 9px;");
 			dataGrid.addRow(dataGrid.getRowCount(), name, qty, total);
