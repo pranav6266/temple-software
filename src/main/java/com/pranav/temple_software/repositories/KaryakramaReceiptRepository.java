@@ -16,8 +16,8 @@ public class KaryakramaReceiptRepository {
 	}
 
 	public int saveReceipt(KaryakramaReceiptData data) {
-		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, sevas_details, total_amount, payment_mode) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, karyakrama_name, receipt_date, sevas_details, total_amount, payment_mode) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -27,10 +27,11 @@ public class KaryakramaReceiptRepository {
 			pstmt.setString(4, data.getPanNumber());
 			pstmt.setString(5, data.getRashi());
 			pstmt.setString(6, data.getNakshatra());
-			pstmt.setDate(7, Date.valueOf(data.getReceiptDate()));
-			pstmt.setString(8, formatSevasForDatabase(data.getSevas()));
-			pstmt.setDouble(9, data.getTotalAmount());
-			pstmt.setString(10, data.getPaymentMode());
+			pstmt.setString(7, data.getKaryakramaName()); // <-- SAVE NEW FIELD
+			pstmt.setDate(8, Date.valueOf(data.getReceiptDate()));
+			pstmt.setString(9, formatSevasForDatabase(data.getSevas()));
+			pstmt.setDouble(10, data.getTotalAmount());
+			pstmt.setString(11, data.getPaymentMode());
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
@@ -63,6 +64,7 @@ public class KaryakramaReceiptRepository {
 						rs.getString("pan_number"),
 						rs.getString("rashi"),
 						rs.getString("nakshatra"),
+						rs.getString("karyakrama_name"), // <-- LOAD NEW FIELD
 						rs.getDate("receipt_date").toLocalDate(),
 						parseSevas(rs.getString("sevas_details")),
 						rs.getDouble("total_amount"),
@@ -78,11 +80,12 @@ public class KaryakramaReceiptRepository {
 	private String formatSevasForDatabase(List<SevaEntry> sevas) {
 		StringBuilder sb = new StringBuilder();
 		for (SevaEntry seva : sevas) {
+			// Format is now name:amount:quantity (quantity will be 1)
 			sb.append(seva.getName()).append(":")
 					.append(seva.getAmount()).append(":")
 					.append(seva.getQuantity()).append(";");
 		}
-		if(sb.length() > 0) sb.setLength(sb.length() - 1); // Remove trailing semicolon
+		if (sb.length() > 0) sb.setLength(sb.length() - 1); // Remove trailing semicolon
 		return sb.toString();
 	}
 

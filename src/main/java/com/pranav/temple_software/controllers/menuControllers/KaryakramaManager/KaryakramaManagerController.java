@@ -1,19 +1,14 @@
 package com.pranav.temple_software.controllers.menuControllers.KaryakramaManager;
 
-import com.pranav.temple_software.Launcher;
 import com.pranav.temple_software.models.Karyakrama;
 import com.pranav.temple_software.repositories.KaryakramaRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public class KaryakramaManagerController {
@@ -41,7 +36,6 @@ public class KaryakramaManagerController {
 		dialog.setTitle("Add New Karyakrama");
 		dialog.setHeaderText("Enter the name for the new event.");
 		dialog.setContentText("Name:");
-
 		Optional<String> result = dialog.showAndWait();
 		result.ifPresent(name -> {
 			if (name.trim().isEmpty()) {
@@ -57,30 +51,29 @@ public class KaryakramaManagerController {
 	}
 
 	@FXML
-	private void handleEditKaryakrama() {
+	private void handleRenameKaryakrama() {
 		Karyakrama selected = karyakramaTable.getSelectionModel().getSelectedItem();
 		if (selected == null) {
-			showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a Karyakrama to edit.");
+			showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a Karyakrama to rename.");
 			return;
 		}
 
-		try {
-			FXMLLoader loader = new FXMLLoader(Launcher.class.getResource("/fxml/MenuViews/KaryakramaManager/KaryakramaEditView.fxml"));
-			Stage stage = new Stage();
-			stage.setTitle("Edit Karyakrama and Sevas");
-			stage.initModality(Modality.WINDOW_MODAL);
-			stage.initOwner(karyakramaTable.getScene().getWindow());
-			stage.setScene(new Scene(loader.load()));
-
-			KaryakramaEditController controller = loader.getController();
-			controller.initData(selected);
-
-			stage.showAndWait();
-			loadKaryakramas(); // Refresh the list after the edit window is closed
-		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Load Error", "Failed to open the edit window.");
-		}
+		TextInputDialog dialog = new TextInputDialog(selected.getName());
+		dialog.setTitle("Rename Karyakrama");
+		dialog.setHeaderText("Enter the new name for '" + selected.getName() + "'.");
+		dialog.setContentText("New Name:");
+		Optional<String> result = dialog.showAndWait();
+		result.ifPresent(newName -> {
+			if (newName.trim().isEmpty()) {
+				showAlert(Alert.AlertType.ERROR, "Input Error", "Name cannot be empty.");
+				return;
+			}
+			if (repository.updateKaryakrama(selected.getId(), newName)) {
+				loadKaryakramas();
+			} else {
+				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to rename the Karyakrama.");
+			}
+		});
 	}
 
 	@FXML
@@ -92,7 +85,7 @@ public class KaryakramaManagerController {
 		}
 
 		Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION,
-				"Are you sure you want to delete '" + selected.getName() + "'? This will also delete all sevas associated with it. This action cannot be undone.",
+				"Are you sure you want to delete '" + selected.getName() + "'? This action cannot be undone.",
 				ButtonType.YES, ButtonType.CANCEL);
 		confirmation.setHeaderText("Confirm Deletion");
 

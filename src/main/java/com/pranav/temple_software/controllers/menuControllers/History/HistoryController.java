@@ -26,12 +26,10 @@ public class HistoryController {
 		DONATION("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ"),
 		IN_KIND("ವಸ್ತು ದೇಣಿಗೆ ಇತಿಹಾಸ"),
 		SHASHWATHA_POOJA("ಶಾಶ್ವತ ಪೂಜೆ ಇತಿಹಾಸ"),
-		KARYAKRAMA("ಕಾರ್ಯಕ್ರಮ ರಶೀದಿ ಇತಿಹಾಸ"); // ADDED
+		KARYAKRAMA("ಕಾರ್ಯಕ್ರಮ ರಶೀದಿ ಇತಿಹಾಸ");
 
 		private final String displayName;
-
 		HistoryView(String displayName) { this.displayName = displayName; }
-
 		@Override
 		public String toString() { return displayName; }
 	}
@@ -42,12 +40,11 @@ public class HistoryController {
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private final InKindDonationRepository inKindDonationRepository = new InKindDonationRepository();
 	private final ShashwathaPoojaRepository shashwathaPoojaRepository = new ShashwathaPoojaRepository();
-	private final KaryakramaReceiptRepository karyakramaReceiptRepository = new KaryakramaReceiptRepository(); // ADDED
+	private final KaryakramaReceiptRepository karyakramaReceiptRepository = new KaryakramaReceiptRepository();
 
 	// FXML elements
 	@FXML private ComboBox<HistoryView> viewSelectionComboBox;
 	@FXML private Label currentViewLabel;
-
 	// Seva Table
 	@FXML private TableView<SevaReceiptData> historyTable;
 	@FXML private TableColumn<SevaReceiptData, Integer> receiptIdColumn;
@@ -58,10 +55,8 @@ public class HistoryController {
 	@FXML private TableColumn<SevaReceiptData, Double> totalAmountColumn;
 	@FXML private TableColumn<SevaReceiptData, String> paymentMode;
 	@FXML private TableColumn<SevaReceiptData, Void> detailsColumn;
-
 	// Donation Table
 	@FXML private TableView<DonationReceiptData> donationHistoryTable;
-	// ... (donation table columns)
 	@FXML private TableColumn<DonationReceiptData, Integer> donationReceiptIdColumn;
 	@FXML private TableColumn<DonationReceiptData, String> donationDevoteeNameColumn;
 	@FXML private TableColumn<DonationReceiptData, String> donationDateColumn;
@@ -69,47 +64,37 @@ public class HistoryController {
 	@FXML private TableColumn<DonationReceiptData, Double> donationAmountColumn;
 	@FXML private TableColumn<DonationReceiptData, String> donationPaymentModeColumn;
 	@FXML private TableColumn<DonationReceiptData, Void> donationDetailsColumn;
-
-
 	// In-Kind Donation Table
 	@FXML private TableView<InKindDonation> inKindDonationHistoryTable;
-	// ... (in-kind table columns)
 	@FXML private TableColumn<InKindDonation, Integer> inKindReceiptIdColumn;
 	@FXML private TableColumn<InKindDonation, String> inKindDevoteeNameColumn;
 	@FXML private TableColumn<InKindDonation, String> inKindDonationDateColumn;
 	@FXML private TableColumn<InKindDonation, String> itemDescriptionColumn;
 	@FXML private TableColumn<InKindDonation, Void> inKindDetailsColumn;
-
 	// Shashwatha Pooja Table
 	@FXML private TableView<ShashwathaPoojaReceipt> shashwathaPoojaHistoryTable;
-	// ... (shashwatha table columns)
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Integer> shashwathaReceiptIdColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaDevoteeNameColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaReceiptDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaPoojaDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Void> shashwathaDetailsColumn;
-
-	// --- NEW KARYAKRAMA TABLE ---
+	// Karyakrama Table
 	@FXML private TableView<KaryakramaReceiptData> karyakramaHistoryTable;
 	@FXML private TableColumn<KaryakramaReceiptData, Integer> karyakramaReceiptIdColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaDevoteeNameColumn;
+	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaNameColumn; // <-- NEW FIELD
 	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaReceiptDateColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, Double> karyakramaTotalAmountColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, Void> karyakramaDetailsColumn;
 
-
 	@FXML
 	public void initialize() {
-		// Setup all tables
 		setupSevaTableColumns();
 		setupDonationTableColumns();
 		setupInKindDonationTableColumns();
 		setupShashwathaPoojaTableColumns();
-		setupKaryakramaTableColumns(); // ADDED
-
-		// Setup the ComboBox with all view options
+		setupKaryakramaTableColumns();
 		setupViewSelectionComboBox();
-		// Set the initial view to Seva receipts
 		switchToView(HistoryView.SEVA);
 	}
 
@@ -131,7 +116,7 @@ public class HistoryController {
 			case DONATION -> switchToDonationView();
 			case IN_KIND -> switchToInKindDonationView();
 			case SHASHWATHA_POOJA -> switchToShashwathaPoojaView();
-			case KARYAKRAMA -> switchToKaryakramaView(); // ADDED
+			case KARYAKRAMA -> switchToKaryakramaView();
 		}
 		currentViewLabel.setText(view.displayName);
 		if (viewSelectionComboBox.getValue() != view) {
@@ -167,7 +152,6 @@ public class HistoryController {
 		updateRecordCount(shashwathaList.size());
 	}
 
-	// ADDED METHOD
 	private void switchToKaryakramaView() {
 		setTableVisibility(false, false, false, false, true);
 		List<KaryakramaReceiptData> karyakramaList = karyakramaReceiptRepository.getAllReceipts();
@@ -180,22 +164,19 @@ public class HistoryController {
 		donationHistoryTable.setVisible(donation);
 		inKindDonationHistoryTable.setVisible(inKind);
 		shashwathaPoojaHistoryTable.setVisible(shashwatha);
-		karyakramaHistoryTable.setVisible(karyakrama); // ADDED
+		karyakramaHistoryTable.setVisible(karyakrama);
 	}
 
-	// ... Keep all existing setup and show details methods ...
-	// ... e.g., setupSevaTableColumns(), showSevaReceiptDetails(), etc. ...
-
-	// ADDED METHOD for the new table
+	// --- UPDATED METHOD ---
 	private void setupKaryakramaTableColumns() {
 		karyakramaReceiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
 		karyakramaDevoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
+		karyakramaNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getKaryakramaName())); // <-- Logic for new column
 		karyakramaReceiptDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedReceiptDate()));
 		karyakramaTotalAmountColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
 		karyakramaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showKaryakramaDetails));
 	}
 
-	// ADDED METHOD to show details
 	private void showKaryakramaDetails(KaryakramaReceiptData receiptData) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/KaryakramaDetailsView.fxml"));
@@ -214,9 +195,6 @@ public class HistoryController {
 			showAlert("Error", "Could not load Karyakrama details view.");
 		}
 	}
-
-	// The rest of the file (utility methods like showAlert, createDetailsButtonCell, setup methods for other tables) remains the same.
-	// Ensure you copy them from your existing file. I'm omitting them here for brevity but they must be present.
 
 	private void updateRecordCount(int count) {
 		if (totalRecordsLabel != null) {
@@ -299,7 +277,6 @@ public class HistoryController {
 	private <T> TableCell<T, Void> createDetailsButtonCell(Consumer<T> action) {
 		return new TableCell<>() {
 			private final Button viewButton = new Button("ವಿವರ ನೋಡಿ");
-
 			{
 				viewButton.setOnAction(event -> {
 					if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
@@ -393,7 +370,6 @@ public class HistoryController {
 
 	private void setSevaColumn() {
 		sevaColumn.setCellValueFactory(cellData -> {
-			// This logic needs to be updated if OthersRepository is removed. Assuming it's gone.
 			List<String> nonSevaTypes = VisheshaPoojeRepository.getAllVisheshaPooje().stream().map(SevaEntry::getName).toList();
 			double sevaAmount = cellData.getValue().getSevas().stream()
 					.filter(entry -> entry.getName() != null && !nonSevaTypes.contains(entry.getName()))

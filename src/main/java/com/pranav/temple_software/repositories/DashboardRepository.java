@@ -15,7 +15,6 @@ public class DashboardRepository {
 		return DatabaseManager.getConnection();
 	}
 
-	// --- Seva Statistics ---
 	public List<DashboardStats> getSevaStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificSevaId) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
@@ -27,8 +26,8 @@ public class DashboardRepository {
 		sql.append("FROM Receipts r ");
 		sql.append("JOIN Sevas s ON r.sevas_details LIKE CONCAT('%', s.seva_name, '%') ");
 		sql.append("WHERE 1=1 ");
-		List<Object> parameters = new ArrayList<>();
 
+		List<Object> parameters = new ArrayList<>();
 		if (fromDate != null) {
 			sql.append("AND r.seva_date >= ? ");
 			parameters.add(Date.valueOf(fromDate));
@@ -74,7 +73,6 @@ public class DashboardRepository {
 		return stats;
 	}
 
-	// --- Donation Statistics ---
 	public List<DashboardStats> getDonationStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificDonationId) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
@@ -131,42 +129,41 @@ public class DashboardRepository {
 		return stats;
 	}
 
-	// --- Karyakrama Statistics ---
+	// --- UPDATED METHOD ---
 	public List<DashboardStats> getKaryakramaStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificKaryakramaId) {
 		List<DashboardStats> stats = new ArrayList<>();
-		String sql = "SELECT " +
-				"k.karyakrama_id, k.karyakrama_name, " +
-				"COUNT(kr.receipt_id) as total_count, " +
-				"SUM(CASE WHEN kr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, " +
-				"SUM(CASE WHEN kr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, " +
-				"SUM(kr.total_amount) as total_amount " +
-				"FROM KaryakramaReceipts kr " +
-				"JOIN KaryakramaSevas ks ON kr.sevas_details LIKE CONCAT('%', ks.seva_name, '%') " +
-				"JOIN Karyakramagalu k ON ks.karyakrama_id = k.karyakrama_id " +
-				"WHERE 1=1 ";
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT k.karyakrama_id, kr.karyakrama_name, ");
+		sql.append("COUNT(kr.receipt_id) as total_count, ");
+		sql.append("SUM(CASE WHEN kr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
+		sql.append("SUM(CASE WHEN kr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
+		sql.append("SUM(kr.total_amount) as total_amount ");
+		sql.append("FROM KaryakramaReceipts kr ");
+		sql.append("LEFT JOIN Karyakramagalu k ON kr.karyakrama_name = k.karyakrama_name ");
+		sql.append("WHERE kr.karyakrama_name IS NOT NULL ");
 
 		List<Object> parameters = new ArrayList<>();
 		if (fromDate != null) {
-			sql += "AND kr.receipt_date >= ? ";
+			sql.append("AND kr.receipt_date >= ? ");
 			parameters.add(Date.valueOf(fromDate));
 		}
 		if (toDate != null) {
-			sql += "AND kr.receipt_date <= ? ";
+			sql.append("AND kr.receipt_date <= ? ");
 			parameters.add(Date.valueOf(toDate));
 		}
 		if (paymentMethod != null && !paymentMethod.equals("All")) {
-			sql += "AND kr.payment_mode = ? ";
+			sql.append("AND kr.payment_mode = ? ");
 			parameters.add(paymentMethod);
 		}
 		if (specificKaryakramaId != null && !specificKaryakramaId.isEmpty()) {
-			sql += "AND k.karyakrama_id = ? ";
+			sql.append("AND k.karyakrama_id = ? ");
 			parameters.add(specificKaryakramaId);
 		}
 
-		sql += "GROUP BY k.karyakrama_id, k.karyakrama_name ORDER BY total_count DESC";
+		sql.append("GROUP BY k.karyakrama_id, kr.karyakrama_name ORDER BY total_count DESC");
 
 		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 			for (int i = 0; i < parameters.size(); i++) {
 				pstmt.setObject(i + 1, parameters.get(i));
 			}
@@ -188,7 +185,6 @@ public class DashboardRepository {
 		return stats;
 	}
 
-	// --- Shashwatha Pooja, Vishesha Pooja Statistics ---
 	public List<DashboardStats> getShashwathaPoojaStatistics(LocalDate fromDate, LocalDate toDate) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
@@ -291,7 +287,6 @@ public class DashboardRepository {
 		return stats;
 	}
 
-	// --- Name retrieval methods ---
 	public List<String> getAllSevaNames() {
 		List<String> sevaNames = new ArrayList<>();
 		String sql = "SELECT seva_id, seva_name FROM Sevas ORDER BY display_order";
@@ -331,10 +326,8 @@ public class DashboardRepository {
 		return names;
 	}
 
-	// --- NEWLY ADDED METHOD TO FIX THE ERROR ---
 	public List<String> getAllShashwathaPoojaNames() {
 		List<String> names = new ArrayList<>();
-		// Since Shashwatha Pooja is a single type, we can return a hardcoded value if any receipts exist.
 		String sql = "SELECT DISTINCT 'SHASHWATHA_POOJA:ಶಾಶ್ವತ ಪೂಜೆ' as name_entry FROM ShashwathaPoojaReceipts LIMIT 1";
 		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 			if (rs.next()) {
@@ -346,6 +339,7 @@ public class DashboardRepository {
 		return names;
 	}
 
+	// --- UPDATED METHOD ---
 	public List<String> getAllKaryakramaNames() {
 		List<String> names = new ArrayList<>();
 		String sql = "SELECT karyakrama_id, karyakrama_name FROM Karyakramagalu ORDER BY karyakrama_name";

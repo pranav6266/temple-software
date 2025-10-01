@@ -4,7 +4,7 @@ import com.pranav.temple_software.models.*;
 import com.pranav.temple_software.repositories.DevoteeRepository;
 import com.pranav.temple_software.repositories.KaryakramaReceiptRepository;
 import com.pranav.temple_software.repositories.KaryakramaRepository;
-import com.pranav.temple_software.repositories.KaryakramaSevaRepository;
+import com.pranav.temple_software.repositories.OthersRepository;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -27,12 +27,10 @@ public class KaryakramaController {
 	@FXML private TextField panNumberField;
 	@FXML private DatePicker receiptDatePicker;
 	@FXML private ComboBox<Karyakrama> karyakramaComboBox;
-	@FXML private ComboBox<KaryakramaSeva> sevaComboBox;
-	@FXML private Spinner<Integer> quantitySpinner;
-	@FXML private TableView<SevaEntry> sevasTableView;
-	@FXML private TableColumn<SevaEntry, String> sevaNameColumn;
-	@FXML private TableColumn<SevaEntry, Number> amountColumn;
-	@FXML private TableColumn<SevaEntry, Integer> quantityColumn;
+	@FXML private ComboBox<Others> othersComboBox;
+	@FXML private TextField amountField;
+	@FXML private TableView<SevaEntry> othersTableView;
+	@FXML private TableColumn<SevaEntry, String> otherNameColumn;
 	@FXML private TableColumn<SevaEntry, Number> totalColumn;
 	@FXML private Label totalAmountLabel;
 	@FXML private RadioButton cashRadio;
@@ -40,17 +38,17 @@ public class KaryakramaController {
 	@FXML private Button saveButton;
 
 	private final KaryakramaRepository karyakramaRepository = new KaryakramaRepository();
-	private final KaryakramaSevaRepository karyakramaSevaRepository = new KaryakramaSevaRepository();
+	private final OthersRepository othersRepository = OthersRepository.getInstance();
 	private final KaryakramaReceiptRepository receiptRepository = new KaryakramaReceiptRepository();
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
-	private final ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
+	private final ObservableList<SevaEntry> selectedOthers = FXCollections.observableArrayList();
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
 
 	@FXML
 	public void initialize() {
 		receiptDatePicker.setValue(LocalDate.now());
 		setupDevoteeFields();
-		setupKaryakramaSelection();
+		setupSelections();
 		setupTableView();
 		updateTotal();
 	}
@@ -70,57 +68,58 @@ public class KaryakramaController {
 		panNumberField.setText(details.getPanNumber());
 	}
 
-	private void setupKaryakramaSelection() {
+	private void setupSelections() {
 		karyakramaComboBox.setItems(FXCollections.observableArrayList(karyakramaRepository.getAllKaryakramagalu()));
-		karyakramaComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-			sevaComboBox.getItems().clear();
-			if (newVal != null) {
-				sevaComboBox.setItems(FXCollections.observableArrayList(karyakramaSevaRepository.getSevasForKaryakrama(newVal.getId())));
-			}
-		});
+		othersComboBox.setItems(FXCollections.observableArrayList(othersRepository.getAllOthers()));
 	}
 
 	private void setupTableView() {
-		sevaNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-		amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
-		quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+		otherNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 		totalColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
-		sevasTableView.setItems(selectedSevas);
+		othersTableView.setItems(selectedOthers);
 	}
 
 	@FXML
-	private void handleAddSeva() {
-		KaryakramaSeva selectedSeva = sevaComboBox.getValue();
-		int quantity = quantitySpinner.getValue();
+	private void handleAddOther() {
+		Others selectedOther = othersComboBox.getValue();
+		String amountStr = amountField.getText();
 
-		if (selectedSeva == null || quantity <= 0) {
-			showAlert(Alert.AlertType.WARNING, "Invalid Input", "Please select a seva and specify a valid quantity.");
+		if (selectedOther == null) {
+			showAlert(Alert.AlertType.WARNING, "Invalid Input", "Please select an 'Other' item.");
 			return;
 		}
 
-		Optional<SevaEntry> existingEntry = selectedSevas.stream()
-				.filter(entry -> entry.getName().equals(selectedSeva.getName()))
-				.findFirst();
-
-		if (existingEntry.isPresent()) {
-			existingEntry.get().setQuantity(existingEntry.get().getQuantity() + quantity);
-		} else {
-			SevaEntry newEntry = new SevaEntry(selectedSeva.getName(), selectedSeva.getAmount());
-			newEntry.setQuantity(quantity);
-			selectedSevas.add(newEntry);
+		double amount;
+		try {
+			amount = Double.parseDouble(amountStr);
+			if (amount <= 0) {
+				showAlert(Alert.AlertType.WARNING, "Invalid Amount", "Amount must be greater than zero.");
+				return;
+			}
+		} catch (NumberFormatException e) {
+			showAlert(Alert.AlertType.WARNING, "Invalid Amount", "Please enter a valid number for the amount.");
+			return;
 		}
-		sevasTableView.refresh();
+
+		// For Karyakrama, we can add the same "Other" multiple times if needed, so we don't check for duplicates.
+		SevaEntry newEntry = new SevaEntry(selectedOther.getName(), amount);
+		newEntry.setQuantity(1); // Quantity is always 1 in this new model
+		selectedOthers.add(newEntry);
+
+		othersTableView.refresh();
 		updateTotal();
 
-		sevaComboBox.getSelectionModel().clearSelection();
-		quantitySpinner.getValueFactory().setValue(1);
+		othersComboBox.getSelectionModel().clearSelection();
+		amountField.clear();
 	}
 
 	@FXML
 	private void handleSaveAndPrint() {
 		if (!validateInput()) return;
 
-		double totalAmount = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
+		Karyakrama selectedKaryakrama = karyakramaComboBox.getValue();
+		double totalAmount = selectedOthers.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
+
 		if (totalAmount > 2000 && (panNumberField.getText() == null || panNumberField.getText().trim().isEmpty())) {
 			showAlert(Alert.AlertType.ERROR, "Validation Error", "PAN number is mandatory for transactions above ₹2000.");
 			return;
@@ -128,17 +127,18 @@ public class KaryakramaController {
 
 		KaryakramaReceiptData receiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(), "", "", receiptDatePicker.getValue(),
-				selectedSevas.stream().collect(Collectors.toList()),
+				panNumberField.getText(), "", "", selectedKaryakrama.getName(), receiptDatePicker.getValue(),
+				selectedOthers.stream().collect(Collectors.toList()),
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
 		int savedId = receiptRepository.saveReceipt(receiptData);
 
 		if (savedId != -1) {
+			// Re-create object with the correct ID for printing
 			KaryakramaReceiptData savedReceiptData = new KaryakramaReceiptData(savedId,
 					receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(),
-					receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getReceiptDate(), receiptData.getSevas(),
+					receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(),
 					receiptData.getTotalAmount(), receiptData.getPaymentMode());
 
 			Consumer<Boolean> onPrintComplete = (success) -> Platform.runLater(this::closeWindow);
@@ -159,8 +159,8 @@ public class KaryakramaController {
 			showAlert(Alert.AlertType.WARNING, "Validation Error", "Devotee Name is required.");
 			return false;
 		}
-		if (selectedSevas.isEmpty()) {
-			showAlert(Alert.AlertType.WARNING, "Validation Error", "Please add at least one seva to the receipt.");
+		if (selectedOthers.isEmpty()) {
+			showAlert(Alert.AlertType.WARNING, "Validation Error", "Please add at least one 'other' item to the receipt.");
 			return false;
 		}
 		if (!cashRadio.isSelected() && !onlineRadio.isSelected()) {
@@ -171,7 +171,7 @@ public class KaryakramaController {
 	}
 
 	private void updateTotal() {
-		double total = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
+		double total = selectedOthers.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 		totalAmountLabel.setText(String.format("₹%.2f", total));
 	}
 

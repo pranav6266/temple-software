@@ -73,6 +73,7 @@
                 <columns>
                     <TableColumn fx:id="karyakramaReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
                     <TableColumn fx:id="karyakramaDevoteeNameColumn" prefWidth="250.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="karyakramaNameColumn" prefWidth="250.0" styleClass="service-column" text="ಕಾರ್ಯಕ್ರಮ" />
                     <TableColumn fx:id="karyakramaReceiptDateColumn" prefWidth="150.0" resizable="false" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
                     <TableColumn fx:id="karyakramaTotalAmountColumn" prefWidth="180.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
                     <TableColumn fx:id="karyakramaDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />

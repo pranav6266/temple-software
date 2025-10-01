@@ -46,7 +46,6 @@ public class MainController {
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
 	public ReceiptPrinter receiptPrinter = new ReceiptPrinter(this);
 	public Stage mainStage;
-
 	@FXML public ComboBox<String> raashiComboBox;
 	@FXML public ComboBox<String> nakshatraComboBox;
 	@FXML public ComboBox<String> visheshaPoojeComboBox;
@@ -130,7 +129,6 @@ public class MainController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-
 		addressField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
 			return change;
@@ -139,7 +137,6 @@ public class MainController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
 			while (change.next()) {
 				for (SevaEntry entry : change.getAddedSubList()) {
@@ -566,7 +563,6 @@ public class MainController {
 	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
 	public ReceiptServices receiptServices = new ReceiptServices(this);
-//	Others others = new Others(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 	public void showAlert(String title, String message) {
@@ -740,6 +736,28 @@ public class MainController {
 			} catch (IOException e) {
 				e.printStackTrace();
 				showAlert("Error", "Unable to load Karyakrama Manager: " + e.getMessage());
+			}
+		};
+		promptForSpecialPassword(openManager);
+	}
+
+	// --- NEW METHOD ---
+	@FXML
+	public void handleOthersManagerButton() {
+		Runnable openManager = () -> {
+			try {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/KaryakramaManager/OthersManagerView.fxml"));
+				Stage stage = new Stage();
+				stage.setTitle("ಇತರೆ ನಿರ್ವಹಿಸಿ (Manage Others)");
+				stage.setScene(new Scene(loader.load()));
+				stage.initOwner(mainStage);
+				stage.initModality(Modality.WINDOW_MODAL);
+				stage.setWidth(700);
+				stage.setHeight(600);
+				stage.show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				showAlert("Error", "Unable to load Others Manager: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openManager);

@@ -25,6 +25,7 @@
                                                 <MenuItem onAction="#handleSevaManagerButton" text="🛠️ ಸೇವೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
                                                 <MenuItem onAction="#handleDonationManagerButton" text="💰 ದೇಣಿಗೆಯನ್ನು ನಿರ್ವಹಿಸಿ" />
                                                 <MenuItem onAction="#handleKaryakramaManagerButton" text="🎉 ಕಾರ್ಯಕ್ರಮ ನಿರ್ವಹಿಸಿ" />
+                                                <MenuItem onAction="#handleOthersManagerButton" text="🔧 ಇತರೆ ನಿರ್ವಹಿಸಿ (Others)" />
                                                 <MenuItem onAction="#handleVisheshaPoojeManagerButton" text="✨ ವಿಶೇಷ ಪೂಜೆ ನಿರ್ವಹಿಸಿ" />
                                                 <MenuItem onAction="#handleShashwathaPoojaManagerButton" text="🕉️ ಶಾಶ್ವತ ಪೂಜೆ ನಿರ್ವಹಿಸಿ" />
                                             </items>
@@ -58,7 +59,6 @@
                 </VBox>
             </VBox>
         </top>
-
         <center>
             <HBox styleClass="main-content" BorderPane.alignment="CENTER">
                 <ScrollPane fitToWidth="true" prefWidth="480.0" styleClass="form-panel">

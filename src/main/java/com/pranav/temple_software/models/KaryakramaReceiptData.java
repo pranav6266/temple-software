@@ -12,12 +12,13 @@ public class KaryakramaReceiptData {
 	private final String panNumber;
 	private final String rashi;
 	private final String nakshatra;
+	private final String karyakramaName; // <-- NEW FIELD
 	private final LocalDate receiptDate;
 	private final List<SevaEntry> sevas;
 	private final double totalAmount;
 	private final String paymentMode;
 
-	public KaryakramaReceiptData(int receiptId, String devoteeName, String phoneNumber, String address, String panNumber, String rashi, String nakshatra, LocalDate receiptDate, List<SevaEntry> sevas, double totalAmount, String paymentMode) {
+	public KaryakramaReceiptData(int receiptId, String devoteeName, String phoneNumber, String address, String panNumber, String rashi, String nakshatra, String karyakramaName, LocalDate receiptDate, List<SevaEntry> sevas, double totalAmount, String paymentMode) {
 		this.receiptId = receiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
@@ -25,6 +26,7 @@ public class KaryakramaReceiptData {
 		this.panNumber = panNumber;
 		this.rashi = rashi;
 		this.nakshatra = nakshatra;
+		this.karyakramaName = karyakramaName; // <-- SET IN CONSTRUCTOR
 		this.receiptDate = receiptDate;
 		this.sevas = sevas;
 		this.totalAmount = totalAmount;
@@ -39,10 +41,12 @@ public class KaryakramaReceiptData {
 	public String getPanNumber() { return panNumber; }
 	public String getRashi() { return rashi; }
 	public String getNakshatra() { return nakshatra; }
+	public String getKaryakramaName() { return karyakramaName; } // <-- NEW GETTER
 	public LocalDate getReceiptDate() { return receiptDate; }
 	public List<SevaEntry> getSevas() { return sevas; }
 	public double getTotalAmount() { return totalAmount; }
 	public String getPaymentMode() { return paymentMode; }
+
 	public String getFormattedReceiptDate() {
 		return receiptDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 	}

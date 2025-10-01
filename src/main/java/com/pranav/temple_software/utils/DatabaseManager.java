@@ -34,9 +34,8 @@ public class DatabaseManager {
 			createInKindDonationTableIfNotExists(conn);
 			createShashwathaPoojaTableIfNotExists(conn);
 			createCredentialsTableIfNotExists(conn);
-
 			createKaryakramagaluTableIfNotExists(conn);
-			createKaryakramaSevasTableIfNotExists(conn); // THIS IS THE RE-ADDED TABLE
+			createOthersTableIfNotExists(conn);
 			createKaryakramaReceiptsTableIfNotExists(conn);
 
 			runMigrations(conn);
@@ -46,28 +45,21 @@ public class DatabaseManager {
 		}
 	}
 
-	// runMigrations() and other table creation methods remain the same...
-
-	// --- RE-ADD THIS METHOD ---
-	private void createKaryakramaSevasTableIfNotExists(Connection conn) throws SQLException {
-		String sql = "CREATE TABLE IF NOT EXISTS KaryakramaSevas (" +
-				"seva_id INT AUTO_INCREMENT PRIMARY KEY, " +
-				"karyakrama_id INT NOT NULL, " +
-				"seva_name VARCHAR(255) NOT NULL, " +
-				"amount DECIMAL(10, 2) NOT NULL, " +
-				"FOREIGN KEY (karyakrama_id) REFERENCES Karyakramagalu(karyakrama_id) ON DELETE CASCADE)";
+	private void createOthersTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
+				"others_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"others_name VARCHAR(255) NOT NULL, " +
+				"display_order INT)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ KaryakramaSevas table checked/created successfully.");
+			System.out.println("✅ Others table checked/created successfully.");
 		}
 	}
 
-	// --- PASTE ALL OTHER EXISTING METHODS FROM YOUR FILE BELOW THIS LINE ---
-	// (e.g., runMigrations, createKaryakramagaluTableIfNotExists, createKaryakramaReceiptsTableIfNotExists, createCredentialsTableIfNotExists, etc.)
-	// For completeness, the full file is below.
-
 	private void runMigrations(Connection conn) throws SQLException {
 		DatabaseMetaData meta = conn.getMetaData();
+
+		// Migration for ShashwathaPoojaReceipts AMOUNT
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "AMOUNT")) {
 			if (!rs.next()) {
 				System.out.println("⏳ Running migration: Adding AMOUNT column to ShashwathaPoojaReceipts...");
@@ -77,6 +69,8 @@ public class DatabaseManager {
 				}
 			}
 		}
+
+		// Migration for ShashwathaPoojaReceipts PAYMENT_MODE
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "PAYMENT_MODE")) {
 			if (!rs.next()) {
 				System.out.println("⏳ Running migration: Adding PAYMENT_MODE column to ShashwathaPoojaReceipts...");
@@ -86,12 +80,14 @@ public class DatabaseManager {
 				}
 			}
 		}
-		try (ResultSet rs = meta.getColumns(null, null, "OTHERS", "OTHERS_AMOUNT")) {
-			if (rs.next()) {
-				System.out.println("⏳ Running migration: Dropping OTHERS_AMOUNT column from Others...");
+
+		// Migration for KaryakramaReceipts KARYAKRAMA_NAME
+		try (ResultSet rs = meta.getColumns(null, null, "KARYAKRAMARECEIPTS", "KARYAKRAMA_NAME")) {
+			if (!rs.next()) {
+				System.out.println("⏳ Running migration: Adding KARYAKRAMA_NAME column to KaryakramaReceipts...");
 				try (Statement stmt = conn.createStatement()) {
-					stmt.executeUpdate("ALTER TABLE Others DROP COLUMN OTHERS_AMOUNT");
-					System.out.println("✅ Migration successful for OTHERS_AMOUNT column removal.");
+					stmt.executeUpdate("ALTER TABLE KaryakramaReceipts ADD COLUMN karyakrama_name VARCHAR(255)");
+					System.out.println("✅ Migration successful for KARYAKRAMA_NAME column.");
 				}
 			}
 		}
@@ -117,6 +113,7 @@ public class DatabaseManager {
 				"pan_number VARCHAR(10), " +
 				"rashi VARCHAR(20), " +
 				"nakshatra VARCHAR(20), " +
+				"karyakrama_name VARCHAR(255), " + // <-- Added column
 				"receipt_date DATE, " +
 				"sevas_details TEXT, " +
 				"total_amount DECIMAL(10, 2), " +

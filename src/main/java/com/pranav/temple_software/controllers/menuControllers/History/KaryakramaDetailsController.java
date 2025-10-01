@@ -18,6 +18,7 @@ public class KaryakramaDetailsController {
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
+	@FXML private Label karyakramaNameLabel; // <-- NEW FIELD
 	@FXML private Label receiptDateLabel;
 	@FXML private Label totalAmountLabel;
 	@FXML private TableView<SevaEntry> sevaTableView;
@@ -41,6 +42,9 @@ public class KaryakramaDetailsController {
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + data.getRashi());
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra());
 		addressText.setText(data.getAddress());
+
+		// Set Karyakrama Details
+		karyakramaNameLabel.setText("ಕಾರ್ಯಕ್ರಮ: " + data.getKaryakramaName());
 		receiptDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedReceiptDate());
 		totalAmountLabel.setText("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));
 

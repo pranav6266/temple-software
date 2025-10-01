@@ -21,7 +21,7 @@
     <bottom>
         <HBox styleClass="popup-button-container">
             <Button onAction="#handleAddKaryakrama" styleClass="manager-button, manager-save-button" text="Add New" />
-            <Button onAction="#handleEditKaryakrama" styleClass="manager-button" text="Edit Selected" />
+            <Button onAction="#handleRenameKaryakrama" styleClass="manager-button" text="Rename Selected" />
             <Button onAction="#handleDeleteKaryakrama" styleClass="manager-button, manager-delete-button" text="Delete Selected" />
             <Button onAction="#closeWindow" styleClass="manager-button, manager-cancel-button" text="Close" />
         </HBox>
