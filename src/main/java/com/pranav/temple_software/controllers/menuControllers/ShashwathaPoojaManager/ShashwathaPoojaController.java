@@ -78,29 +78,30 @@ public class ShashwathaPoojaController {
 		amountLabel.setText(String.format("₹%.2f", currentPoojaAmount));
 	}
 
+	// Replace the existing setupPhoneNumberListener method with this one
 	private void setupPhoneNumberListener() {
 		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue != null) {
-				if (!newValue.matches("\\d*")) {
-					contactField.setText(newValue.replaceAll("[^\\d]", ""));
+				// First, ensure only up to 10 digits can be entered
+				String digitsOnly = newValue.replaceAll("[^\\d]", "");
+				if (digitsOnly.length() > 10) {
+					digitsOnly = digitsOnly.substring(0, 10);
 				}
-				if (newValue.length() > 10) {
-					contactField.setText(newValue.substring(0, 10));
-				}
-			}
-		});
 
-		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-			if (!newVal) {
-				String phoneNumber = contactField.getText();
-				if (phoneNumber != null && phoneNumber.length() == 10) {
-					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
-					detailsOpt.ifPresent(this::populateDevoteeDetails);
+				// prevent listener recursion
+				if (!digitsOnly.equals(newValue)) {
+					contactField.setText(digitsOnly);
+				}
+
+				// --- NEW LOGIC ---
+				// If the new value has exactly 10 digits, trigger the search
+				if (digitsOnly.length() == 10) {
+					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
+							.ifPresent(this::populateDevoteeDetails);
 				}
 			}
 		});
 	}
-
 	private void populateDevoteeDetails(DevoteeDetails details) {
 		if (details == null) return;
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");

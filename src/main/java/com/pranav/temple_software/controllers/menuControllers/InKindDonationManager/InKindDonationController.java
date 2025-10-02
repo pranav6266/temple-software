@@ -64,26 +64,26 @@ public class InKindDonationController {
 	/**
 	 * Sets up listeners on the phone number field to restrict input and auto-fill devotee details.
 	 */
+	// Replace the existing setupPhoneNumberListener method with this one
 	private void setupPhoneNumberListener() {
-		// Restrict input to 10 digits
 		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue != null) {
-				if (!newValue.matches("\\d*")) {
-					contactField.setText(newValue.replaceAll("[^\\d]", ""));
+				// First, ensure only up to 10 digits can be entered
+				String digitsOnly = newValue.replaceAll("[^\\d]", "");
+				if (digitsOnly.length() > 10) {
+					digitsOnly = digitsOnly.substring(0, 10);
 				}
-				if (newValue.length() > 10) {
-					contactField.setText(newValue.substring(0, 10));
-				}
-			}
-		});
 
-        // Auto-fill when focus is lost [cite: 1284]
-		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-			if (!newVal) { // When focus is lost
-				String phoneNumber = contactField.getText();
-				if (phoneNumber != null && phoneNumber.length() == 10) {
-					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
-					detailsOpt.ifPresent(this::populateDevoteeDetails);
+				// prevent listener recursion
+				if (!digitsOnly.equals(newValue)) {
+					contactField.setText(digitsOnly);
+				}
+
+				// --- NEW LOGIC ---
+				// If the new value has exactly 10 digits, trigger the search
+				if (digitsOnly.length() == 10) {
+					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
+							.ifPresent(this::populateDevoteeDetails);
 				}
 			}
 		});

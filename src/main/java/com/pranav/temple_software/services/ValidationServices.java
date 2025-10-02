@@ -65,31 +65,37 @@ public class ValidationServices {
 		alert.showAndWait();
 	}
 
+	// Replace the existing setupPhoneValidation method with this one
 	public void setupPhoneValidation() {
 		controller.contactField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue != null) {
+				// First, ensure only up to 10 digits can be entered
 				if (!newValue.matches("\\d*")) {
-					controller.contactField.setText(newValue.replaceAll("[^\\d]", ""));
+					newValue = newValue.replaceAll("[^\\d]", "");
 				}
 				if (newValue.length() > 10) {
-					controller.contactField.setText(newValue.substring(0, 10));
+					newValue = newValue.substring(0, 10);
+				}
+				controller.contactField.setText(newValue);
+
+				// --- NEW LOGIC ---
+				// If the new value has exactly 10 digits, trigger the search
+				if (newValue.length() == 10) {
+					devoteeRepository.findLatestDevoteeDetailsByPhone(newValue)
+							.ifPresent(details -> Platform.runLater(() -> controller.populateDevoteeDetails(details)));
+					fetchPastTransactionsAndValidate(); // Also check cash limits
+				} else {
+					// If less than 10 digits, reset the cash total check
+					this.devoteeDailyCashTotal = 0.0;
+					checkAndEnforceCashLimit();
 				}
 			}
 		});
+
+		// This listener is now only for validation if the user clicks away with an invalid number
 		controller.contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (!newVal) { // When focus is lost
-				String phoneNumber = controller.contactField.getText();
-				if (phoneNumber != null && phoneNumber.length() == 10) {
-					Optional<DevoteeDetails> detailsOpt = devoteeRepository.findLatestDevoteeDetailsByPhone(phoneNumber);
-					detailsOpt.ifPresent(details -> {
-						Platform.runLater(() -> controller.populateDevoteeDetails(details));
-					});
-					fetchPastTransactionsAndValidate();
-				} else if (phoneNumber != null && !phoneNumber.isEmpty()) {
-					validatePhoneNumber();
-				} else {
-					fetchPastTransactionsAndValidate();
-				}
+				validatePhoneNumber();
 			}
 		});
 	}

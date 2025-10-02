@@ -53,15 +53,30 @@ public class KaryakramaController {
 		updateTotal();
 	}
 
+	// Replace the existing setupDevoteeFields method with this one
 	private void setupDevoteeFields() {
-		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-			if (!newVal && contactField.getText() != null && contactField.getText().length() == 10) {
-				devoteeRepository.findLatestDevoteeDetailsByPhone(contactField.getText())
-						.ifPresent(this::populateDevoteeDetails);
+		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue != null) {
+				// First, ensure only up to 10 digits can be entered
+				String digitsOnly = newValue.replaceAll("[^\\d]", "");
+				if (digitsOnly.length() > 10) {
+					digitsOnly = digitsOnly.substring(0, 10);
+				}
+
+				// prevent listener recursion
+				if (!digitsOnly.equals(newValue)) {
+					contactField.setText(digitsOnly);
+				}
+
+				// --- NEW LOGIC ---
+				// If the new value has exactly 10 digits, trigger the search
+				if (digitsOnly.length() == 10) {
+					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
+							.ifPresent(this::populateDevoteeDetails);
+				}
 			}
 		});
 	}
-
 	private void populateDevoteeDetails(DevoteeDetails details) {
 		devoteeNameField.setText(details.getName());
 		addressField.setText(details.getAddress());
