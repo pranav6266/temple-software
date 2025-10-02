@@ -384,7 +384,10 @@ public class HistoryController {
 			dashboardStage.setScene(new Scene(loader.load()));
 			dashboardStage.initModality(Modality.WINDOW_MODAL);
 			dashboardStage.initOwner(historyTable.getScene().getWindow());
-			dashboardStage.setMaximized(true);
+//			dashboardStage.setMaximized(true);
+			dashboardStage.setResizable(true);
+			dashboardStage.setHeight(768);
+			dashboardStage.setWidth(1024);
 			dashboardStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
