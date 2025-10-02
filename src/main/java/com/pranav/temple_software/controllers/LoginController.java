@@ -85,8 +85,11 @@ public class LoginController {
 
 			mainStage.setTitle("Temple Software");
 			mainStage.setScene(scene);
-			mainStage.setMaximized(true);
-			mainStage.initStyle(StageStyle.UNDECORATED);
+			mainStage.setWidth(1024);
+			mainStage.setHeight(768);
+			mainStage.setResizable(true);
+//			mainStage.setMaximized(true);
+//			mainStage.initStyle(StageStyle.UNDECORATED);
 			mainStage.show();
 
 		} catch (IOException e) {

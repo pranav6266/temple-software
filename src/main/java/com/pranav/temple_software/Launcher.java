@@ -42,6 +42,8 @@ public class Launcher extends Application {
 		stage.setScene(scene);
 		stage.setResizable(false); // Login window should not be resizable
 		stage.initStyle(StageStyle.DECORATED); // Use a standard window for the login
+//		stage.setWidth(1024);
+//		stage.setHeight(768);
 		stage.show();
 
 		new Thread(this::checkForUpdates).start();
