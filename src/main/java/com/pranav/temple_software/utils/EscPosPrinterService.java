@@ -72,7 +72,7 @@ public class EscPosPrinterService {
 
 	// --- Image Generation Logic for Each Receipt Type ---
 
-	private BufferedImage generateSevaReceiptImage(SevaReceiptData data) {
+	public BufferedImage generateSevaReceiptImage(SevaReceiptData data) {
 		List<BufferedImage> lines = buildHeader("ಸೇವಾ ರಶೀದಿ");
 		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId())));
 		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
@@ -97,7 +97,7 @@ public class EscPosPrinterService {
 		return stitchImages(lines);
 	}
 
-	private BufferedImage generateDonationReceiptImage(DonationReceiptData data) {
+	public BufferedImage generateDonationReceiptImage(DonationReceiptData data) {
 		List<BufferedImage> lines = buildHeader("ದೇಣಿಗೆ ರಶೀದಿ");
 		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getDonationReceiptId())));
 		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
@@ -112,7 +112,7 @@ public class EscPosPrinterService {
 		return stitchImages(lines);
 	}
 
-	private BufferedImage generateShashwathaPoojaReceiptImage(ShashwathaPoojaReceipt data) {
+	public BufferedImage generateShashwathaPoojaReceiptImage(ShashwathaPoojaReceipt data) {
 		List<BufferedImage> lines = buildHeader("ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ");
 		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId())));
 		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
@@ -126,7 +126,7 @@ public class EscPosPrinterService {
 		return stitchImages(lines);
 	}
 
-	private BufferedImage generateInKindDonationReceiptImage(InKindDonation data) {
+	public BufferedImage generateInKindDonationReceiptImage(InKindDonation data) {
 		List<BufferedImage> lines = buildHeader("ವಸ್ತು ದೇಣಿಗೆ ರಶೀದಿ");
 		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getInKindReceiptId())));
 		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
@@ -141,7 +141,7 @@ public class EscPosPrinterService {
 		return stitchImages(lines);
 	}
 
-	private BufferedImage generateKaryakramaReceiptImage(KaryakramaReceiptData data) {
+	public BufferedImage generateKaryakramaReceiptImage(KaryakramaReceiptData data) {
 		List<BufferedImage> lines = buildHeader("ಕಾರ್ಯಕ್ರಮದ ರಶೀದಿ");
 		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId())));
 		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
