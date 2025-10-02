@@ -29,7 +29,7 @@ public class KaryakramaDetailsController {
 	@FXML private Button reprintButton;
 
 	private KaryakramaReceiptData currentReceiptData;
-	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 
 	public void initializeDetails(KaryakramaReceiptData data) {
 		if (data == null) return;

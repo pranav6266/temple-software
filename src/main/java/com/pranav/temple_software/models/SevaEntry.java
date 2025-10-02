@@ -66,9 +66,7 @@ public class SevaEntry {
 	public void setDisplayOrder(int order) {
 		this.displayOrder.set(order);
 	}
-	public IntegerProperty displayOrderProperty() {
-		return displayOrder;
-	}
+
 	public PrintStatus getPrintStatus() {
 		return printStatus.get();
 	}

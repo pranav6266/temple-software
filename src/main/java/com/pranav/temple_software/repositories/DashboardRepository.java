@@ -328,19 +328,6 @@ public class DashboardRepository {
 		return names;
 	}
 
-	public List<String> getAllShashwathaPoojaNames() {
-		List<String> names = new ArrayList<>();
-		String sql = "SELECT DISTINCT 'SHASHWATHA_POOJA:ಶಾಶ್ವತ ಪೂಜೆ' as name_entry FROM ShashwathaPoojaReceipts LIMIT 1";
-		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-			if (rs.next()) {
-				names.add(rs.getString("name_entry"));
-			}
-		} catch (SQLException e) {
-			logger.error("Error fetching Shashwatha Pooja names", e);
-		}
-		return names;
-	}
-
 	public List<String> getAllKaryakramaNames() {
 		List<String> names = new ArrayList<>();
 		String sql = "SELECT karyakrama_id, karyakrama_name FROM Karyakramagalu ORDER BY karyakrama_name";

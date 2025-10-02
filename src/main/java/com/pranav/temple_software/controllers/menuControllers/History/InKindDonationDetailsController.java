@@ -24,7 +24,7 @@ public class InKindDonationDetailsController {
 	@FXML private Button reprintButton;
 
 	private InKindDonation currentDonationData;
-	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 
 	public void initializeDetails(InKindDonation donationData) {
 		if (donationData == null) {

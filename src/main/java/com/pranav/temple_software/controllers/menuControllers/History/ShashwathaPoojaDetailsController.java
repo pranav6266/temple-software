@@ -24,7 +24,7 @@ public class ShashwathaPoojaDetailsController {
 
 	@FXML private Button reprintButton;
 	private ShashwathaPoojaReceipt currentPoojaData;
-	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 	public void initializeDetails(ShashwathaPoojaReceipt data) {
 		if (data == null) return;
 		this.currentPoojaData = data;

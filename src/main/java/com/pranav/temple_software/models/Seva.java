@@ -18,7 +18,7 @@ public class Seva {
 		this.name = name;
 		this.amount = amount;
 		// Initialize with a default or invalid value if needed
-		this.displayOrder = 0; // Or perhaps parse id if always numeric?
+		// Or perhaps parse id if always numeric?
 		try {
 			this.displayOrder = Integer.parseInt(id); // Default order to ID
 		} catch (NumberFormatException e) {

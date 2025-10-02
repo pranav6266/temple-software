@@ -1,7 +1,6 @@
 package com.pranav.temple_software.services;
 
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DevoteeRepository;
 import javafx.application.Platform;
@@ -14,7 +13,6 @@ import javafx.scene.control.TextFormatter;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public class ValidationServices {
 	MainController controller;
@@ -35,7 +33,7 @@ public class ValidationServices {
 				Platform.runLater(() -> {
 					controller.cashRadio.setSelected(false);
 					controller.onlineRadio.setSelected(true);
-					showAlert("Cash Limit Exceeded",
+					showAlert(
 							String.format("Today's cash total for this devotee (₹%.2f) plus the current cart total (₹%.2f) exceeds ₹2000.\nPayment must be made online.",
 									devoteeDailyCashTotal, currentCartTotal));
 				});
@@ -57,9 +55,9 @@ public class ValidationServices {
 		}
 	}
 
-	private void showAlert(String title, String message) {
+	private void showAlert(String message) {
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
-		alert.setTitle(title);
+		alert.setTitle("Cash Limit Exceeded");
 		alert.setHeaderText(null);
 		alert.setContentText(message);
 		alert.showAndWait();
@@ -67,11 +65,11 @@ public class ValidationServices {
 
 	// Replace the existing setupPhoneValidation method with this one
 	public void setupPhoneValidation() {
-		controller.contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+		controller.contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
 				// First, ensure only up to 10 digits can be entered
 				if (!newValue.matches("\\d*")) {
-					newValue = newValue.replaceAll("[^\\d]", "");
+					newValue = newValue.replaceAll("\\D", "");
 				}
 				if (newValue.length() > 10) {
 					newValue = newValue.substring(0, 10);
@@ -93,7 +91,7 @@ public class ValidationServices {
 		});
 
 		// This listener is now only for validation if the user clicks away with an invalid number
-		controller.contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+		controller.contactField.focusedProperty().addListener((_, _, newVal) -> {
 			if (!newVal) { // When focus is lost
 				validatePhoneNumber();
 			}
@@ -108,7 +106,7 @@ public class ValidationServices {
 	}
 
 	public void setupPanValidation() {
-		controller.panNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
+		controller.panNumberField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
 				String upperCase = newValue.toUpperCase();
 				if (upperCase.length() > 10) {
@@ -118,7 +116,7 @@ public class ValidationServices {
 				controller.panNumberField.setText(upperCase);
 			}
 		});
-		controller.panNumberField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+		controller.panNumberField.focusedProperty().addListener((_, _, newVal) -> {
 			if (!newVal) {
 				String pan = controller.panNumberField.getText();
 				if (pan != null && !pan.trim().isEmpty()) {
@@ -136,7 +134,7 @@ public class ValidationServices {
 		if (pan == null || pan.length() != 10) {
 			return false;
 		}
-		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]");
 	}
 
 	public void setupNameValidation() {
@@ -153,13 +151,13 @@ public class ValidationServices {
 
 	public void radioCheck(){
 		controller.cashRadio.selectedProperty().addListener(
-				(observable, oldValue, newValue) -> {
+				(_, _, newValue) -> {
 					if (newValue) {
 						controller.onlineRadio.setSelected(false);
 					}
 				});
 		controller.onlineRadio.selectedProperty().addListener(
-				(observable, oldValue, newValue) -> {
+				(_, _, newValue) -> {
 					if (newValue) {
 						controller.cashRadio.setSelected(false);
 					}
@@ -167,7 +165,7 @@ public class ValidationServices {
 	}
 
 	public void calenderChecker() {
-		controller.sevaDatePicker.getEditor().textProperty().addListener((obs, oldVal, newText) -> {
+		controller.sevaDatePicker.getEditor().textProperty().addListener((_, _, newText) -> {
 			if (newText == null || newText.isEmpty()) {
 				controller.sevaDatePicker.setValue(LocalDate.now());
 			}
@@ -178,7 +176,7 @@ public class ValidationServices {
 		controller.nakshatraComboBox.setDisable(true);
 		controller.sevaListener.rashiNakshatraMap();
 		controller.raashiComboBox.getSelectionModel().selectedItemProperty().addListener(
-				(obs, oldVal, newVal) -> {
+				(_, _, newVal) -> {
 					if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
 						controller.nakshatraComboBox.setDisable(true);
 						controller.nakshatraComboBox.getItems().clear();
@@ -188,7 +186,7 @@ public class ValidationServices {
 						List<String> nakshatrasForRashi = controller.rashiNakshatraMap.get(newVal);
 						if (nakshatrasForRashi != null) {
 							ObservableList<String> nakshatraItems = FXCollections.observableArrayList(nakshatrasForRashi);
-							nakshatraItems.add(0, "ಆಯ್ಕೆ");
+							nakshatraItems.addFirst("ಆಯ್ಕೆ");
 							controller.nakshatraComboBox.setItems(nakshatraItems);
 							controller.nakshatraComboBox.setDisable(false);
 							controller.nakshatraComboBox.setPromptText("ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ");
@@ -204,9 +202,7 @@ public class ValidationServices {
 								.sum(),
 				controller.selectedSevas
 		);
-		totalBinding.addListener((obs, oldVal, newVal) -> {
-			checkAndEnforceCashLimit();
-		});
+		totalBinding.addListener((_, _, _) -> checkAndEnforceCashLimit());
 		controller.totalLabel.textProperty().bind(Bindings.createStringBinding(() ->
 						String.format("₹%.2f", totalBinding.get()),
 				totalBinding

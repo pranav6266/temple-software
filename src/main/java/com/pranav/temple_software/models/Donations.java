@@ -1,25 +1,20 @@
 // Optional: Create a dedicated Donation model
 package com.pranav.temple_software.models;
 
-import java.util.List;
 import java.util.Objects;
 
 public class Donations {
 	private final String id; // Or use name as ID if ID isn't strictly needed in logic
 	private final String name;
-	private int displayOrder;
 
-	public Donations(String id, String name,int displayOrder) {
+	public Donations(String id, String name) {
 		this.id = id;
 		this.name = name;
-		this.displayOrder = displayOrder;
 	}
 
 
 	public String getId() { return id; }
 	public String getName() { return name; }
-	public int getDisplayOrder() { return displayOrder; }
-	public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
 
 	// Override equals and hashCode if using in HashMaps/Sets based on name/id
 	@Override

@@ -74,7 +74,7 @@ public class SevaListener {
 
 
 			// Update selectedSevas when CheckBox is toggled (logic remains the same)
-			checkBox.selectedProperty().addListener((obs, wasSelected, isSelectedNow) -> {
+			checkBox.selectedProperty().addListener((_, _, isSelectedNow) -> {
 				if (isSelectedNow) {
 					if (controller.selectedSevas.stream().noneMatch(e -> e.getName().equals(seva.getName()))) {
 						controller.selectedSevas.add(new SevaEntry(seva.getName(), seva.getAmount()));

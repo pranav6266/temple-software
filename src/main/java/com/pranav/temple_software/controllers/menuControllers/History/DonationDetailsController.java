@@ -25,7 +25,7 @@ public class DonationDetailsController {
 
 	@FXML private Button reprintButton;
 	private DonationReceiptData currentDonationData;
-	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 
 	public void initializeDonationDetails(DonationReceiptData donationData) {
 		if (donationData == null) {

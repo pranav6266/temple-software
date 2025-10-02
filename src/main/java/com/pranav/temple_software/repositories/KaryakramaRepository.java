@@ -35,40 +35,25 @@ public class KaryakramaRepository {
 		return karyakramaList;
 	}
 
-	public boolean addKaryakrama(String name) {
+	public void addKaryakrama(String name) {
 		String sql = "INSERT INTO Karyakramagalu (karyakrama_name) VALUES (?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, name);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Error adding Karyakrama with name: {}", name, e);
-			return false;
 		}
 	}
 
-	public boolean updateKaryakrama(int id, String newName) {
-		String sql = "UPDATE Karyakramagalu SET karyakrama_name = ? WHERE karyakrama_id = ?";
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setString(1, newName);
-			pstmt.setInt(2, id);
-			return pstmt.executeUpdate() > 0;
-		} catch (SQLException e) {
-			logger.error("Error updating Karyakrama with ID: {}", id, e);
-			return false;
-		}
-	}
-
-	public boolean deleteKaryakrama(int id) {
+	public void deleteKaryakrama(int id) {
 		String sql = "DELETE FROM Karyakramagalu WHERE karyakrama_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, id);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Error deleting Karyakrama with ID: {}", id, e);
-			return false;
 		}
 	}
 }

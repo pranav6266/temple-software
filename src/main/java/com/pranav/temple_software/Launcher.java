@@ -1,5 +1,6 @@
 package com.pranav.temple_software;
 
+import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.utils.BackupService;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.application.Application;
@@ -10,6 +11,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
@@ -22,12 +25,14 @@ import java.util.Optional;
 import java.util.Properties;
 
 public class Launcher extends Application {
+	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 	public static void main(String[] args) {
 		launch(args);
 	}
 
 	@Override
 	public void start(Stage stage) throws IOException {
+
 		// Initialize the database first. This is crucial.
 		BackupService.runStartupCheck();
 		new DatabaseManager();
@@ -42,8 +47,6 @@ public class Launcher extends Application {
 		stage.setScene(scene);
 		stage.setResizable(false); // Login window should not be resizable
 		stage.initStyle(StageStyle.DECORATED); // Use a standard window for the login
-//		stage.setWidth(1024);
-//		stage.setHeight(768);
 		stage.show();
 
 		new Thread(this::checkForUpdates).start();
@@ -86,7 +89,7 @@ public class Launcher extends Application {
 							// Open the download link in the user's default browser
 							Desktop.getDesktop().browse(new URI(downloadUrl));
 						} catch (Exception e) {
-							e.printStackTrace();
+							logger.error("Error occured while trying to get new version ",e);
 						}
 					}
 				});

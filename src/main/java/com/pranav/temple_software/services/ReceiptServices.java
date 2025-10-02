@@ -2,10 +2,9 @@ package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
-import com.pranav.temple_software.repositories.SevaReceiptRepository;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -99,7 +98,7 @@ public class ReceiptServices {
 		// Create a temporary receipt data object for the print preview
 		SevaReceiptData sevaReceiptData = new SevaReceiptData(
 				0, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
-				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode, "ಇಲ್ಲ"
+				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode
 		);
 
 		Consumer<Boolean> afterActionCallback = (printSuccess) -> {

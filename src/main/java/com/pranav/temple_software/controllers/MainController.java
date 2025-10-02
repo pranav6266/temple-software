@@ -48,7 +48,7 @@ public class MainController {
 	private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
-	public ReceiptPrinter receiptPrinter = new ReceiptPrinter(this);
+	public ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 	public Stage mainStage;
 	@FXML public ComboBox<String> raashiComboBox;
 	@FXML public ComboBox<String> nakshatraComboBox;

@@ -1,6 +1,5 @@
 package com.pranav.temple_software.utils;
 
-import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.*;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -35,7 +34,7 @@ public class ReceiptPrinter {
 		return printerName;
 	}
 
-	public ReceiptPrinter(MainController controller) {
+	public ReceiptPrinter() {
 	}
 
 	public void showPrintPreview(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
@@ -210,18 +209,18 @@ public class ReceiptPrinter {
 		scrollPane.setPrefViewportHeight(450);
 
 		Button printButton = new Button("Print");
-		printButton.setOnAction(e -> {
+		printButton.setOnAction(_ -> {
 			boolean success = onPrintAction.run();
 			if (onPrintComplete != null) Platform.runLater(() -> onPrintComplete.accept(success));
 			previewStage.close();
 		});
 
 		Button savePreviewButton = new Button("Save PNG Preview");
-		savePreviewButton.setOnAction(e -> onSavePreviewAction.run());
+		savePreviewButton.setOnAction(_ -> onSavePreviewAction.run());
 
 		Button cancelButton = new Button("Cancel");
-		cancelButton.setOnAction(e -> previewStage.close());
-		previewStage.setOnCloseRequest(e -> {
+		cancelButton.setOnAction(_ -> previewStage.close());
+		previewStage.setOnCloseRequest(_ -> {
 			if (onDialogClosed != null) onDialogClosed.run();
 		});
 

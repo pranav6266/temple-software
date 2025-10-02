@@ -48,7 +48,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		originalOrderMap.clear();
 		for (int i = 0; i < tempItemList.size(); i++) {
 			Donations donation = tempItemList.get(i);
-			originalState.put(donation.getName(), new Donations(donation.getId(), donation.getName(), 0));
+			originalState.put(donation.getName(), new Donations(donation.getId(), donation.getName()));
 			originalOrderMap.put(donation.getName(), i + 1);
 		}
 	}
@@ -110,7 +110,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 				return;
 			}
 
-			Donations newDonation = new Donations("NEW_" + System.currentTimeMillis(), donationName,0);
+			Donations newDonation = new Donations("NEW_" + System.currentTimeMillis(), donationName);
 			tempItemList.add(newDonation);
 			refreshGridPane();
 
@@ -130,7 +130,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 		ObservableList<Donations> popupTempList = FXCollections.observableArrayList();
 		for(Donations donation : tempItemList) {
-			popupTempList.add(new Donations(donation.getId(), donation.getName(), 0));
+			popupTempList.add(new Donations(donation.getId(), donation.getName()));
 		}
 
 		ListView<Donations> listView = new ListView<>(popupTempList);
@@ -366,7 +366,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 			if (!originalState.containsKey(currentName)) {
 				String newId = String.valueOf(donationRepository.getMaxDonationId() + 1);
-				boolean added = donationRepository.addDonationToDB(newId, currentName, 0); // Amount is not stored in Donations table
+				boolean added = donationRepository.addDonationToDB(newId, currentName); // Amount is not stored in Donations table
 				if(added) {
 					boolean orderUpdated = donationRepository.updateDisplayOrder(newId, desiredOrder);
 					summary.append("✅ Added: ").append(currentName)

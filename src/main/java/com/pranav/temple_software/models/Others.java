@@ -18,7 +18,6 @@ public class Others {
 	public String getName() { return name; }
 	public void setName(String name) { this.name = name; }
 	public int getDisplayOrder() { return displayOrder; }
-	public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
 
 	@Override
 	public String toString() { return name; }

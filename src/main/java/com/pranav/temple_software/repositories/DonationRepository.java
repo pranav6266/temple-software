@@ -38,8 +38,8 @@ public class DonationRepository {
 			while (rs.next()) {
 				String id = rs.getString("donation_id");
 				String name = rs.getString("donation_name");
-				int order = rs.getInt("display_order");
-				donationList.add(new Donations(id, name, order));
+				rs.getInt("display_order");
+				donationList.add(new Donations(id, name));
 			}
 			isDataLoaded = true;
 			logger.info("✅ Loaded {} donations from database.", donationList.size());
@@ -52,7 +52,7 @@ public class DonationRepository {
 		if (!isDataLoaded) {
 			loadDonationsFromDB();
 		}
-		return Collections.unmodifiableList(new ArrayList<>(this.donationList));
+		return List.copyOf(this.donationList);
 	}
 
 	public synchronized int getMaxDonationId() {
@@ -85,7 +85,7 @@ public class DonationRepository {
 		return null;
 	}
 
-	public synchronized boolean addDonationToDB(String donationId, String donationName, double amount) {
+	public synchronized boolean addDonationToDB(String donationId, String donationName) {
 		int nextOrder = getMaxDonationId() + 1;
 		String sql = "INSERT INTO Donations (donation_id, donation_name, display_order) VALUES (?, ?, ?)";
 		try (Connection conn = getConnection();
@@ -95,7 +95,7 @@ public class DonationRepository {
 			pstmt.setInt(3, nextOrder);
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
-				donationList.add(new Donations(donationId, donationName, nextOrder));
+				donationList.add(new Donations(donationId, donationName));
 				return true;
 			}
 		} catch (SQLException e) {

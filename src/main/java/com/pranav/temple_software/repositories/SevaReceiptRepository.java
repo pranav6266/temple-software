@@ -102,7 +102,7 @@ public class SevaReceiptRepository {
 				String paymentMode = rs.getString("payment_mode");
 				SevaReceiptData receipt = new SevaReceiptData(
 						receiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
-						sevaDate, sevas, totalAmount, paymentMode, donationStatus
+						sevaDate, sevas, totalAmount, paymentMode
 				);
 				receipts.add(receipt);
 			}

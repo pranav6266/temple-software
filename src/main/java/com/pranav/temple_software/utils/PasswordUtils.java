@@ -1,7 +1,5 @@
 package com.pranav.temple_software.utils;
 
-import com.pranav.temple_software.utils.BCrypt;
-
 /**
  * A utility class for handling password hashing and verification using the jBCrypt library.
  * This ensures that passwords are never stored in plain text.

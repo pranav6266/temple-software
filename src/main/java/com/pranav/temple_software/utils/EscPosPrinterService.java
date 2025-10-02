@@ -1,7 +1,6 @@
 package com.pranav.temple_software.utils;
 
 import com.github.anastaciocintra.escpos.EscPos;
-import com.github.anastaciocintra.escpos.EscPosConst;
 import com.github.anastaciocintra.escpos.image.*;
 import com.github.anastaciocintra.output.PrinterOutputStream;
 import com.pranav.temple_software.models.*;
@@ -186,7 +185,7 @@ public class EscPosPrinterService {
 	}
 
 	private BufferedImage stitchImages(List<BufferedImage> images) {
-		images.add(0, renderBlankLine(PADDING));
+		images.addFirst(renderBlankLine(PADDING));
 		int totalHeight = images.stream().mapToInt(BufferedImage::getHeight).sum();
 		BufferedImage finalReceipt = new BufferedImage(PRINTER_PIXEL_WIDTH, totalHeight, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g2d = finalReceipt.createGraphics();

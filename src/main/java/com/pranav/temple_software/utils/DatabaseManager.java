@@ -16,7 +16,7 @@ public class DatabaseManager {
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 	public static final String APP_DATA_FOLDER = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware";
 	public static final Path DB_FOLDER_PATH = Paths.get(APP_DATA_FOLDER, "db");
-	public static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH.toString() + File.separator + "temple_data";
+	public static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH + File.separator + "temple_data";
 	private static final String USER = "sa";
 	private static final String PASS = "";
 	private static HikariDataSource dataSource;
@@ -246,7 +246,7 @@ public class DatabaseManager {
 					insertStmt.setString(1, key);
 					insertStmt.setString(2, value);
 					insertStmt.executeUpdate();
-					logger.info("✅ Initialized default credential for: " + key);
+					logger.info("✅ Initialized default credential for: {}", key);
 				}
 			}
 		}

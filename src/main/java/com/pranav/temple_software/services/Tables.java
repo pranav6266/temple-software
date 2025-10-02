@@ -16,7 +16,7 @@ public class Tables {
 	}
 
 	public void setupTableView() {
-		controller.slNoColumn.setCellFactory(col -> new TableCell<>() {
+		controller.slNoColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
 				super.updateItem(item, empty);
@@ -43,7 +43,7 @@ public class Tables {
 
 	private void setupPrintStatusColumn() {
 		controller.statusColumn.setCellValueFactory(cellData -> cellData.getValue().printStatusProperty());
-		controller.statusColumn.setCellFactory(column -> new TableCell<>() {
+		controller.statusColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(SevaEntry.PrintStatus status, boolean empty) {
 				super.updateItem(status, empty);
@@ -70,16 +70,15 @@ public class Tables {
 			}
 		});
 		controller.statusColumn.setCellValueFactory(cellData -> {
-			cellData.getValue().printStatusProperty().addListener((obs, oldVal, newVal) -> {
-				Platform.runLater(controller::updatePrintStatusLabel);
-			});
+			cellData.getValue().printStatusProperty().addListener((
+					_, _, _) -> Platform.runLater(controller::updatePrintStatusLabel));
 			return cellData.getValue().printStatusProperty();
 		});
 	}
 
 	private void setupAmountColumn() {
 		controller.amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
-		controller.amountColumn.setCellFactory(column -> new TableCell<>() {
+		controller.amountColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(Number amount, boolean empty) {
 				super.updateItem(amount, empty);
@@ -98,15 +97,15 @@ public class Tables {
 				cellData.getValue().quantityProperty().asObject()
 		);
 
-		controller.quantityColumn.setCellFactory(col -> new TableCell<>() {
+		controller.quantityColumn.setCellFactory(_ -> new TableCell<>() {
 			private final Spinner<Integer> spinner = new Spinner<>(1, Integer.MAX_VALUE, 1);
 
 			{
 				spinner.setEditable(true);
-				spinner.focusedProperty().addListener((obs, oldF, newF) -> {
+				spinner.focusedProperty().addListener((_, _, newF) -> {
 					if (!newF) commitEdit(spinner.getValue());
 				});
-				spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+				spinner.valueProperty().addListener((_, _, newVal) -> {
 					if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
 						SevaEntry entry = getTableView().getItems().get(getIndex());
 						entry.setQuantity(newVal);
@@ -133,7 +132,7 @@ public class Tables {
 
 	private void setupTotalAmountColumn() {
 		controller.totalAmountColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
-		controller.totalAmountColumn.setCellFactory(column -> new TableCell<>() {
+		controller.totalAmountColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(Number totalAmount, boolean empty) {
 				super.updateItem(totalAmount, empty);
@@ -148,7 +147,7 @@ public class Tables {
 	}
 
 	private void setupActionColumn() {
-		controller.actionColumn.setCellFactory(col -> new TableCell<>() {
+		controller.actionColumn.setCellFactory(_ -> new TableCell<>() {
 			private final Button removeButton = new Button("Remove");
 			private final Button retryButton = new Button("Retry");
 			private final HBox buttonBox = new HBox(5);
@@ -156,12 +155,12 @@ public class Tables {
 			{
 				removeButton.setStyle("-fx-font-size: 10px; -fx-padding: 2px 8px;");
 				retryButton.setStyle("-fx-font-size: 10px; -fx-padding: 2px 8px;");
-				removeButton.setOnAction(event -> {
+				removeButton.setOnAction(_ -> {
 					SevaEntry entry = getTableView().getItems().get(getIndex());
 					controller.selectedSevas.remove(entry);
 					controller.updatePrintStatusLabel();
 				});
-				retryButton.setOnAction(event -> {
+				retryButton.setOnAction(_ -> {
 					SevaEntry entry = getTableView().getItems().get(getIndex());
 					if (entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED) {
 						controller.receiptServices.retryIndividualItem(entry);

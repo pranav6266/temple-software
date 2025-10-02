@@ -34,7 +34,7 @@ public class SevaReceiptDetailsController {
 	@FXML private Button reprintButton;
 
 	private SevaReceiptData currentReceiptData;
-	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 
 	public void initializeDetails(SevaReceiptData data) {
 		if (data == null) return;

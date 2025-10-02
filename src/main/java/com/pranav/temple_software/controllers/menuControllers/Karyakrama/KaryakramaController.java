@@ -40,7 +40,7 @@ public class KaryakramaController {
 	private final KaryakramaReceiptRepository receiptRepository = new KaryakramaReceiptRepository();
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 	private final ObservableList<SevaEntry> selectedOthers = FXCollections.observableArrayList();
-	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 
 	@FXML
 	public void initialize() {

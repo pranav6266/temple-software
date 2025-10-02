@@ -68,7 +68,7 @@ public class BackupService {
 	 */
 	public static void showBackupRestoreDialog(Stage owner) {
 		List<String> choices = Arrays.asList("Create a Manual Backup", "Restore from a Backup File");
-		ChoiceDialog<String> dialog = new ChoiceDialog<>(choices.get(0), choices);
+		ChoiceDialog<String> dialog = new ChoiceDialog<>(choices.getFirst(), choices);
 		dialog.setTitle("Backup and Restore");
 		dialog.setHeaderText("Choose an operation");
 		dialog.setContentText("What would you like to do?");
@@ -102,9 +102,6 @@ public class BackupService {
 				showAlert(Alert.AlertType.INFORMATION, "Success", "Manual backup created successfully at:\n" + backupFile.getAbsolutePath());
 			} catch (IOException e) {
 				showAlert(Alert.AlertType.ERROR, "Error", "Failed to create manual backup: " + e.getMessage());
-			} finally {
-				// It's a good practice to restart or re-init the DB connection if needed,
-				// but for a simple backup, we can assume the app will be restarted by the user for a restore.
 			}
 		}
 	}
@@ -148,29 +145,27 @@ public class BackupService {
 					.filter(p -> p.toString().endsWith(".mv.db"))
 					.max(Comparator.comparingLong((Path p) -> p.toFile().lastModified()));
 
-			if (latestBackup.isPresent()) {
-				Platform.runLater(() -> {
-					Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-					alert.setTitle("Database Missing");
-					alert.setHeaderText("The main database file is missing or corrupted.");
-					alert.setContentText("A backup from " + latestBackup.get().toFile().getName() + " is available. Would you like to restore it?");
+			latestBackup.ifPresent(path -> Platform.runLater(() -> {
+				Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+				alert.setTitle("Database Missing");
+				alert.setHeaderText("The main database file is missing or corrupted.");
+				alert.setContentText("A backup from " + path.toFile().getName() + " is available. Would you like to restore it?");
 
-					Optional<ButtonType> result = alert.showAndWait();
-					if (result.isPresent() && result.get() == ButtonType.OK) {
-						try {
-							Files.createDirectories(DB_FOLDER_PATH);
-							Files.copy(latestBackup.get(), DB_FILE_PATH, StandardCopyOption.REPLACE_EXISTING);
-							showAlert(Alert.AlertType.INFORMATION, "Restore Successful", "Backup restored. The application will now start.");
-						} catch (IOException e) {
-							showAlert(Alert.AlertType.ERROR, "Restore Failed", "Could not restore the backup: " + e.getMessage());
-							Platform.exit();
-						}
-					} else {
-						showAlert(Alert.AlertType.WARNING, "Startup Halted", "Cannot start without a database. Please restore a backup manually.");
+				Optional<ButtonType> result = alert.showAndWait();
+				if (result.isPresent() && result.get() == ButtonType.OK) {
+					try {
+						Files.createDirectories(DB_FOLDER_PATH);
+						Files.copy(path, DB_FILE_PATH, StandardCopyOption.REPLACE_EXISTING);
+						showAlert(Alert.AlertType.INFORMATION, "Restore Successful", "Backup restored. The application will now start.");
+					} catch (IOException e) {
+						showAlert(Alert.AlertType.ERROR, "Restore Failed", "Could not restore the backup: " + e.getMessage());
 						Platform.exit();
 					}
-				});
-			}
+				} else {
+					showAlert(Alert.AlertType.WARNING, "Startup Halted", "Cannot start without a database. Please restore a backup manually.");
+					Platform.exit();
+				}
+			}));
 		} catch (IOException e) {
 			System.err.println("Error while searching for backups: " + e.getMessage());
 		}

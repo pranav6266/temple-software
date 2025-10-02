@@ -40,7 +40,7 @@ public class DonationReceiptData {
 	public String getPanNumber() { return panNumber; } // Add PAN getter
 	public String getRashi() { return rashi; }
 	public String getNakshatra() { return nakshatra; }
-	public LocalDate getSevaDate() { return sevaDate; }
+
 	public String getDonationName() { return donationName; }
 	public double getDonationAmount() { return donationAmount; }
 	public String getPaymentMode() { return paymentMode; }

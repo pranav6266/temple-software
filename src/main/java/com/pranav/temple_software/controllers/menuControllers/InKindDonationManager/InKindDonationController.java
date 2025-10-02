@@ -130,7 +130,7 @@ public class InKindDonationController {
 			if (!donations.isEmpty()) {
 				InKindDonation savedDonation = donations.getFirst();
 				try {
-					ReceiptPrinter receiptPrinter = new ReceiptPrinter(null);
+					ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 					Consumer<Boolean> onPrintComplete = (printSuccess) -> {
 						if (printSuccess) {
 							Platform.runLater(() -> {

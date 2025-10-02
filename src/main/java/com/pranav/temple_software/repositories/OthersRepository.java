@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -51,34 +50,32 @@ public class OthersRepository {
 			loadOthersFromDB();
 		}
 		othersList.sort(Comparator.comparingInt(Others::getDisplayOrder));
-		return Collections.unmodifiableList(new ArrayList<>(this.othersList));
+		return List.copyOf(this.othersList);
 	}
 
-	public synchronized boolean addOtherToDB(String name) {
+	public synchronized void addOtherToDB(String name) {
 		String sql = "INSERT INTO Others (others_name) VALUES (?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, name);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Error adding Other to DB", e);
-			return false;
 		}
 	}
 
-	public synchronized boolean deleteOtherFromDB(int otherId) {
+	public synchronized void deleteOtherFromDB(int otherId) {
 		String sql = "DELETE FROM Others WHERE others_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, otherId);
-			return pstmt.executeUpdate() > 0;
+			pstmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Error deleting Other from DB (ID: {})", otherId, e);
-			return false;
 		}
 	}
 
-	public synchronized boolean updateDisplayOrder(List<Others> orderedList) {
+	public synchronized void updateDisplayOrder(List<Others> orderedList) {
 		String sql = "UPDATE Others SET display_order = ? WHERE others_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			for (int i = 0; i < orderedList.size(); i++) {
@@ -89,10 +86,8 @@ public class OthersRepository {
 			}
 			pstmt.executeBatch();
 			loadOthersFromDB();
-			return true;
 		} catch (SQLException e) {
 			logger.error("Error updating display order for Others", e);
-			return false;
 		}
 	}
 }
