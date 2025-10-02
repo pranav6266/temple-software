@@ -432,11 +432,9 @@ public class HistoryController {
 			Stage dashboardStage = new Stage();
 			dashboardStage.setTitle("ಸೇವಾ/ದೇಣಿಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್");
 			dashboardStage.setScene(new Scene(loader.load()));
-			dashboardStage.initModality(Modality.WINDOW_MODAL);
+//			dashboardStage.initModality(Modality.WINDOW_MODAL);
 			dashboardStage.initOwner(historyTable.getScene().getWindow());
-			dashboardStage.setResizable(true);
-			dashboardStage.setHeight(768);
-			dashboardStage.setWidth(1024);
+			dashboardStage.setMaximized(true);
 			dashboardStage.show();
 		} catch (IOException e) {
 			logger.error("Failed to load dashboard view", e);

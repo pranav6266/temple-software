@@ -3,7 +3,7 @@ plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.1.0'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'org.beryx.runtime' version '1.13.1'
+    // 'org.beryx.runtime' plugin has been removed
 }
 
 group = 'com.pranav'
@@ -21,7 +21,7 @@ java {
 }
 
 javafx {
-    version = "21"
+    version = "23.0.1"
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.swing']
 }
 
@@ -48,13 +48,4 @@ shadowJar {
     archiveClassifier = 'all'
     archiveVersion = project.version
     mergeServiceFiles()
-}
-
-runtime {
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
-
-    jpackage {
-        // Only keep essential options
-        installerOptions = ['--vendor', 'Pranav']
-    }
 }

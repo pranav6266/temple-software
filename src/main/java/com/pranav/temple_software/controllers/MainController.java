@@ -315,9 +315,7 @@ public class MainController {
 			historyStage.setScene(new Scene(loader.load()));
 			historyStage.initModality(Modality.WINDOW_MODAL);
 			historyStage.initOwner(mainStage);
-			historyStage.setHeight(768);
-			historyStage.setWidth(1024);
-			historyStage.setResizable(true);
+			historyStage.setMaximized(true);
 			historyStage.show();
 		} catch (IOException e) {
 			logger.error("Failed to load history view", e);
