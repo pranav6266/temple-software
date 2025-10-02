@@ -29,6 +29,7 @@
     -fx-border-width: 0 0 1 0;
     -fx-background-color: #FFF8E1; /* Ivory */
     -fx-background-radius: 12 12 0 0;
+    -fx-alignment: center;
 }
 
 .popup-content {
@@ -36,17 +37,6 @@
     -fx-spacing: 15px;
     -fx-background-color: white;
 }
-
-/* NEW/IMPROVED: This makes the section headers bold */
-.section-title {
-    -fx-font-size: 1.2em;
-    -fx-font-weight: bold;
-    -fx-text-fill: #5D4037; /* Muted Brown */
-    -fx-padding: 0 0 8px 0;
-    -fx-border-color: transparent transparent #FFE0B2 transparent; /* Saffron underline */
-    -fx-border-width: 2px;
-}
-
 
 .popup-field-label {
     -fx-font-size: 1.05em;
@@ -71,26 +61,9 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 152, 0, 0.3), 3, 0, 0, 0);
 }
 
-.popup-radio-button {
-    -fx-font-size: 1em;
-}
-
-.amount-display-label {
-    -fx-font-size: 1.2em;
-    -fx-font-weight: bold;
-    -fx-text-fill: #2E7D32; /* Green for amount */
-    -fx-padding: 8px 12px;
-    -fx-background-color: #E8F5E9;
-    -fx-background-radius: 6px;
-    -fx-border-color: #A5D6A7;
-    -fx-border-radius: 6px;
-    -fx-border-width: 1px;
-    -fx-alignment: center-left;
-}
-
 .popup-button-container {
     -fx-spacing: 12px;
-    -fx-alignment: center-right;
+    -fx-alignment: center;
     -fx-padding: 15px 25px;
     -fx-background-color: #f5f5f5;
     -fx-border-color: #E0E2E7;
@@ -144,26 +117,54 @@
     -fx-background-color: #e9e9e9;
 }
 
-
 /* ============================================
-   SCROLL PANE STYLING
+   MODERN TABLE STYLES (for Manager Views)
    ============================================ */
-.manager-scroll-pane {
-    -fx-background-color: transparent;
+.modern-table {
+    -fx-background-color: white;
+    -fx-border-color: #E0E2E7;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-table-cell-border-color: #F0F2F5;
+}
+
+.modern-table .column-header-background {
+    -fx-background-color: #FFF8E1;
+    -fx-background-radius: 8 8 0 0;
+    -fx-border-color: #FFE0B2;
+    -fx-border-width: 0 0 2 0;
+}
+
+.modern-table .column-header .label {
+    -fx-text-fill: #E65100; /* Dark Saffron */
+    -fx-font-weight: 700;
+    -fx-font-size: 1.05em;
+    -fx-alignment: center;
+    -fx-padding: 12px;
+}
+
+.modern-table .table-row-cell {
+    -fx-background-color: white;
+    -fx-font-size: 1.05em;
+}
+
+.modern-table .table-row-cell:odd {
+    -fx-background-color: #fcfcfc;
+}
+
+.modern-table .table-row-cell:hover {
+    -fx-background-color: #FFF3E0;
+}
+
+.modern-table .table-cell {
+    -fx-padding: 12px;
     -fx-border-color: transparent;
+    -fx-text-fill: #424242;
+    -fx-alignment: center-left;
 }
 
-.manager-scroll-pane .scroll-bar:vertical {
-    -fx-background-color: #f1f5f9;
-    -fx-background-radius: 4;
-    -fx-pref-width: 8;
-}
-
-.manager-scroll-pane .scroll-bar:vertical .thumb {
-    -fx-background-color: #cbd5e1;
-    -fx-background-radius: 4;
-}
-
-.manager-scroll-pane .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: #94a3b8;
+/* Align numeric columns to the right */
+.modern-table .amount-cell {
+    -fx-alignment: center-right;
+    -fx-font-weight: 500;
 }

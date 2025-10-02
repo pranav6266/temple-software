@@ -1,39 +1,81 @@
+// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/KaryakramaManager/OthersManagerController.java
 package com.pranav.temple_software.controllers.menuControllers.KaryakramaManager;
 
+import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
 import com.pranav.temple_software.models.Others;
+import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.OthersRepository;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
-import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class OthersManagerController {
+public class OthersManagerController extends BaseManagerController<Others> {
 
-	@FXML
-	private TableView<Others> othersTable;
-	@FXML
-	private TableColumn<Others, String> nameColumn;
+	@FXML private TableView<Others> othersTable;
+	@FXML private TableColumn<Others, Integer> slNoColumn;
+	@FXML private TableColumn<Others, String> nameColumn;
 
 	private final OthersRepository repository = OthersRepository.getInstance();
-	private final ObservableList<Others> othersList = FXCollections.observableArrayList();
 
 	@FXML
+	@Override
 	public void initialize() {
+		super.initialize();
 		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-		othersTable.setItems(othersList);
-		loadOthers();
+		slNoColumn.setCellFactory(col -> new TableCell<>() {
+			@Override
+			protected void updateItem(Integer item, boolean empty) {
+				super.updateItem(item, empty);
+				setText(empty ? null : String.valueOf(getIndex() + 1));
+			}
+		});
+		refreshGridPane();
 	}
 
-	private void loadOthers() {
-		othersList.setAll(repository.getAllOthers());
+	@Override
+	protected String getItemId(SevaEntry item) {
+		return "";
+	}
+
+	@Override
+	protected String getItemName(SevaEntry item) {
+		return "";
+	}
+
+	@Override
+	protected void loadData() {
+		repository.loadOthersFromDB();
+		tempItemList.setAll(repository.getAllOthers());
+	}
+
+	@Override
+	protected void storeOriginalState() {
+		originalState.clear();
+		for(Others item : tempItemList) {
+			originalState.put(String.valueOf(item.getId()), new Others(item.getId(), item.getName(), item.getDisplayOrder()));
+		}
+	}
+
+	@Override
+	protected String getItemId(Others item) {
+		return String.valueOf(item.getId());
+	}
+
+	@Override
+	protected String getItemName(Others item) {
+		return item.getName();
+	}
+
+	@Override
+	protected void refreshGridPane() {
+		othersTable.setItems(FXCollections.observableArrayList(tempItemList));
+		othersTable.refresh();
 	}
 
 	@FXML
@@ -48,37 +90,8 @@ public class OthersManagerController {
 				showAlert(Alert.AlertType.ERROR, "Input Error", "Name cannot be empty.");
 				return;
 			}
-			if (repository.addOtherToDB(name)) {
-				loadOthers();
-			} else {
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to add the new item.");
-			}
-		});
-	}
-
-	@FXML
-	private void handleRename() {
-		Others selected = othersTable.getSelectionModel().getSelectedItem();
-		if (selected == null) {
-			showAlert(Alert.AlertType.WARNING, "No Selection", "Please select an item to rename.");
-			return;
-		}
-
-		TextInputDialog dialog = new TextInputDialog(selected.getName());
-		dialog.setTitle("Rename Item");
-		dialog.setHeaderText("Enter the new name for '" + selected.getName() + "'.");
-		dialog.setContentText("New Name:");
-		Optional<String> result = dialog.showAndWait();
-		result.ifPresent(newName -> {
-			if (newName.trim().isEmpty()) {
-				showAlert(Alert.AlertType.ERROR, "Input Error", "Name cannot be empty.");
-				return;
-			}
-			if (repository.updateOtherName(selected.getId(), newName)) {
-				loadOthers();
-			} else {
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to rename the item.");
-			}
+			tempItemList.add(new Others(-1, name, 0));
+			refreshGridPane();
 		});
 	}
 
@@ -89,100 +102,60 @@ public class OthersManagerController {
 			showAlert(Alert.AlertType.WARNING, "No Selection", "Please select an item to delete.");
 			return;
 		}
+		if (selected.getId() != -1) {
+			itemsMarkedForDeletion.add(selected);
+		}
+		tempItemList.remove(selected);
+		refreshGridPane();
+	}
 
-		Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION,
-				"Are you sure you want to delete '" + selected.getName() + "'? This action cannot be undone.",
-				ButtonType.YES, ButtonType.CANCEL);
-		confirmation.setHeaderText("Confirm Deletion");
+	@FXML
+	@Override
+	public void handleSave(ActionEvent event) {
+		StringBuilder summary = new StringBuilder("Changes saved successfully.");
+		List<String> deletionFailures = new ArrayList<>();
 
-		Optional<ButtonType> result = confirmation.showAndWait();
-		if (result.isPresent() && result.get() == ButtonType.YES) {
-			if (repository.deleteOtherFromDB(selected.getId())) {
-				loadOthers();
-			} else {
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to delete the item.");
+		for (Others itemToDelete : itemsMarkedForDeletion) {
+			boolean success = repository.deleteOtherFromDB(itemToDelete.getId());
+			if (!success) {
+				deletionFailures.add(itemToDelete.getName());
 			}
 		}
-	}
 
-	@FXML
-	private void handleReorder() {
-		Dialog<List<Others>> dialog = new Dialog<>();
-		dialog.setTitle("Reorder Items");
-		dialog.setHeaderText("Drag and drop items to change their order.");
-
-		ListView<Others> listView = new ListView<>(FXCollections.observableArrayList(othersList));
-		listView.setCellFactory(lv -> {
-			ListCell<Others> cell = new ListCell<>() {
-				@Override
-				protected void updateItem(Others item, boolean empty) {
-					super.updateItem(item, empty);
-					setText(empty ? null : item.getName());
-				}
-			};
-
-			cell.setOnDragDetected(event -> {
-				if (cell.isEmpty()) return;
-				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
-				ClipboardContent content = new ClipboardContent();
-				content.putString(String.valueOf(cell.getIndex()));
-				db.setContent(content);
-				event.consume();
-			});
-
-			cell.setOnDragOver(event -> {
-				if (event.getGestureSource() != cell && event.getDragboard().hasString()) {
-					event.acceptTransferModes(TransferMode.MOVE);
-				}
-				event.consume();
-			});
-
-			cell.setOnDragDropped(event -> {
-				if (event.getDragboard().hasString()) {
-					int draggedIndex = Integer.parseInt(event.getDragboard().getString());
-					int dropIndex = cell.getIndex();
-
-					ObservableList<Others> items = listView.getItems();
-					Others draggedItem = items.remove(draggedIndex);
-					items.add(dropIndex, draggedItem);
-					event.setDropCompleted(true);
-					event.consume();
-				}
-			});
-
-			return cell;
-		});
-
-		dialog.getDialogPane().setContent(listView);
-		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-		dialog.setResultConverter(dialogButton -> {
-			if (dialogButton == ButtonType.OK) {
-				return listView.getItems();
+		for (Others item : tempItemList) {
+			if (item.getId() == -1) {
+				repository.addOtherToDB(item.getName());
 			}
-			return null;
-		});
+		}
 
-		Optional<List<Others>> result = dialog.showAndWait();
-		result.ifPresent(reorderedList -> {
-			if(repository.updateDisplayOrder(reorderedList)) {
-				loadOthers();
-			} else {
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the new order.");
-			}
-		});
+		// After all adds/deletes, reload from DB and set the final order
+		repository.loadOthersFromDB();
+		List<Others> dbList = repository.getAllOthers();
+		List<Others> finalListForReordering = new ArrayList<>();
+		for (Others uiItem : tempItemList) {
+			dbList.stream()
+					.filter(dbItem -> dbItem.getName().equals(uiItem.getName()))
+					.findFirst()
+					.ifPresent(finalListForReordering::add);
+		}
+		repository.updateDisplayOrder(finalListForReordering);
+
+		if (!deletionFailures.isEmpty()) {
+			summary.append("\n\nWarning: Could not delete the following items because they are in use:\n");
+			summary.append(String.join("\n", deletionFailures));
+			showAlert(Alert.AlertType.WARNING, "Partial Success", summary.toString());
+		} else {
+			showAlert(Alert.AlertType.INFORMATION, "Success", summary.toString());
+		}
+
+		closeWindow();
 	}
 
-	@FXML
-	private void closeWindow() {
-		Stage stage = (Stage) othersTable.getScene().getWindow();
-		stage.close();
-	}
-
-	private void showAlert(Alert.AlertType type, String title, String message) {
-		Alert alert = new Alert(type);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
-	}
+	// Unused abstract methods
+	@Override
+	protected void openAddPopup(ActionEvent event) { handleAdd(); }
+	@Override
+	protected void openEditPopup(ActionEvent event) { /* No Edit functionality */ }
+	@Override
+	protected void openDeletePopup(ActionEvent event) { handleDelete(); }
 }

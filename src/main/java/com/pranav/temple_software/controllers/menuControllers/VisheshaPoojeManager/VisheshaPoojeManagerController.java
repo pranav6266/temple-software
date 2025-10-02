@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/VisheshaPoojeManager/VisheshaPoojeManagerController.java
 package com.pranav.temple_software.controllers.menuControllers.VisheshaPoojeManager;
 
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
@@ -11,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -28,6 +28,11 @@ import java.util.Map;
 import java.util.Optional;
 
 public class VisheshaPoojeManagerController extends BaseManagerController<SevaEntry> {
+
+	@FXML private TableView<SevaEntry> itemTableView;
+	@FXML private TableColumn<SevaEntry, Integer> slNoColumn;
+	@FXML private TableColumn<SevaEntry, String> poojaNameColumn;
+	@FXML private TableColumn<SevaEntry, Double> amountColumn;
 
 	private final VisheshaPoojeRepository repository = VisheshaPoojeRepository.getInstance();
 	private final Map<String, Pair<Double, Integer>> originalValuesMap = new HashMap<>();
@@ -53,44 +58,40 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 	}
 
 	@Override
-	protected String getItemId(SevaEntry item) {
-		return item.getName();
-	}
+	protected String getItemId(SevaEntry item) { return item.getName(); }
 	@Override
-	protected String getItemName(SevaEntry item) {
-		return item.getName();
-	}
+	protected String getItemName(SevaEntry item) { return item.getName(); }
 
 	@Override
 	protected void refreshGridPane() {
-		itemGridPane.getChildren().clear();
-		// Header
-		Label slNoHeader = new Label("Sl. No.");
-		Label nameHeader = new Label("Vishesha Pooja Name");
-		Label amountHeader = new Label("Amount");
-		slNoHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-		nameHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-		amountHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-		amountHeader.setAlignment(Pos.CENTER_RIGHT);
+		itemTableView.setItems(FXCollections.observableArrayList(tempItemList));
+		itemTableView.refresh();
+	}
 
-		itemGridPane.add(slNoHeader, 0, 0);
-		itemGridPane.add(nameHeader, 1, 0);
-		itemGridPane.add(amountHeader, 2, 0);
-
-		for (int i = 0; i < tempItemList.size(); i++) {
-			SevaEntry seva = tempItemList.get(i);
-			Label slNo = new Label(String.valueOf(i + 1));
-			Label name = new Label(seva.getName());
-			Label amount = new Label(String.format("₹%.2f", seva.getAmount()));
-
-			slNo.setAlignment(Pos.CENTER);
-			name.setAlignment(Pos.CENTER_LEFT);
-			amount.setAlignment(Pos.CENTER_RIGHT);
-
-			itemGridPane.add(slNo, 0, i + 1);
-			itemGridPane.add(name, 1, i + 1);
-			itemGridPane.add(amount, 2, i + 1);
-		}
+	@Override
+	public void initialize() {
+		super.initialize();
+		slNoColumn.setCellFactory(col -> new TableCell<>() {
+			@Override
+			protected void updateItem(Integer item, boolean empty) {
+				super.updateItem(item, empty);
+				setText(empty ? null : String.valueOf(getIndex() + 1));
+			}
+		});
+		poojaNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+		amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+		amountColumn.setCellFactory(column -> new TableCell<>() {
+			@Override
+			protected void updateItem(Double amount, boolean empty) {
+				super.updateItem(amount, empty);
+				if (empty || amount == null) {
+					setText(null);
+				} else {
+					setText(String.format("₹%.2f", amount));
+				}
+			}
+		});
+		refreshGridPane();
 	}
 
 	@Override
@@ -117,7 +118,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 		TextField amountField = new TextField();
 		amountField.getStyleClass().add("popup-text-field");
 		amountField.setPromptText("Enter Amount");
-
 		amountField.textProperty().addListener((obs, oldVal, newVal) -> {
 			if (newVal != null && !newVal.matches("\\d*(\\.\\d*)?")) {
 				amountField.setText(oldVal);
@@ -134,7 +134,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 		cancelButton.getStyleClass().addAll("manager-button", "manager-cancel-button");
 		buttonContainer.getChildren().addAll(addButton, cancelButton);
 		mainContainer.getChildren().addAll(titleLabel, contentContainer, buttonContainer);
-
 		Scene scene = new Scene(mainContainer);
 		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
 		popupStage.setScene(scene);
@@ -239,7 +238,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 					}
 				}
 			};
-			// Drag and Drop Logic
 			cell.setOnDragDetected(ev -> {
 				if (cell.getItem() == null) return;
 				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
@@ -308,15 +306,13 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 			refreshGridPane();
 			popupStage.close();
 		});
-		cancelPopupBtn.setOnAction(ev -> {
-			popupStage.close();
-		});
+		cancelPopupBtn.setOnAction(ev -> popupStage.close());
 
 		popupStage.setOnCloseRequest((WindowEvent windowEvent) -> {
 			windowEvent.consume();
 			Optional<ButtonType> result = showConfirmationDialog(
 					"Exit Without Saving?",
-					"You have unsaved changes in the editor. Are you sure you want to exit without applying them to the main view?"
+					"You have unsaved changes. Are you sure you want to exit without applying them?"
 			);
 			if (result.isPresent() && result.get() == ButtonType.OK) {
 				popupStage.close();
@@ -419,11 +415,10 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 
 	@Override
 	@FXML
-	protected void handleSave(ActionEvent event) {
+	public void handleSave(ActionEvent event) {
 		StringBuilder summary = new StringBuilder();
 		boolean changesMade = false;
 
-		// 1. Process Deletions
 		if (!itemsMarkedForDeletion.isEmpty()) {
 			List<SevaEntry> successfullyDeleted = new ArrayList<>();
 			for (SevaEntry sevaToDelete : itemsMarkedForDeletion) {
@@ -444,7 +439,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 			itemsMarkedForDeletion.clear();
 		}
 
-		// 2. Process Additions and Modifications
 		Map<String, SevaEntry> currentItemsMap = new HashMap<>();
 		for(SevaEntry currentSeva : tempItemList) {
 			currentItemsMap.put(currentSeva.getName(), currentSeva);
@@ -456,7 +450,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 			double currentAmount = currentSeva.getAmount();
 			int desiredOrder = i + 1;
 			if (!originalValuesMap.containsKey(currentName)) {
-				// New Seva
 				String newId = String.valueOf(repository.getMaxVisheshaPoojeId() + 1);
 				repository.addVisheshaPoojeToDB(newId, currentName, (int) currentAmount);
 				boolean orderUpdated = VisheshaPoojeRepository.updateDisplayOrder(newId, desiredOrder);
@@ -466,7 +459,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 						.append("\n");
 				changesMade = true;
 			} else {
-				// Existing Seva - check amount and order
 				Pair<Double, Integer> originalPair = originalValuesMap.get(currentName);
 				double originalAmount = originalPair.getKey();
 				int originalOrder = originalPair.getValue();
@@ -506,16 +498,12 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 			}
 		}
 
-		// 3. Reload data, update state, refresh UI
 		loadData();
 		storeOriginalState();
 		itemsMarkedForDeletion.clear();
 		refreshGridPane();
-
-		// Assuming you add this refresh method to MainController
 		mainControllerInstance.refreshVisheshaPoojeComboBox();
 
-		// 4. Show Summary
 		if (changesMade) {
 			showAlert(Alert.AlertType.INFORMATION,"Changes Saved", summary.toString());
 		} else {

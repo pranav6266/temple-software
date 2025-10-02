@@ -9,15 +9,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -27,21 +25,21 @@ import javafx.stage.WindowEvent;
 import java.util.*;
 
 public class DonationManagerController extends BaseManagerController<Donations> {
-	@Override
-	protected String getItemId(SevaEntry item) {
-		return "";
-	}
 
-	@Override
-	protected String getItemName(SevaEntry item) {
-		return "";
-	}
+	@FXML private TableView<Donations> itemTableView;
+	@FXML private TableColumn<Donations, Integer> slNoColumn;
+	@FXML private TableColumn<Donations, String> donationNameColumn;
 
-	private final DonationRepository donationRepository = DonationRepository.getInstance();
 	public Button openAddDonationButton;
 	public Button editButton;
 	public Button openDeleteButton;
 
+	@Override
+	protected String getItemId(SevaEntry item) { return ""; }
+	@Override
+	protected String getItemName(SevaEntry item) { return ""; }
+
+	private final DonationRepository donationRepository = DonationRepository.getInstance();
 	private final Map<String, Integer> originalOrderMap = new HashMap<>();
 
 	@Override
@@ -56,45 +54,20 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		originalOrderMap.clear();
 		for (int i = 0; i < tempItemList.size(); i++) {
 			Donations donation = tempItemList.get(i);
-			originalState.put(donation.getName(), new Donations(donation.getName(), donation.getName(), 0));
+			originalState.put(donation.getName(), new Donations(donation.getId(), donation.getName(), 0));
 			originalOrderMap.put(donation.getName(), i + 1);
 		}
 	}
 
 	@Override
-	protected String getItemId(Donations item) {
-		return item.getName();
-	}
+	protected String getItemId(Donations item) { return item.getId(); }
 	@Override
-	protected String getItemName(Donations item) {
-		return item.getName();
-	}
+	protected String getItemName(Donations item) { return item.getName(); }
 
 	@Override
 	protected void refreshGridPane() {
-		itemGridPane.getChildren().clear();
-		Label indexHeader = new Label("Sl. No.");
-		Label nameHeader = new Label("Donation Name");
-
-		indexHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-		nameHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-
-		itemGridPane.add(indexHeader, 0, 0);
-		itemGridPane.add(nameHeader, 1, 0);
-
-		for (int i = 0; i < tempItemList.size(); i++) {
-			Donations donation = tempItemList.get(i);
-			int rowIndex = i + 1;
-
-			Label orderLabel = new Label(String.valueOf(rowIndex));
-			Label nameLabel = new Label(donation.getName());
-
-			orderLabel.setAlignment(Pos.CENTER);
-			nameLabel.setAlignment(Pos.CENTER_LEFT);
-			itemGridPane.autosize();
-			itemGridPane.add(orderLabel, 0, rowIndex);
-			itemGridPane.add(nameLabel, 1, rowIndex);
-		}
+		itemTableView.setItems(FXCollections.observableArrayList(tempItemList));
+		itemTableView.refresh();
 	}
 
 	@Override
@@ -103,7 +76,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		Stage popupStage = new Stage();
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Add New Donation");
-
 		VBox mainContainer = new VBox();
 		mainContainer.getStyleClass().add("popup-dialog");
 
@@ -112,7 +84,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 		VBox contentContainer = new VBox();
 		contentContainer.getStyleClass().add("popup-content");
-
 		Label nameLabel = new Label("Donation Name:");
 		nameLabel.getStyleClass().add("popup-field-label");
 		TextField nameField = new TextField();
@@ -120,7 +91,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		nameField.setPromptText("Enter Donation Name");
 
 		contentContainer.getChildren().addAll(nameLabel, nameField);
-
 		HBox buttonContainer = new HBox();
 		buttonContainer.getStyleClass().add("popup-button-container");
 
@@ -128,14 +98,12 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		submitButton.getStyleClass().addAll("manager-button", "manager-save-button");
 		Button cancelPopupBtn = new Button("Cancel");
 		cancelPopupBtn.getStyleClass().addAll("manager-button", "manager-cancel-button");
-
 		buttonContainer.getChildren().addAll(submitButton, cancelPopupBtn);
 		mainContainer.getChildren().addAll(titleLabel, contentContainer, buttonContainer);
 
 		Scene scene = new Scene(mainContainer);
 		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
 		popupStage.setScene(scene);
-
 		submitButton.setOnAction(e -> {
 			String donationName = nameField.getText();
 
@@ -150,14 +118,13 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 				return;
 			}
 
-			Donations newDonation = new Donations(donationName,donationName,0);
+			Donations newDonation = new Donations("NEW_" + System.currentTimeMillis(), donationName,0);
 			tempItemList.add(newDonation);
 			refreshGridPane();
 
 			showAlert(Alert.AlertType.INFORMATION, "Success", "Donation '" + donationName + "' staged for addition. Press 'Save' to commit.");
 			popupStage.close();
 		});
-
 		cancelPopupBtn.setOnAction(e -> popupStage.close());
 		popupStage.showAndWait();
 	}
@@ -171,15 +138,14 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 		ObservableList<Donations> popupTempList = FXCollections.observableArrayList();
 		for(Donations donation : tempItemList) {
-			popupTempList.add(new Donations(donation.getName(), donation.getName(), 0));
+			popupTempList.add(new Donations(donation.getId(), donation.getName(), 0));
 		}
 
 		ListView<Donations> listView = new ListView<>(popupTempList);
 		listView.getStyleClass().add("manager-list-view");
 		listView.setPrefSize(500, 400);
-
 		listView.setCellFactory(lv -> {
-			ListCell<Donations> cell = new ListCell<Donations>() {
+			ListCell<Donations> cell = new ListCell<>() {
 				@Override
 				protected void updateItem(Donations donation, boolean empty) {
 					super.updateItem(donation, empty);
@@ -192,12 +158,11 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 				}
 			};
 
-			// Drag and Drop Logic
 			cell.setOnDragDetected(ev -> {
 				if (cell.getItem() == null) return;
 				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
 				ClipboardContent content = new ClipboardContent();
-				content.putString(cell.getItem().getName());
+				content.putString(cell.getItem().getId());
 				db.setContent(content);
 				ev.consume();
 			});
@@ -214,12 +179,11 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 				Dragboard db = ev.getDragboard();
 				boolean success = false;
 				if (db.hasString()) {
-					String draggedName = db.getString();
+					String draggedId = db.getString();
 					Donations draggedDonation = null;
 					int fromIndex = -1;
-
 					for (int i = 0; i < popupTempList.size(); i++) {
-						if (popupTempList.get(i).getName().equals(draggedName)) {
+						if (popupTempList.get(i).getId().equals(draggedId)) {
 							draggedDonation = popupTempList.get(i);
 							fromIndex = i;
 							break;
@@ -235,7 +199,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 						} else if (toIndex < 0) {
 							toIndex = 0;
 						}
-
 						popupTempList.add(toIndex, draggedDonation);
 
 						listView.setItems(null);
@@ -255,28 +218,24 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		savePopupBtn.getStyleClass().addAll("manager-button", "manager-save-button");
 		Button cancelPopupBtn = new Button("Cancel");
 		cancelPopupBtn.getStyleClass().addAll("manager-button", "manager-cancel-button");
-
 		savePopupBtn.setOnAction(ev -> {
 			tempItemList.setAll(popupTempList);
 			refreshGridPane();
 			popupStage.close();
 		});
 
-		cancelPopupBtn.setOnAction(ev -> {
-			popupStage.close();
-		});
+		cancelPopupBtn.setOnAction(ev -> popupStage.close());
 
 		popupStage.setOnCloseRequest((WindowEvent windowEvent) -> {
 			windowEvent.consume();
 			Optional<ButtonType> result = showConfirmationDialog(
 					"Exit Without Saving?",
-					"You have unsaved changes in the editor. Are you sure you want to exit without applying them to the main view?"
+					"You have unsaved changes. Are you sure you want to exit without applying them?"
 			);
 			if (result.isPresent() && result.get() == ButtonType.OK) {
 				popupStage.close();
 			}
 		});
-
 		HBox buttonBox = new HBox(15);
 		buttonBox.getStyleClass().add("popup-button-container");
 		buttonBox.getChildren().addAll(savePopupBtn, cancelPopupBtn);
@@ -308,14 +267,12 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 		VBox mainContainer = new VBox();
 		mainContainer.getStyleClass().add("popup-dialog");
-
 		Label titleLabel = new Label("Select Donations to Delete");
 		titleLabel.getStyleClass().add("popup-title");
 
 		VBox checkboxContainer = new VBox(8);
 		checkboxContainer.getStyleClass().add("popup-content");
 		List<CheckBox> donationCheckBoxes = new ArrayList<>();
-
 		for (Donations donation : tempItemList) {
 			CheckBox cb = new CheckBox(donation.getName());
 			cb.getStyleClass().add("manager-checkbox");
@@ -372,7 +329,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		buttonBox.getChildren().addAll(deleteSelectedButton, cancelPopupBtn);
 
 		mainContainer.getChildren().addAll(titleLabel, scrollPane, buttonBox);
-
 		Scene scene = new Scene(mainContainer);
 		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
 		popupStage.setScene(scene);
@@ -381,11 +337,10 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 	@Override
 	@FXML
-	protected void handleSave(ActionEvent event) {
+	public void handleSave(ActionEvent event) {
 		StringBuilder summary = new StringBuilder();
 		boolean changesMade = false;
 
-		// 1. Process Deletions
 		if (!itemsMarkedForDeletion.isEmpty()) {
 			List<Donations> successfullyDeleted = new ArrayList<>();
 			for (Donations donationToDelete : itemsMarkedForDeletion) {
@@ -407,7 +362,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 			itemsMarkedForDeletion.clear();
 		}
 
-		// 2. Process Additions and Order Changes
 		Map<String, Donations> currentItemsMap = new HashMap<>();
 		for(Donations currentDonation : tempItemList) {
 			currentItemsMap.put(currentDonation.getName(), currentDonation);
@@ -419,9 +373,8 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 			int desiredOrder = i + 1;
 
 			if (!originalState.containsKey(currentName)) {
-				// It's a new Donation
 				String newId = String.valueOf(donationRepository.getMaxDonationId() + 1);
-				boolean added = donationRepository.addDonationToDB(newId, currentName, 0);
+				boolean added = donationRepository.addDonationToDB(newId, currentName, 0); // Amount is not stored in Donations table
 				if(added) {
 					boolean orderUpdated = donationRepository.updateDisplayOrder(newId, desiredOrder);
 					summary.append("✅ Added: ").append(currentName)
@@ -433,7 +386,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 				}
 
 			} else {
-				// Existing donation, check for order change
 				int originalOrder = originalOrderMap.getOrDefault(currentName, -1);
 				if (originalOrder != desiredOrder) {
 					String donationId = donationRepository.getDonationIdByName(currentName);
@@ -454,22 +406,11 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 			}
 		}
 
-		// Check for implicitly removed items
-		for (String originalName : originalState.keySet()) {
-			if (!currentItemsMap.containsKey(originalName) && itemsMarkedForDeletion.stream().noneMatch(d -> d.getName().equals(originalName))) {
-				summary.append("⚠️ Implicitly Removed (Not Saved): ").append(originalName).append("\n");
-			}
-		}
-
-		// 3. Reload data, update state, refresh UI
 		loadData();
 		storeOriginalState();
 		itemsMarkedForDeletion.clear();
 		refreshGridPane();
 
-
-
-		// 4. Show Summary
 		if (changesMade) {
 			showAlert(Alert.AlertType.INFORMATION, "Changes Saved", summary.toString());
 		} else {
@@ -481,6 +422,15 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	@Override
 	public void initialize() {
 		super.initialize();
+		slNoColumn.setCellFactory(col -> new TableCell<>() {
+			@Override
+			protected void updateItem(Integer item, boolean empty) {
+				super.updateItem(item, empty);
+				setText(empty ? null : String.valueOf(getIndex() + 1));
+			}
+		});
+		donationNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+		refreshGridPane();
 	}
 
 	@Override

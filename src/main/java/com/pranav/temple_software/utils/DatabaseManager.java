@@ -1,3 +1,4 @@
+// FILE: src/main/java/com/pranav/temple_software/utils/DatabaseManager.java
 package com.pranav.temple_software.utils;
 
 import java.io.File;
@@ -45,19 +46,25 @@ public class DatabaseManager {
 		}
 	}
 
-	private void createOthersTableIfNotExists(Connection conn) throws SQLException {
-		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
-				"others_id INT AUTO_INCREMENT PRIMARY KEY, " +
-				"others_name VARCHAR(255) NOT NULL, " +
-				"display_order INT)";
-		try (Statement stmt = conn.createStatement()) {
-			stmt.execute(sql);
-			System.out.println("✅ Others table checked/created successfully.");
-		}
-	}
-
 	private void runMigrations(Connection conn) throws SQLException {
 		DatabaseMetaData meta = conn.getMetaData();
+
+		// --- NEW MIGRATION to fix OTHERS_ID AUTO_INCREMENT ---
+		try (ResultSet rs = meta.getColumns(null, null, "OTHERS", "OTHERS_ID")) {
+			if (rs.next()) {
+				// The IS_AUTOINCREMENT column can be "YES", "NO", or ""
+				String isAutoIncrement = rs.getString("IS_AUTOINCREMENT");
+				if (!"YES".equalsIgnoreCase(isAutoIncrement)) {
+					System.out.println("⏳ Running migration: Fixing AUTO_INCREMENT property for OTHERS_ID...");
+					try (Statement stmt = conn.createStatement()) {
+						stmt.executeUpdate("ALTER TABLE OTHERS ALTER COLUMN OTHERS_ID INT AUTO_INCREMENT");
+						System.out.println("✅ Migration successful for OTHERS_ID.");
+					} catch (SQLException e) {
+						System.err.println("❌ Failed to apply OTHERS_ID migration: " + e.getMessage());
+					}
+				}
+			}
+		}
 
 		// Migration for ShashwathaPoojaReceipts AMOUNT
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "AMOUNT")) {
@@ -93,6 +100,18 @@ public class DatabaseManager {
 		}
 	}
 
+	// ... rest of the file is unchanged ...
+	private void createOthersTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
+				"others_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"others_name VARCHAR(255) NOT NULL, " +
+				"display_order INT)";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			System.out.println("✅ Others table checked/created successfully.");
+		}
+	}
+
 	private void createKaryakramagaluTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Karyakramagalu (" +
 				"karyakrama_id INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -113,7 +132,7 @@ public class DatabaseManager {
 				"pan_number VARCHAR(10), " +
 				"rashi VARCHAR(20), " +
 				"nakshatra VARCHAR(20), " +
-				"karyakrama_name VARCHAR(255), " + // <-- Added column
+				"karyakrama_name VARCHAR(255), " +
 				"receipt_date DATE, " +
 				"sevas_details TEXT, " +
 				"total_amount DECIMAL(10, 2), " +
@@ -179,7 +198,7 @@ public class DatabaseManager {
 		insertCredentialIfMissing(conn, "SPECIAL_PASSWORD", "$2a$12$Z2qx6uSzEIvkmI21GuY02uIFZHnUeDf/d.xAPHvm0H3IA2EEqfK/O");
 		insertCredentialIfMissing(conn, "ADMIN_USERNAME", "Pranav");
 		insertCredentialIfMissing(conn, "ADMIN_PASSWORD", "$2a$12$KJgaWpl8PHvOWBd1Nw7yI.je6qqWBZ1ZKRtPF.vCASqbVdEmPfPlO");
-		insertCredentialIfMissing(conn, "SHASHWATHA_POOJA_PRICE", "1000.00");
+		insertCredentialIfMissing(conn, "SHASHWATHA_POOJA_PRICE", "500.00");
 	}
 
 	private void insertCredentialIfMissing(Connection conn, String key, String value) throws SQLException {

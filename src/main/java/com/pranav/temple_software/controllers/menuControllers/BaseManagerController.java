@@ -2,7 +2,7 @@
 package com.pranav.temple_software.controllers.menuControllers;
 
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.models.SevaEntry; // Or a more generic type if needed
+import com.pranav.temple_software.models.SevaEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -10,25 +10,22 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.util.*;
 
-public abstract class BaseManagerController<T> { // Use a generic type T for the items (Seva, DonationEntry, etc.)
+public abstract class BaseManagerController<T> {
 
-	@FXML protected GridPane itemGridPane; // Common grid pane ID
 	@FXML protected Button saveButton;
 	@FXML protected Button cancelButton;
 	@FXML protected Button openAddButton;
 	@FXML protected Button openEditButton;
 	@FXML protected Button openDeleteButton;
-	// Add other common FXML elements if applicable
 
 	protected MainController mainControllerInstance;
-	protected ObservableList<T> tempItemList; // Temporary list for edits
+	protected ObservableList<T> tempItemList;
 	protected List<T> itemsMarkedForDeletion = new ArrayList<>();
-	protected Map<String, T> originalState = new HashMap<>(); // To track original values/order for comparison on save
+	protected Map<String, T> originalState = new HashMap<>();
 
 	public void setMainController(MainController controller) {
 		this.mainControllerInstance = controller;
@@ -37,122 +34,91 @@ public abstract class BaseManagerController<T> { // Use a generic type T for the
 	@FXML
 	public void initialize() {
 		tempItemList = FXCollections.observableArrayList();
-		loadData(); // Abstract method to load initial data
-		storeOriginalState(); // Store initial state for comparison
+		loadData();
+		storeOriginalState();
 		refreshGridPane();
-		setupButtonActions(); // Setup common button actions if possible
 	}
-
-	// --- Abstract Methods to be Implemented by Subclasses ---
-	protected abstract void loadData(); // Load data from the specific repository into tempItemList
 
 	protected abstract String getItemId(SevaEntry item);
 
 	protected abstract String getItemName(SevaEntry item);
 
-	protected abstract void refreshGridPane(); // Update the GridPane UI based on tempItemList
-	protected abstract void openAddPopup(ActionEvent event);
-	protected abstract void openEditPopup(ActionEvent event);
-	protected abstract void openDeletePopup(ActionEvent event);
-	protected abstract void handleSave(ActionEvent event); // Implement the final save logic
-	protected abstract void storeOriginalState(); // Store the initial state (order, amounts etc.)
-	protected abstract String getItemId(T item); // Helper to get a unique ID for comparison
-	protected abstract String getItemName(T item); // Helper to get the name for display/comparison
+	// --- Abstract Methods ---
+	protected abstract void loadData();
+	protected abstract void refreshGridPane();
+	@FXML public abstract void handleSave(ActionEvent event);
+	protected abstract void storeOriginalState();
+	protected abstract String getItemId(T item);
+	protected abstract String getItemName(T item);
+	@FXML protected abstract void openAddPopup(ActionEvent event);
+	@FXML protected abstract void openEditPopup(ActionEvent event);
+	@FXML protected abstract void openDeletePopup(ActionEvent event);
 
 	// --- Common Helper Methods ---
 	@FXML
-	protected void handleCancelButton(ActionEvent actionEvent) {
-		// Check if there are unsaved changes
-		boolean hasUnsavedChanges = checkForUnsavedChanges();
-
-		if (hasUnsavedChanges) {
-			// Show confirmation dialog
+	public void handleCancelButton(ActionEvent actionEvent) {
+		if (checkForUnsavedChanges()) {
 			Optional<ButtonType> result = showConfirmationDialog(
 					"Confirm Cancel",
 					"You have unsaved changes. Are you sure you want to cancel?"
 			);
-
-			// Handle user's choice
 			if (result.isPresent() && result.get() == ButtonType.OK) {
-				closeWindow(); // Proceed with closing the window
+				closeWindow();
 			}
 		} else {
-			closeWindow(); // No unsaved changes, close directly
+			closeWindow();
 		}
-
 	}
 
 	protected boolean checkForUnsavedChanges() {
+		if (itemsMarkedForDeletion != null && !itemsMarkedForDeletion.isEmpty()) {
+			return true;
+		}
 		if (tempItemList == null || originalState == null) {
 			return false;
 		}
+		if (tempItemList.size() != originalState.size()) {
+			return true;
+		}
 
-		// ✅ Step 1: Check if any item was added
 		for (T tempItem : tempItemList) {
 			String itemId = getItemId(tempItem);
+			// Check for new, unsaved items
+			if (itemId == null || itemId.startsWith("NEW_") || itemId.equals("-1")) {
+				return true;
+			}
 			if (!originalState.containsKey(itemId)) {
-				return true; // Only return true if a new item was ADDED
+				return true;
+			}
+			T originalItem = originalState.get(itemId);
+			if (!tempItem.equals(originalItem)) {
+				return true; // Item was modified
 			}
 		}
-
-		// ✅ Step 2: Check if any item was removed
-		for (String originalItemId : originalState.keySet()) {
-			boolean itemExists = tempItemList.stream().anyMatch(item -> getItemId(item).equals(originalItemId));
-			if (!itemExists) {
-				return true; // Only return true if an item was REMOVED
-			}
-		}
-
-		// ✅ Step 3: Check if an item was actually modified
-		for (T tempItem : tempItemList) {
-			String itemId = getItemId(tempItem);
-			if (originalState.containsKey(itemId)) {
-				T originalItem = originalState.get(itemId);
-
-				if (!tempItem.equals(originalItem)) { // Ensure correct equals() implementation in models
-					return true;
-				}
-			}
-		}
-
-		return false; // ✅ Return false only when NO changes are detected
+		return false;
 	}
-
 
 	protected void closeWindow() {
-		if (cancelButton != null && cancelButton.getScene() != null && cancelButton.getScene().getWindow() != null) {
-			((Stage) cancelButton.getScene().getWindow()).close();
-		} else {
-			// Fallback or log error if button/scene/window is null
-			System.err.println("Could not close window: Cancel button or its scene/window is null.");
+		// Use the cancelButton as an anchor to find the window and close it
+		Stage stage = (Stage) cancelButton.getScene().getWindow();
+		if (stage != null) {
+			stage.close();
 		}
 	}
-
 
 	protected void showAlert(Alert.AlertType alertType, String title, String message) {
 		Alert alert = new Alert(alertType);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);
-		// Consider setting owner: if (mainControllerInstance != null) alert.initOwner(mainControllerInstance.mainStage);
 		alert.showAndWait();
 	}
 
 	protected Optional<ButtonType> showConfirmationDialog(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle(title);
-		alert.setHeaderText(null); // Optional, can be added for more detail
+		alert.setHeaderText(null);
 		alert.setContentText(message);
 		return alert.showAndWait();
-	}
-
-
-	// Optional: Common setup for button actions if handlers are simple delegates
-	protected void setupButtonActions() {
-		if (openAddButton != null) openAddButton.setOnAction(this::openAddPopup);
-		if (openEditButton != null) openEditButton.setOnAction(this::openEditPopup);
-		if (openDeleteButton != null) openDeleteButton.setOnAction(this::openDeletePopup);
-		if (saveButton != null) saveButton.setOnAction(this::handleSave);
-		if (cancelButton != null) cancelButton.setOnAction(this::handleCancelButton);
 	}
 }

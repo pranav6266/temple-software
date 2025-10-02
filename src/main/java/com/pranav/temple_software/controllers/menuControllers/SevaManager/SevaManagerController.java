@@ -1,9 +1,8 @@
 package com.pranav.temple_software.controllers.menuControllers.SevaManager;
 
-// ... other imports ...
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
-import com.pranav.temple_software.models.Seva; // Use the specific Seva model
+import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.SevaRepository;
 import javafx.collections.FXCollections;
@@ -11,28 +10,33 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent; // Import for close request
+import javafx.stage.WindowEvent;
 
 import java.util.*;
 
-// Make SevaManagerController extend BaseManagerController<Seva>
 public class SevaManagerController extends BaseManagerController<Seva> {
 	public Button editButton;
 	public Button openAddSevaButton;
 	public Button deleteSeva;
+
+	// --- NEW TABLEVIEW AND COLUMNS ---
+	@FXML private TableView<Seva> itemTableView;
+	@FXML private TableColumn<Seva, Integer> slNoColumn;
+	@FXML private TableColumn<Seva, String> sevaNameColumn;
+	@FXML private TableColumn<Seva, Double> amountColumn;
+
 
 	@Override
 	protected String getItemId(SevaEntry item) {
@@ -44,28 +48,24 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		return "";
 	}
 
-	@FXML private TextField sevaIdField; // Keep specific fields if needed
-
 	private final SevaRepository sevaRepository = SevaRepository.getInstance();
-	private final Map<String, Double> originalAmounts = new HashMap<>(); // Can be part of originalState
-	private final Map<String, Integer> originalOrder = new HashMap<>(); // Can be part of originalState
-
-	// Override abstract methods
+	private final Map<String, Double> originalAmounts = new HashMap<>();
+	private final Map<String, Integer> originalOrder = new HashMap<>();
 
 	@Override
 	protected void loadData() {
-		sevaRepository.loadSevasFromDB(); // Ensure repository is loaded
-		tempItemList.setAll(sevaRepository.getAllSevas()); // Populate the temp list
+		sevaRepository.loadSevasFromDB();
+		tempItemList.setAll(sevaRepository.getAllSevas());
 	}
 
 	@Override
 	protected void storeOriginalState() {
 		originalState.clear();
-		originalAmounts.clear(); // Keep these for now, or refactor into originalState map
-		originalOrder.clear();  // Keep these for now, or refactor into originalState map
+		originalAmounts.clear();
+		originalOrder.clear();
 		for (int i = 0; i < tempItemList.size(); i++) {
 			Seva seva = tempItemList.get(i);
-			originalState.put(seva.getId(), new Seva(seva.getId(), seva.getName(), seva.getAmount(), seva.getDisplayOrder())); // Store a copy
+			originalState.put(seva.getId(), new Seva(seva.getId(), seva.getName(), seva.getAmount(), seva.getDisplayOrder()));
 			originalAmounts.put(seva.getId(), seva.getAmount());
 			originalOrder.put(seva.getId(), i + 1);
 		}
@@ -82,37 +82,11 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 
 	@Override
 	protected void refreshGridPane() {
-		// Your existing refreshGridPane logic using 'itemGridPane' and 'tempItemList'
-		itemGridPane.getChildren().clear();
-		Label indexHeader = new Label("No.");
-		Label nameHeader = new Label("Seva Name");
-		Label amountHeader = new Label("Amount");
-
-		indexHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-		nameHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-		amountHeader.setStyle("-fx-font-weight: bold; -fx-background-color: lightgray;");
-
-		itemGridPane.add(indexHeader, 0, 0);
-		itemGridPane.add(nameHeader, 1, 0);
-		itemGridPane.add(amountHeader, 2, 0);
-
-		for (int i = 0; i < tempItemList.size(); i++) {
-			Seva seva = tempItemList.get(i);
-			int rowIndex = i + 1;
-
-			Label orderLabel = new Label(String.valueOf(i + 1));
-			Label nameLabel = new Label(seva.getName());
-			Label amountLabel = new Label(String.format("₹%.2f", seva.getAmount())); // Format amount
-
-			orderLabel.setAlignment(Pos.CENTER);
-			nameLabel.setAlignment(Pos.CENTER_LEFT);
-			amountLabel.setAlignment(Pos.CENTER_RIGHT);
-
-			itemGridPane.add(orderLabel, 0, rowIndex);
-			itemGridPane.add(nameLabel, 1, rowIndex);
-			itemGridPane.add(amountLabel, 2, rowIndex);
-		}
+		// This method is now repurposed to refresh the TableView
+		itemTableView.setItems(FXCollections.observableArrayList(tempItemList));
+		itemTableView.refresh();
 	}
+
 
 	@Override
 	@FXML
@@ -120,20 +94,15 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		Stage popupStage = new Stage();
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Add New Seva");
-		// Create main container with modern styling
 		VBox mainContainer = new VBox();
 		mainContainer.getStyleClass().add("popup-dialog");
 
-		// Title
 		Label titleLabel = new Label("Add New Seva");
 		titleLabel.getStyleClass().add("popup-title");
 
-		// Content container
 		VBox contentContainer = new VBox();
 		contentContainer.getStyleClass().add("popup-content");
 
-		// Form fields
-		// --- REMOVED ID FIELD ---
 		Label nameLabel = new Label("Seva Name:");
 		nameLabel.getStyleClass().add("popup-field-label");
 		TextField nameField = new TextField();
@@ -148,10 +117,8 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 				nameLabel, nameField, amountLabel, amountField
 		);
 
-		// Button container
 		HBox buttonContainer = new HBox();
 		buttonContainer.getStyleClass().add("popup-button-container");
-
 		Button submitButton = new Button("Submit");
 		submitButton.getStyleClass().addAll("manager-button", "manager-save-button");
 		Button cancelPopupBtn = new Button("Cancel");
@@ -160,7 +127,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		buttonContainer.getChildren().addAll(submitButton, cancelPopupBtn);
 
 		mainContainer.getChildren().addAll(titleLabel, contentContainer, buttonContainer);
-
 		Scene scene = new Scene(mainContainer);
 		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
 		popupStage.setScene(scene);
@@ -184,14 +150,13 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 				return;
 			}
 
-			// --- CHANGED: Use a temporary, unique placeholder ID ---
 			String tempId = "NEW_" + System.currentTimeMillis();
 			Seva newSeva = new Seva(tempId, name, amount);
 
-			// Add to temporary list ONLY
 			tempItemList.add(newSeva);
-			refreshGridPane(); // Update the main grid view
-			showAlert(Alert.AlertType.INFORMATION, "Success", "Seva '" + name + "' staged for addition. Press 'Save' to commit."); // Modified message
+			refreshGridPane();
+			showAlert(Alert.AlertType.INFORMATION, "Success", "Seva '" + name
+					+ "' staged for addition. Press 'Save' to commit.");
 			popupStage.close();
 		});
 
@@ -206,7 +171,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Edit/Rearrange Sevas");
 
-		// *** Crucial: Work on a DEEP COPY of the tempItemList for the popup ***
 		ObservableList<Seva> popupTempList = FXCollections.observableArrayList();
 		for (Seva seva : tempItemList) {
 			popupTempList.add(new Seva(seva.getId(), seva.getName(), seva.getAmount(), seva.getDisplayOrder()));
@@ -216,18 +180,15 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		listView.getStyleClass().add("manager-list-view");
 		listView.setPrefSize(500, 400);
 
-		// Cell factory for display and drag/drop
 		listView.setCellFactory(lv -> {
 			ListCell<Seva> cell = new ListCell<>() {
 				@Override
 				protected void updateItem(Seva seva, boolean empty) {
 					super.updateItem(seva, empty);
-
 					if (empty || seva == null) {
 						setGraphic(null);
 					} else {
 						int index = getIndex() + 1;
-
 						Label slLabel = new Label(index + ". ");
 						Label nameLabel = new Label(seva.getName());
 						TextField amountField = new TextField(String.format("%.2f", seva.getAmount()));
@@ -236,7 +197,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 						amountField.getStyleClass().add("popup-text-field");
 						Label rupeeLabel = new Label("₹");
 
-						// *** Listener updates the Seva object IN THE POPUP LIST ***
 						amountField.textProperty().addListener((obs, oldVal, newVal) -> {
 							String clean = newVal.replace("₹", "").trim();
 							try {
@@ -246,7 +206,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 								}
 							} catch (NumberFormatException | IndexOutOfBoundsException ignored) {}
 						});
-
 						HBox spacer = new HBox();
 						HBox.setHgrow(spacer, Priority.ALWAYS);
 						HBox hbox = new HBox(10, slLabel, nameLabel, spacer, rupeeLabel, amountField);
@@ -255,8 +214,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 					}
 				}
 			};
-
-			// --- Drag and Drop Logic ---
 			cell.setOnDragDetected(ev -> {
 				if (cell.getItem() == null) return;
 				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
@@ -265,7 +222,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 				db.setContent(content);
 				ev.consume();
 			});
-
 			cell.setOnDragOver(ev -> {
 				if (ev.getGestureSource() != cell && ev.getDragboard().hasString()) {
 					ev.acceptTransferModes(TransferMode.MOVE);
@@ -324,7 +280,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		cancelPopupBtn.setOnAction(ev -> {
 			popupStage.close();
 		});
-
 		popupStage.setOnCloseRequest((WindowEvent windowEvent) -> {
 			windowEvent.consume();
 			Optional<ButtonType> result = showConfirmationDialog(
@@ -335,7 +290,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 				popupStage.close();
 			}
 		});
-
 		HBox buttonBox = new HBox(15);
 		buttonBox.getStyleClass().add("popup-button-container");
 		buttonBox.getChildren().addAll(savePopupBtn, cancelPopupBtn);
@@ -367,14 +321,12 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 
 		VBox mainContainer = new VBox();
 		mainContainer.getStyleClass().add("popup-dialog");
-
 		Label titleLabel = new Label("Select Sevas to Delete");
 		titleLabel.getStyleClass().add("popup-title");
 
 		VBox checkboxContainer = new VBox(8);
 		checkboxContainer.getStyleClass().add("popup-content");
 		List<CheckBox> sevaCheckBoxes = new ArrayList<>();
-
 		for (Seva seva : tempItemList) {
 			CheckBox cb = new CheckBox(seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()));
 			cb.getStyleClass().add("manager-checkbox");
@@ -387,12 +339,10 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		scrollPane.getStyleClass().add("manager-scroll-pane");
 		scrollPane.setFitToWidth(true);
 		scrollPane.setPrefHeight(Math.min(tempItemList.size() * 35 + 20, 300));
-
 		Button deleteSelectedButton = new Button("Mark Selected for Deletion");
 		deleteSelectedButton.getStyleClass().addAll("manager-button", "manager-delete-button");
 		Button cancelPopupBtn = new Button("Cancel");
 		cancelPopupBtn.getStyleClass().addAll("manager-button", "manager-cancel-button");
-
 		deleteSelectedButton.setOnAction(e -> {
 			List<Seva> toRemoveFromTemp = new ArrayList<>();
 			for (CheckBox cb : sevaCheckBoxes) {
@@ -411,7 +361,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 			}
 			popupStage.close();
 		});
-
 		cancelPopupBtn.setOnAction(e -> popupStage.close());
 
 		HBox buttonBox = new HBox(15);
@@ -428,13 +377,11 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 
 	@Override
 	@FXML
-	protected void handleSave(ActionEvent actionEvent) {
+	public void handleSave(ActionEvent actionEvent) {
 		StringBuilder summary = new StringBuilder();
 		boolean changesMade = false;
-		// 1. Process Deletions
 		if (!itemsMarkedForDeletion.isEmpty()) {
 			for (Seva sevaToDelete : itemsMarkedForDeletion) {
-				// Only try to delete items that actually exist in the DB
 				if (!sevaToDelete.getId().startsWith("NEW_")) {
 					boolean deleted = sevaRepository.deleteSevaFromDB(sevaToDelete.getId());
 					if (deleted) {
@@ -447,15 +394,11 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 			}
 		}
 
-		// 2. Process Additions and Modifications
 		for (int i = 0; i < tempItemList.size(); i++) {
 			Seva currentSeva = tempItemList.get(i);
 			String currentId = currentSeva.getId();
 			int desiredOrder = i + 1;
-
-			// --- CHANGED: This block now handles adding new items ---
 			if (currentId != null && currentId.startsWith("NEW_")) {
-				// It's a new Seva, get a real ID now
 				int newId = sevaRepository.getMaxSevaId() + 1;
 				Seva sevaToSave = new Seva(String.valueOf(newId), currentSeva.getName(), currentSeva.getAmount());
 				sevaToSave.setDisplayOrder(desiredOrder);
@@ -469,13 +412,11 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 					summary.append("❌ Add Failed: ").append(sevaToSave.getName()).append("\n");
 				}
 			} else {
-				// It's an existing Seva, check for modifications
 				Seva originalSeva = originalState.get(currentId);
-				if (originalSeva == null) continue; // Should not happen, but a safeguard
+				if (originalSeva == null) continue;
 
 				boolean amountChanged = currentSeva.getAmount() != originalSeva.getAmount();
 				boolean orderChanged = desiredOrder != originalOrder.getOrDefault(currentId, -1);
-
 				if (amountChanged) {
 					boolean updated = sevaRepository.updateAmount(currentId, currentSeva.getAmount());
 					if(updated) {
@@ -501,7 +442,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 			}
 		}
 
-		// 3. Reload data from DB to ensure consistency and refresh UI components
 		loadData();
 		storeOriginalState();
 		itemsMarkedForDeletion.clear();
@@ -510,7 +450,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 			mainControllerInstance.refreshSevaCheckboxes();
 		}
 
-		// 4. Show Summary
 		if (changesMade) {
 			showAlert(Alert.AlertType.INFORMATION,"Changes Saved", summary.toString());
 		} else {
@@ -519,23 +458,30 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 		closeWindow();
 	}
 
-	private void updateDefaultSevaId() {
-		if (sevaRepository != null && sevaIdField != null) {
-			try {
-				int maxId = sevaRepository.getMaxSevaId();
-				int nextSevaId = maxId + 1;
-				sevaIdField.setText(String.valueOf(nextSevaId));
-			} catch (Exception e) {
-				System.err.println("Error calculating default Seva ID: " + e.getMessage());
-				showAlert(Alert.AlertType.ERROR,"Error", "Could not determine next Seva ID.");
-				sevaIdField.setText("ERR");
-			}
-		}
-	}
-
 	@Override
 	public void initialize() {
 		super.initialize();
-		updateDefaultSevaId();
+		// --- NEW: Initialize Table Columns ---
+		slNoColumn.setCellFactory(col -> new TableCell<>() {
+			@Override
+			protected void updateItem(Integer item, boolean empty) {
+				super.updateItem(item, empty);
+				setText(empty ? null : String.valueOf(getIndex() + 1));
+			}
+		});
+		sevaNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+		amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+		amountColumn.setCellFactory(column -> new TableCell<>() {
+			@Override
+			protected void updateItem(Double amount, boolean empty) {
+				super.updateItem(amount, empty);
+				if (empty || amount == null) {
+					setText(null);
+				} else {
+					setText(String.format("₹%.2f", amount));
+				}
+			}
+		});
+		refreshGridPane(); // Initial data load
 	}
 }

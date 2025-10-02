@@ -1,3 +1,4 @@
+// FILE: src/main/java/com/pranav/temple_software/repositories/OthersRepository.java
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.Others;
@@ -13,10 +14,7 @@ public class OthersRepository {
 	private static final OthersRepository instance = new OthersRepository();
 	private final List<Others> othersList = new ArrayList<>();
 	private boolean isDataLoaded = false;
-
-	private OthersRepository() {
-		// Private constructor for singleton pattern
-	}
+	private OthersRepository() {}
 
 	public static OthersRepository getInstance() {
 		return instance;
@@ -40,10 +38,8 @@ public class OthersRepository {
 				othersList.add(new Others(id, name, order));
 			}
 			isDataLoaded = true;
-			System.out.println("✅ Loaded " + othersList.size() + " others from database.");
 		} catch (SQLException e) {
 			System.err.println("❌ Error loading Others from database: " + e.getMessage());
-			e.printStackTrace();
 		}
 	}
 
@@ -51,30 +47,22 @@ public class OthersRepository {
 		if (!isDataLoaded) {
 			loadOthersFromDB();
 		}
-		// Return a copy sorted by display order
 		othersList.sort(Comparator.comparingInt(Others::getDisplayOrder));
 		return Collections.unmodifiableList(new ArrayList<>(this.othersList));
 	}
 
+	// SIMPLIFIED AND CORRECTED METHOD
 	public boolean addOtherToDB(String name) {
-		String sql = "INSERT INTO Others (others_name, display_order) VALUES (?, ?)";
+		// The AUTO_INCREMENT column will handle the ID, and the reorder logic will handle the display_order.
+		String sql = "INSERT INTO Others (others_name) VALUES (?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-			int nextOrder = othersList.size() + 1;
 			pstmt.setString(1, name);
-			pstmt.setInt(2, nextOrder);
-
-			int affectedRows = pstmt.executeUpdate();
-			if (affectedRows > 0) {
-				// Reload data to get the new item with its auto-generated ID
-				loadOthersFromDB();
-				return true;
-			}
+			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
 			System.err.println("Error adding Other to DB: " + e.getMessage());
+			return false;
 		}
-		return false;
 	}
 
 	public boolean deleteOtherFromDB(int otherId) {
@@ -82,31 +70,16 @@ public class OthersRepository {
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, otherId);
-			int affectedRows = pstmt.executeUpdate();
-			if (affectedRows > 0) {
-				loadOthersFromDB(); // Reload list after deletion
-				return true;
-			}
+			pstmt.executeUpdate();
+			return true;
 		} catch (SQLException e) {
-			System.err.println("Error deleting Other from DB (ID: " + otherId + "): " + e.getMessage());
-		}
-		return false;
-	}
-
-	public boolean updateOtherName(int otherId, String newName) {
-		String sql = "UPDATE Others SET others_name = ? WHERE others_id = ?";
-		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setString(1, newName);
-			pstmt.setInt(2, otherId);
-			int affectedRows = pstmt.executeUpdate();
-			if (affectedRows > 0) {
-				loadOthersFromDB(); // Reload list after update
-				return true;
+			if ("23503".equals(e.getSQLState())) {
+				System.err.println("Constraint violation: Cannot delete Other item (ID: " + otherId + ") as it is in use.");
+			} else {
+				System.err.println("Error deleting Other from DB (ID: " + otherId + "): " + e.getMessage());
 			}
-		} catch (SQLException e) {
-			System.err.println("Error updating other name for ID " + otherId + ": " + e.getMessage());
+			return false;
 		}
-		return false;
 	}
 
 	public boolean updateDisplayOrder(List<Others> orderedList) {
@@ -114,12 +87,12 @@ public class OthersRepository {
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			for (int i = 0; i < orderedList.size(); i++) {
 				Others other = orderedList.get(i);
-				pstmt.setInt(1, i + 1); // New display order (1-based index)
+				pstmt.setInt(1, i + 1);
 				pstmt.setInt(2, other.getId());
 				pstmt.addBatch();
 			}
 			pstmt.executeBatch();
-			loadOthersFromDB(); // Reload list after reordering
+			loadOthersFromDB();
 			return true;
 		} catch (SQLException e) {
 			System.err.println("Error updating display order for Others: " + e.getMessage());

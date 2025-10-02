@@ -1,3 +1,4 @@
+// FILE: src/main/java/com/pranav/temple_software/models/Others.java
 package com.pranav.temple_software.models;
 
 import java.util.Objects;
@@ -13,42 +14,26 @@ public class Others {
 		this.displayOrder = displayOrder;
 	}
 
-	public int getId() {
-		return id;
-	}
+	public int getId() { return id; }
+	public String getName() { return name; }
+	public void setName(String name) { this.name = name; }
+	public int getDisplayOrder() { return displayOrder; }
+	public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public int getDisplayOrder() {
-		return displayOrder;
-	}
-
-	public void setDisplayOrder(int displayOrder) {
-		this.displayOrder = displayOrder;
-	}
-
-	// This is crucial for displaying the name in ComboBoxes
 	@Override
-	public String toString() {
-		return name;
-	}
+	public String toString() { return name; }
 
+	// UPDATED equals and hashCode to correctly check for changes
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Others others = (Others) o;
-		return id == others.id;
+		return id == others.id && displayOrder == others.displayOrder && Objects.equals(name, others.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return Objects.hash(id, name, displayOrder);
 	}
 }
