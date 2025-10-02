@@ -11,73 +11,75 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1360.0" styleClass="history-root" stylesheets="@../../../css/modern-history.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
+<BorderPane prefHeight="768.0" prefWidth="1024.0" styleClass="history-root" stylesheets="@../../../css/modern-history.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
     <top>
-        <VBox styleClass="header-section">
-            <HBox styleClass="title-bar">
+        <HBox styleClass="header-section">
+            <VBox alignment="CENTER_LEFT">
                 <Label styleClass="page-title" text="📋 ರಶೀದಿ ಇತಿಹಾಸ" />
-                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="currentViewLabel" styleClass="current-view-label" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox styleClass="actions-bar">
                 <ComboBox fx:id="viewSelectionComboBox" promptText="ವೀಕ್ಷಣೆ ಆಯ್ಕೆ ಮಾಡಿ" styleClass="view-selection-combo" />
-            </HBox>
-            <Label fx:id="currentViewLabel" styleClass="current-view-label" text="ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ" />
-            <HBox styleClass="filter-section">
-                <Region HBox.hgrow="ALWAYS" />
                 <Button fx:id="dashboardButton" onAction="#handleDashboardButton" styleClass="dashboard-button" text="📊 ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" />
             </HBox>
-        </VBox>
+        </HBox>
     </top>
     <center>
         <StackPane styleClass="content-area">
             <TableView fx:id="historyTable" styleClass="modern-history-table">
                 <columns>
-                    <TableColumn fx:id="receiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
-                    <TableColumn fx:id="devoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
-                    <TableColumn fx:id="sevaDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ" />
-                    <TableColumn fx:id="sevaColumn" prefWidth="140.0" styleClass="amount-column" text="ಸೇವೆಗಳು (₹)" />
-                    <TableColumn fx:id="visheshaPoojeColumn" prefWidth="140.0" styleClass="amount-column" text="ವಿಶೇಷ ಪೂಜೆ (₹)" />
-                    <TableColumn fx:id="totalAmountColumn" prefWidth="140.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
-                    <TableColumn fx:id="paymentMode" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ" />
-                    <TableColumn fx:id="detailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                    <TableColumn fx:id="receiptIdColumn" minWidth="80.0" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="devoteeNameColumn" minWidth="200.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="sevaDateColumn" minWidth="110.0" styleClass="date-column" text="ದಿನಾಂಕ" />
+                    <TableColumn fx:id="sevaColumn" minWidth="120.0" styleClass="amount-column" text="ಸೇವೆಗಳು (₹)" />
+                    <TableColumn fx:id="visheshaPoojeColumn" minWidth="120.0" styleClass="amount-column" text="ವಿಶೇಷ ಪೂಜೆ (₹)" />
+                    <TableColumn fx:id="totalAmountColumn" minWidth="130.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
+                    <TableColumn fx:id="detailsColumn" minWidth="120.0" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             </TableView>
             <TableView fx:id="donationHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
-                    <TableColumn fx:id="donationReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
-                    <TableColumn fx:id="donationDevoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
-                    <TableColumn fx:id="donationDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ" />
-                    <TableColumn fx:id="donationNameColumn" prefWidth="200.0" styleClass="service-column" text="ದೇಣಿಗೆ ಪ್ರಕಾರ" />
-                    <TableColumn fx:id="donationAmountColumn" prefWidth="140.0" styleClass="amount-column" text="ದೇಣಿಗೆ ಮೊತ್ತ (₹)" />
-                    <TableColumn fx:id="donationPaymentModeColumn" prefWidth="100.0" styleClass="payment-column" text="ಪಾವತಿ ವಿಧಾನ" />
-                    <TableColumn fx:id="donationDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                    <TableColumn fx:id="donationReceiptIdColumn" minWidth="80.0" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="donationDevoteeNameColumn" minWidth="200.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="donationDateColumn" minWidth="110.0" styleClass="date-column" text="ದಿನಾಂಕ" />
+                    <TableColumn fx:id="donationNameColumn" minWidth="200.0" styleClass="service-column" text="ದೇಣಿಗೆ ಪ್ರಕಾರ" />
+                    <TableColumn fx:id="donationAmountColumn" minWidth="130.0" styleClass="amount-column" text="ದೇಣಿಗೆ ಮೊತ್ತ (₹)" />
+                    <TableColumn fx:id="donationDetailsColumn" minWidth="120.0" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             </TableView>
             <TableView fx:id="inKindDonationHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
-                    <TableColumn fx:id="inKindReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
-                    <TableColumn fx:id="inKindDevoteeNameColumn" prefWidth="180.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
-                    <TableColumn fx:id="inKindDonationDateColumn" prefWidth="120.0" resizable="false" styleClass="date-column" text="ದಿನಾಂಕ" />
-                    <TableColumn fx:id="itemDescriptionColumn" prefWidth="350.0" styleClass="service-column" text="ವಸ್ತುವಿನ ವಿವರಣೆ" />
-                    <TableColumn fx:id="inKindDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                    <TableColumn fx:id="inKindReceiptIdColumn" minWidth="80.0" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="inKindDevoteeNameColumn" minWidth="200.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="inKindDonationDateColumn" minWidth="110.0" styleClass="date-column" text="ದಿನಾಂಕ" />
+                    <TableColumn fx:id="itemDescriptionColumn" minWidth="300.0" styleClass="service-column" text="ವಸ್ತುವಿನ ವಿವರಣೆ" />
+                    <TableColumn fx:id="inKindDetailsColumn" minWidth="120.0" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             </TableView>
             <TableView fx:id="shashwathaPoojaHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
-                    <TableColumn fx:id="shashwathaReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
-                    <TableColumn fx:id="shashwathaDevoteeNameColumn" prefWidth="250.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
-                    <TableColumn fx:id="shashwathaReceiptDateColumn" prefWidth="150.0" resizable="false" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
-                    <TableColumn fx:id="shashwathaPoojaDateColumn" prefWidth="350.0" styleClass="service-column" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ" />
-                    <TableColumn fx:id="shashwathaDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                    <TableColumn fx:id="shashwathaReceiptIdColumn" minWidth="80.0" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="shashwathaDevoteeNameColumn" minWidth="200.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="shashwathaReceiptDateColumn" minWidth="110.0" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
+                    <TableColumn fx:id="shashwathaPoojaDateColumn" minWidth="300.0" styleClass="service-column" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ" />
+                    <TableColumn fx:id="shashwathaDetailsColumn" minWidth="120.0" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             </TableView>
             <TableView fx:id="karyakramaHistoryTable" styleClass="modern-history-table" visible="false">
                 <columns>
-                    <TableColumn fx:id="karyakramaReceiptIdColumn" prefWidth="100.0" resizable="false" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
-                    <TableColumn fx:id="karyakramaDevoteeNameColumn" prefWidth="250.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
-                    <TableColumn fx:id="karyakramaNameColumn" prefWidth="250.0" styleClass="service-column" text="ಕಾರ್ಯಕ್ರಮ" />
-                    <TableColumn fx:id="karyakramaReceiptDateColumn" prefWidth="150.0" resizable="false" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
-                    <TableColumn fx:id="karyakramaTotalAmountColumn" prefWidth="180.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
-                    <TableColumn fx:id="karyakramaDetailsColumn" prefWidth="150.0" resizable="false" styleClass="action-column" text="ವಿವರಗಳು" />
+                    <TableColumn fx:id="karyakramaReceiptIdColumn" minWidth="80.0" styleClass="id-column" text="ರಶೀದಿ ಸಂ." />
+                    <TableColumn fx:id="karyakramaDevoteeNameColumn" minWidth="200.0" styleClass="name-column" text="ಭಕ್ತರ ಹೆಸರು" />
+                    <TableColumn fx:id="karyakramaNameColumn" minWidth="200.0" styleClass="service-column" text="ಕಾರ್ಯಕ್ರಮ" />
+                    <TableColumn fx:id="karyakramaReceiptDateColumn" minWidth="110.0" styleClass="date-column" text="ರಶೀದಿ ದಿನಾಂಕ" />
+                    <TableColumn fx:id="karyakramaTotalAmountColumn" minWidth="130.0" styleClass="total-column" text="ಒಟ್ಟು ಮೊತ್ತ (₹)" />
+                    <TableColumn fx:id="karyakramaDetailsColumn" minWidth="120.0" styleClass="action-column" text="ವಿವರಗಳು" />
                 </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             </TableView>
         </StackPane>
     </center>

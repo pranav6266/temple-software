@@ -45,6 +45,8 @@ public class HistoryController {
 	// FXML elements
 	@FXML private ComboBox<HistoryView> viewSelectionComboBox;
 	@FXML private Label currentViewLabel;
+	@FXML private Button dashboardButton;
+
 	// Seva Table
 	@FXML private TableView<SevaReceiptData> historyTable;
 	@FXML private TableColumn<SevaReceiptData, Integer> receiptIdColumn;
@@ -53,8 +55,8 @@ public class HistoryController {
 	@FXML private TableColumn<SevaReceiptData, String> sevaColumn;
 	@FXML private TableColumn<SevaReceiptData, String> visheshaPoojeColumn;
 	@FXML private TableColumn<SevaReceiptData, Double> totalAmountColumn;
-	@FXML private TableColumn<SevaReceiptData, String> paymentMode;
 	@FXML private TableColumn<SevaReceiptData, Void> detailsColumn;
+
 	// Donation Table
 	@FXML private TableView<DonationReceiptData> donationHistoryTable;
 	@FXML private TableColumn<DonationReceiptData, Integer> donationReceiptIdColumn;
@@ -62,8 +64,8 @@ public class HistoryController {
 	@FXML private TableColumn<DonationReceiptData, String> donationDateColumn;
 	@FXML private TableColumn<DonationReceiptData, String> donationNameColumn;
 	@FXML private TableColumn<DonationReceiptData, Double> donationAmountColumn;
-	@FXML private TableColumn<DonationReceiptData, String> donationPaymentModeColumn;
 	@FXML private TableColumn<DonationReceiptData, Void> donationDetailsColumn;
+
 	// In-Kind Donation Table
 	@FXML private TableView<InKindDonation> inKindDonationHistoryTable;
 	@FXML private TableColumn<InKindDonation, Integer> inKindReceiptIdColumn;
@@ -71,6 +73,7 @@ public class HistoryController {
 	@FXML private TableColumn<InKindDonation, String> inKindDonationDateColumn;
 	@FXML private TableColumn<InKindDonation, String> itemDescriptionColumn;
 	@FXML private TableColumn<InKindDonation, Void> inKindDetailsColumn;
+
 	// Shashwatha Pooja Table
 	@FXML private TableView<ShashwathaPoojaReceipt> shashwathaPoojaHistoryTable;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Integer> shashwathaReceiptIdColumn;
@@ -78,11 +81,12 @@ public class HistoryController {
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaReceiptDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaPoojaDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Void> shashwathaDetailsColumn;
+
 	// Karyakrama Table
 	@FXML private TableView<KaryakramaReceiptData> karyakramaHistoryTable;
 	@FXML private TableColumn<KaryakramaReceiptData, Integer> karyakramaReceiptIdColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaDevoteeNameColumn;
-	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaNameColumn; // <-- NEW FIELD
+	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaNameColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaReceiptDateColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, Double> karyakramaTotalAmountColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, Void> karyakramaDetailsColumn;
@@ -167,11 +171,10 @@ public class HistoryController {
 		karyakramaHistoryTable.setVisible(karyakrama);
 	}
 
-	// --- UPDATED METHOD ---
 	private void setupKaryakramaTableColumns() {
 		karyakramaReceiptIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getReceiptId()).asObject());
 		karyakramaDevoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
-		karyakramaNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getKaryakramaName())); // <-- Logic for new column
+		karyakramaNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getKaryakramaName()));
 		karyakramaReceiptDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedReceiptDate()));
 		karyakramaTotalAmountColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
 		karyakramaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showKaryakramaDetails));
@@ -207,10 +210,6 @@ public class HistoryController {
 		shashwathaDevoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
 		shashwathaReceiptDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedReceiptDate()));
 		shashwathaPoojaDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPoojaDate()));
-		setupShashwathaPoojaDetailsColumn();
-	}
-
-	private void setupShashwathaPoojaDetailsColumn() {
 		shashwathaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showShashwathaPoojaDetails));
 	}
 
@@ -241,7 +240,6 @@ public class HistoryController {
 		setupSevaDetailsColumn();
 		setVisheshaPoojeColumn();
 		setSevaColumn();
-		setPaymentModeColumn();
 	}
 
 	private void setupDonationTableColumns() {
@@ -250,7 +248,6 @@ public class HistoryController {
 		donationDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedDate()));
 		donationAmountColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getDonationAmount()).asObject());
 		donationNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDonationName()));
-		donationPaymentModeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPaymentMode()));
 		setupDonationDetailsColumn();
 	}
 
@@ -375,13 +372,6 @@ public class HistoryController {
 					.filter(entry -> entry.getName() != null && !nonSevaTypes.contains(entry.getName()))
 					.mapToDouble(SevaEntry::getTotalAmount).sum();
 			return new SimpleStringProperty(sevaAmount > 0 ? String.format("₹%.2f", sevaAmount) : "N/A");
-		});
-	}
-
-	private void setPaymentModeColumn() {
-		paymentMode.setCellValueFactory(cellData -> {
-			String mode = cellData.getValue().getPaymentMode();
-			return new SimpleStringProperty(mode != null ? mode : "N/A");
 		});
 	}
 

@@ -362,7 +362,10 @@ public class MainController {
 			historyStage.setScene(new Scene(loader.load()));
 			historyStage.initModality(Modality.WINDOW_MODAL);
 			historyStage.initOwner(mainStage);
-			historyStage.setMaximized(true);
+//			historyStage.setMaximized(true);
+			historyStage.setHeight(768);
+			historyStage.setWidth(1024);
+			historyStage.setResizable(true);
 			historyStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
