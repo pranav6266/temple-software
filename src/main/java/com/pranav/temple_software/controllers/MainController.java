@@ -391,8 +391,7 @@ public class MainController {
 				}
 				donationStage.initModality(Modality.WINDOW_MODAL);
 				donationStage.initOwner(mainStage);
-				donationStage.setMaxHeight(650);
-				donationStage.setMaxWidth(800);
+				donationStage.setResizable(true);
 				donationStage.show();
 			} catch (Exception e) {
 				e.printStackTrace();
