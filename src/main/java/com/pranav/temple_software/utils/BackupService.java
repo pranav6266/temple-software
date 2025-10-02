@@ -195,6 +195,7 @@ public class BackupService {
 	private static void showAlert(Alert.AlertType type, String title, String content) {
 		Platform.runLater(() -> {
 			Alert alert = new Alert(type);
+
 			alert.setTitle(title);
 			alert.setHeaderText(null);
 			alert.setContentText(content);

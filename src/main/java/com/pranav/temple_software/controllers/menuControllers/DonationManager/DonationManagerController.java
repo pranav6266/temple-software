@@ -66,6 +66,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	@FXML
 	protected void openAddPopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Add New Donation");
 		VBox mainContainer = new VBox();
@@ -125,6 +126,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	@FXML
 	protected void openEditPopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Rearrange Donations");
 
@@ -254,6 +256,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	@FXML
 	protected void openDeletePopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Delete Donations");
 

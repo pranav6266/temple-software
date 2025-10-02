@@ -123,7 +123,6 @@ public class DashboardController {
 					typeValue, itemValue, fromDateValue, toDateValue,
 					monthValue, yearValue, paymentModeValue
 			);
-
 			filterController.setFilterApplyHandler(() -> {
 				this.typeValue = filterController.getTypeValue();
 				this.itemValue = filterController.getItemValue();
@@ -145,6 +144,9 @@ public class DashboardController {
 
 	public void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
+		if (dashboardTable != null && dashboardTable.getScene() != null) {
+			alert.initOwner(dashboardTable.getScene().getWindow());
+		}
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);

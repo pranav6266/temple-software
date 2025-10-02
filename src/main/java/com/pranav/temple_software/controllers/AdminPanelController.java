@@ -257,11 +257,14 @@ public class AdminPanelController {
 			return;
 		}
 		if (!allowedTableNames.contains(selectedTable)) return;
-
 		String pkColumnName = databaseTableView.getColumns().getFirst().getText();
 		String pkValue = selectedRow.getFirst();
 
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to permanently delete row with " + pkColumnName + " = " + pkValue + "? This action cannot be undone.", ButtonType.YES, ButtonType.CANCEL);
+		// FIX: Add this line to set the owner
+		if (databaseTableView != null && databaseTableView.getScene() != null) {
+			alert.initOwner(databaseTableView.getScene().getWindow());
+		}
 		Optional<ButtonType> result = alert.showAndWait();
 
 		if (result.isPresent() && result.get() == ButtonType.YES) {
@@ -294,6 +297,9 @@ public class AdminPanelController {
 
 	private void showAlert() {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
+		if (statusLabel != null && statusLabel.getScene() != null) {
+			alert.initOwner(statusLabel.getScene().getWindow());
+		}
 		alert.setTitle("Security Warning");
 		alert.setHeaderText(null);
 		alert.setContentText("Access to this table is not permitted.");

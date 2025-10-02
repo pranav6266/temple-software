@@ -61,6 +61,7 @@ public class KaryakramaManagerController extends BaseManagerController<Karyakram
 	@FXML
 	private void handleAddKaryakrama() {
 		TextInputDialog dialog = new TextInputDialog();
+		dialog.initOwner(karyakramaTable.getScene().getWindow());
 		dialog.setTitle("Add New Karyakrama");
 		dialog.setHeaderText("Enter the name for the new event.");
 		dialog.setContentText("Name:");

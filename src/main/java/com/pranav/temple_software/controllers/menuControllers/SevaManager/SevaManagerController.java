@@ -76,6 +76,7 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	@FXML
 	protected void openAddPopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Add New Seva");
 		VBox mainContainer = new VBox();
@@ -152,6 +153,7 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	@FXML
 	protected void openEditPopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Edit/Rearrange Sevas");
 
@@ -300,6 +302,7 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	@FXML
 	protected void openDeletePopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Delete Sevas");
 

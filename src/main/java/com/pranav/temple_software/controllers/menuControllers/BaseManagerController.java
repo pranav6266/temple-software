@@ -102,6 +102,9 @@ public abstract class BaseManagerController<T> {
 
 	protected void showAlert(Alert.AlertType alertType, String title, String message) {
 		Alert alert = new Alert(alertType);
+		if (cancelButton != null && cancelButton.getScene() != null) {
+			alert.initOwner(cancelButton.getScene().getWindow());
+		}
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);
@@ -110,6 +113,9 @@ public abstract class BaseManagerController<T> {
 
 	protected Optional<ButtonType> showConfirmationDialog(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		if (cancelButton != null && cancelButton.getScene() != null) {
+			alert.initOwner(cancelButton.getScene().getWindow());
+		}
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);

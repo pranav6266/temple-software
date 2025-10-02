@@ -57,6 +57,7 @@ public class ValidationServices {
 
 	private void showAlert(String message) {
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
 		alert.setTitle("Cash Limit Exceeded");
 		alert.setHeaderText(null);
 		alert.setContentText(message);

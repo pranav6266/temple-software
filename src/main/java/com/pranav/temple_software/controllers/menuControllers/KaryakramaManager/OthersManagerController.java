@@ -65,6 +65,7 @@ public class OthersManagerController extends BaseManagerController<Others> {
 	@FXML
 	private void handleAdd() {
 		TextInputDialog dialog = new TextInputDialog();
+		dialog.initOwner(othersTable.getScene().getWindow());
 		dialog.setTitle("Add New 'Other' Item");
 		dialog.setHeaderText("Enter the name for the new item.");
 		dialog.setContentText("Name:");

@@ -187,6 +187,9 @@ public class KaryakramaController {
 
 	private void showAlert(Alert.AlertType type, String title, String message) {
 		Alert alert = new Alert(type);
+		if (saveButton != null && saveButton.getScene() != null) {
+			alert.initOwner(saveButton.getScene().getWindow());
+		}
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);

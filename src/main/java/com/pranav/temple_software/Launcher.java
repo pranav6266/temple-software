@@ -30,6 +30,7 @@ public class Launcher extends Application {
 		launch(args);
 	}
 
+	// Replace your existing start() method
 	@Override
 	public void start(Stage stage) throws IOException {
 
@@ -45,11 +46,69 @@ public class Launcher extends Application {
 
 		stage.setTitle("Temple Software - Login"); // <-- CHANGED
 		stage.setScene(scene);
-		stage.setResizable(false); // Login window should not be resizable
+		stage.setResizable(false);
+		// Login window should not be resizable
 		stage.initStyle(StageStyle.DECORATED); // Use a standard window for the login
 		stage.show();
 
-		new Thread(this::checkForUpdates).start();
+		// Pass the primary stage to the update checker
+		new Thread(() -> checkForUpdates(stage)).start();
+	}
+
+	// Replace your existing checkForUpdates() method
+	private void checkForUpdates(Stage owner) {
+		// IMPORTANT: Replace these URLs with your actual GitHub URLs from Steps 1 and 2
+		String versionUrl = "https://raw.githubusercontent.com/pranav6266/temple-software/refs/heads/main/version.txt";
+		String downloadUrl = "https://github.com/pranav6266/temple-software/releases/latest"; // Corrected the URL based on your repo
+
+		try {
+			// 1. Get the current version from application.properties
+			Properties props = new Properties();
+			try (InputStream is = Launcher.class.getResourceAsStream("/application.properties")) { // Assuming version is in application.properties
+				if (is == null) {
+					System.err.println("application.properties not found in resources.");
+					return;
+				}
+				props.load(is);
+			}
+			String currentVersion = props.getProperty("app.version", "0.0.0"); // Provide a default
+
+			// 2. Fetch the latest version from your URL
+			HttpClient client = HttpClient.newHttpClient();
+			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(versionUrl)).build();
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			String latestVersion = response.body().trim();
+
+			// 3. Compare versions
+			if (currentVersion != null && !currentVersion.equalsIgnoreCase(latestVersion)) {
+				// If versions are different, show an alert on the UI thread
+				Platform.runLater(() -> {
+					Alert alert = new Alert(Alert.AlertType.INFORMATION);
+					alert.initOwner(owner);
+					alert.setTitle("Update Available");
+					alert.setHeaderText("A new version (" + latestVersion + ") is available!");
+					alert.setContentText("Would you like to go to the download page now?");
+
+					ButtonType downloadButton = new ButtonType("Download");
+					alert.getButtonTypes().setAll(downloadButton, ButtonType.CANCEL);
+
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.isPresent() && result.get() == downloadButton) {
+						try {
+							// Open the download link in the user's default browser
+							Desktop.getDesktop().browse(new URI(downloadUrl));
+						} catch (Exception e) {
+							logger.error("Error occured while trying to get new version ",e);
+						}
+					}
+				});
+			} else {
+				System.out.println("Application is up to date.");
+			}
+		} catch (Exception e) {
+			System.err.println("Could not check for updates: " + e.getMessage());
+			// Fail silently, as this is not a critical feature
+		}
 	}
 
 	private void checkForUpdates() {

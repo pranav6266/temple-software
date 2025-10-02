@@ -96,6 +96,7 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 	@FXML
 	protected void openAddPopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Add Vishesha Pooja");
 
@@ -174,6 +175,7 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 	@FXML
 	protected void openEditPopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Edit/Rearrange Vishesha Poojas");
 
@@ -340,6 +342,7 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 	@FXML
 	protected void openDeletePopup(ActionEvent event) {
 		Stage popupStage = new Stage();
+		popupStage.initOwner(itemTableView.getScene().getWindow());
 		popupStage.initModality(Modality.APPLICATION_MODAL);
 		popupStage.setTitle("Delete Vishesha Poojas");
 

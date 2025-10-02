@@ -1,5 +1,5 @@
+// FILE: src/main/java/com/pranav/temple_software/controllers/MainController.java
 package com.pranav.temple_software.controllers;
-
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationController;
 import com.pranav.temple_software.controllers.menuControllers.DonationManager.DonationManagerController;
 import com.pranav.temple_software.controllers.menuControllers.SevaManager.SevaManagerController;
@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 
 public class MainController {
 	private static final Logger logger = LoggerFactory.getLogger(MainController.class);
-
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
 	public ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 	public Stage mainStage;
@@ -294,6 +293,8 @@ public class MainController {
 	@FXML
 	private void handleCloseApp() {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		// FIX: Add owner to the Alert
+		alert.initOwner(mainStage);
 		alert.setTitle("Exit Confirmation");
 		alert.setHeaderText(null);
 		alert.setContentText("Are you sure you want to exit the application?");
@@ -492,6 +493,8 @@ public class MainController {
 	@FXML
 	public void clearFormAfterChk() {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		// FIX: Add owner to the Alert
+		alert.initOwner(mainStage);
 		alert.setTitle("Confirmation");
 		alert.setHeaderText(null);
 		alert.setContentText("Are you sure you want to clear the form?");
@@ -510,9 +513,10 @@ public class MainController {
 	public ReceiptServices receiptServices = new ReceiptServices(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
-
 	public void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
+		// FIX: Add owner to the Alert
+		alert.initOwner(mainStage);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);

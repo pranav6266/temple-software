@@ -1,3 +1,4 @@
+// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/History/HistoryController.java
 package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.*;
@@ -26,7 +27,6 @@ public class HistoryController {
 	private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
 
 	public Label totalRecordsLabel;
-
 	private enum HistoryView {
 		SEVA("ಸೇವಾ ರಶೀದಿ ಇತಿಹಾಸ"),
 		DONATION("ದೇಣಿಗೆ ರಶೀದಿ ಇತಿಹಾಸ"),
@@ -79,7 +79,6 @@ public class HistoryController {
 	@FXML private TableColumn<InKindDonation, String> inKindDonationDateColumn;
 	@FXML private TableColumn<InKindDonation, String> itemDescriptionColumn;
 	@FXML private TableColumn<InKindDonation, Void> inKindDetailsColumn;
-
 	// Shashwatha Pooja Table
 	@FXML private TableView<ShashwathaPoojaReceipt> shashwathaPoojaHistoryTable;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Integer> shashwathaReceiptIdColumn;
@@ -87,7 +86,6 @@ public class HistoryController {
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaReceiptDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, String> shashwathaPoojaDateColumn;
 	@FXML private TableColumn<ShashwathaPoojaReceipt, Void> shashwathaDetailsColumn;
-
 	// Karyakrama Table
 	@FXML private TableView<KaryakramaReceiptData> karyakramaHistoryTable;
 	@FXML private TableColumn<KaryakramaReceiptData, Integer> karyakramaReceiptIdColumn;
@@ -96,7 +94,6 @@ public class HistoryController {
 	@FXML private TableColumn<KaryakramaReceiptData, String> karyakramaReceiptDateColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, Double> karyakramaTotalAmountColumn;
 	@FXML private TableColumn<KaryakramaReceiptData, Void> karyakramaDetailsColumn;
-
 	@FXML
 	public void initialize() {
 		setupSevaTableColumns();
@@ -124,7 +121,6 @@ public class HistoryController {
 			successConsumer.accept(loadTask.getValue());
 			progressIndicator.setVisible(false);
 		});
-
 		loadTask.setOnFailed(_ -> {
 			progressIndicator.setVisible(false);
 			showAlert("Failed to load history data from the database.");
@@ -401,6 +397,8 @@ public class HistoryController {
 
 	private void showAlert(String message) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
+		// FIX: Add owner to the Alert
+		alert.initOwner(historyTable.getScene().getWindow());
 		alert.setTitle("Error");
 		alert.setHeaderText(null);
 		alert.setContentText(message);
@@ -432,7 +430,8 @@ public class HistoryController {
 			Stage dashboardStage = new Stage();
 			dashboardStage.setTitle("ಸೇವಾ/ದೇಣಿಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್");
 			dashboardStage.setScene(new Scene(loader.load()));
-//			dashboardStage.initModality(Modality.WINDOW_MODAL);
+			// FIX: Set modality to ensure it stays on top of the history window
+			dashboardStage.initModality(Modality.WINDOW_MODAL);
 			dashboardStage.initOwner(historyTable.getScene().getWindow());
 			dashboardStage.setMaximized(true);
 			dashboardStage.show();

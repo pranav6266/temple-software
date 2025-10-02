@@ -197,6 +197,8 @@ public class ReceiptPrinter {
 		}
 	}
 
+// FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
+
 	private void showPreviewDialog(Node receiptNode, String title, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed, FailableRunnable onPrintAction, Runnable onSavePreviewAction) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
@@ -216,10 +218,15 @@ public class ReceiptPrinter {
 		});
 
 		Button savePreviewButton = new Button("Save PNG Preview");
-		savePreviewButton.setOnAction(_ -> onSavePreviewAction.run());
+		savePreviewButton.setOnAction(_ -> {
+			onSavePreviewAction.run();
+			// FIX: Add this line to close the preview window after saving the PNG.
+			previewStage.close();
+		});
 
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(_ -> previewStage.close());
+
 		previewStage.setOnCloseRequest(_ -> {
 			if (onDialogClosed != null) onDialogClosed.run();
 		});
@@ -234,7 +241,6 @@ public class ReceiptPrinter {
 		previewStage.setScene(scene);
 		previewStage.show();
 	}
-
 	private void showAlert(Stage owner, String title, String message) {
 		Platform.runLater(() -> {
 			Alert alert = new Alert(Alert.AlertType.INFORMATION);

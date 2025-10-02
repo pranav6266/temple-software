@@ -256,6 +256,9 @@ public class InKindDonationController {
 
 	private void showAlert(Alert.AlertType alertType, String title, String message) {
 		Alert alert = new Alert(alertType);
+		if (saveButton != null && saveButton.getScene() != null) {
+			alert.initOwner(saveButton.getScene().getWindow());
+		}
 		alert.setTitle(title);
 		alert.setHeaderText(null);
 		alert.setContentText(message);
