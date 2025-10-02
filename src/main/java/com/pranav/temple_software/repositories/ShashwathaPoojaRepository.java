@@ -14,8 +14,8 @@ public class ShashwathaPoojaRepository {
 	}
 
 	public boolean saveShashwathaPooja(ShashwathaPoojaReceipt receipt) {
-		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, pooja_date, amount) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, pooja_date, amount, payment_mode) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -28,6 +28,7 @@ public class ShashwathaPoojaRepository {
 			pstmt.setDate(7, Date.valueOf(receipt.getReceiptDate()));
 			pstmt.setString(8, receipt.getPoojaDate());
 			pstmt.setDouble(9, receipt.getAmount());
+			pstmt.setString(10, receipt.getPaymentMode());
 
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;

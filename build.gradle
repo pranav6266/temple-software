@@ -11,6 +11,7 @@ version = '1.0.0'
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 java {
@@ -35,6 +36,7 @@ dependencies {
     implementation 'org.apache.pdfbox:pdfbox:3.0.0'
     implementation 'com.h2database:h2:2.2.224'
     implementation 'org.apache.poi:poi-ooxml:5.4.0'
+    implementation 'com.github.anastaciocintra:escpos-coffee:4.0.3'
 }
 
 application {
