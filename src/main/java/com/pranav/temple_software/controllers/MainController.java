@@ -762,4 +762,22 @@ public class MainController {
 		};
 		promptForSpecialPassword(openManager);
 	}
+
+	// Add this new method anywhere inside your MainController class
+	@FXML
+	public void handlePrinterSettings() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/PrinterSettingsView.fxml"));
+			Stage settingsStage = new Stage();
+			settingsStage.setTitle("Printer Settings");
+			settingsStage.initModality(Modality.WINDOW_MODAL);
+			settingsStage.initOwner(mainStage);
+			settingsStage.setScene(new Scene(loader.load()));
+			settingsStage.setResizable(false);
+			settingsStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert("Error", "Could not load printer settings view.");
+		}
+	}
 }

@@ -28,6 +28,7 @@
                                                 <MenuItem onAction="#handleOthersManagerButton" text="🔧 ಇತರೆ ನಿರ್ವಹಿಸಿ (Others)" />
                                                 <MenuItem onAction="#handleVisheshaPoojeManagerButton" text="✨ ವಿಶೇಷ ಪೂಜೆ ನಿರ್ವಹಿಸಿ" />
                                                 <MenuItem onAction="#handleShashwathaPoojaManagerButton" text="🕉️ ಶಾಶ್ವತ ಪೂಜೆ ನಿರ್ವಹಿಸಿ" />
+                                                <MenuItem mnemonicParsing="false" onAction="#handlePrinterSettings" text="⚙️ ಪ್ರಿಂಟರ್ ಸೆಟ್ಟಿಂಗ್ಸ್" />
                                             </items>
                                         </Menu>
                                         <MenuItem mnemonicParsing="false" onAction="#handleBackupAndRestore" text="💾 ಬ್ಯಾಕಪ್ ಮತ್ತು ಮರುಸ್ಥಾಪನೆ" />

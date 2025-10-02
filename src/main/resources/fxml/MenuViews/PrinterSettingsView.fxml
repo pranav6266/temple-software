@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="manager-root" stylesheets="@../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.PrinterSettingsController">
+    <top>
+        <Label styleClass="popup-title" text="Printer Settings" BorderPane.alignment="CENTER" />
+    </top>
+    <center>
+        <VBox alignment="CENTER" spacing="10.0" styleClass="popup-content">
+            <Label styleClass="popup-field-label" text="Please select your thermal receipt printer:" />
+            <ComboBox fx:id="printersComboBox" prefWidth="350.0" promptText="Select a Printer" styleClass="popup-text-field" />
+            <Label fx:id="statusLabel" style="-fx-font-weight: bold;" />
+        </VBox>
+    </center>
+    <bottom>
+        <HBox styleClass="popup-button-container">
+            <Button onAction="#handleSave" styleClass="manager-button, manager-save-button" text="Save" />
+            <Button onAction="#handleCancel" styleClass="manager-button, manager-cancel-button" text="Cancel" />
+        </HBox>
+    </bottom>
+</BorderPane>

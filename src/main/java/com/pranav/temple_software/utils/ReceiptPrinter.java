@@ -25,11 +25,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
 
 public class ReceiptPrinter {
-	private static final String PRINTER_NAME_PLACEHOLDER = "BOXP-BR 80";
-	private final MainController controller;
+	private String getPrinterName() {
+		String printerName = ConfigManager.getInstance().getProperty("printer.name");
+		if (printerName == null || printerName.isEmpty()) {
+			// You can return a default or handle the error
+			System.err.println("WARNING: Printer name is not configured in settings.");
+			return "BOXP-BR 80"; // Fallback to a default if nothing is saved
+		}
+		return printerName;
+	}
 
 	public ReceiptPrinter(MainController controller) {
-		this.controller = controller;
 	}
 
 	public void showPrintPreview(SevaReceiptData data, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed) {
@@ -41,7 +47,7 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Seva Receipt Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> { // Print Action
 						try {
-							new EscPosPrinterService(PRINTER_NAME_PLACEHOLDER).printSevaReceipt(data);
+							new EscPosPrinterService(getPrinterName()).printSevaReceipt(data);
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -73,7 +79,7 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Donation Receipt Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
-							new EscPosPrinterService(PRINTER_NAME_PLACEHOLDER).printDonationReceipt(data);
+							new EscPosPrinterService(getPrinterName()).printDonationReceipt(data);
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -105,7 +111,7 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Shashwatha Pooja Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
-							new EscPosPrinterService(PRINTER_NAME_PLACEHOLDER).printShashwathaPoojaReceipt(data);
+							new EscPosPrinterService(getPrinterName()).printShashwathaPoojaReceipt(data);
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -137,7 +143,7 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "In-Kind Donation Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
-							new EscPosPrinterService(PRINTER_NAME_PLACEHOLDER).printInKindDonationReceipt(data);
+							new EscPosPrinterService(getPrinterName()).printInKindDonationReceipt(data);
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -169,7 +175,7 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Karyakrama Receipt Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
-							new EscPosPrinterService(PRINTER_NAME_PLACEHOLDER).printKaryakramaReceipt(data);
+							new EscPosPrinterService(getPrinterName()).printKaryakramaReceipt(data);
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
