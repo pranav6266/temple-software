@@ -15,17 +15,54 @@ import java.util.List;
 
 public class SevaReceiptRepository {
 	private static final Logger logger = LoggerFactory.getLogger(SevaReceiptRepository.class);
-
 	private static Connection getConnection() throws SQLException {
 		return DatabaseManager.getConnection();
 	}
+
+	// MODIFICATION START: New method for transactions
+	/**
+	 * Saves the main receipt details using a provided database connection.
+	 * This method is intended to be used within a transaction.
+	 * @param conn The active database connection (with auto-commit set to false).
+	 * @return The generated ID of the new receipt, or -1 on failure.
+	 * @throws SQLException if a database access error occurs.
+	 */
+	public int saveReceipt(Connection conn, String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
+	                       double total, String paymentMode) throws SQLException {
+		String sql = "INSERT INTO Receipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +
+				"seva_date, total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int generatedId = -1;
+
+		try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+			pstmt.setString(1, name);
+			pstmt.setString(2, phone);
+			pstmt.setString(3, address);
+			pstmt.setString(4, panNumber);
+			pstmt.setString(5, rashi);
+			pstmt.setString(6, nakshatra);
+			pstmt.setDate(7, java.sql.Date.valueOf(date));
+			pstmt.setDouble(8, total);
+			pstmt.setString(9, paymentMode);
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						generatedId = generatedKeys.getInt(1);
+					}
+				}
+			}
+		}
+		// We don't catch SQLException here, we let it propagate up to the transaction manager
+		return generatedId;
+	}
+	// MODIFICATION END
 
 	public int saveReceipt(String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
 	                       double total, String paymentMode) {
 
 		String sql = "INSERT INTO Receipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +
 				"seva_date, total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
 		int generatedId = -1;
 
 		try (Connection conn = getConnection();
@@ -56,9 +93,33 @@ public class SevaReceiptRepository {
 		return generatedId;
 	}
 
+	// MODIFICATION START: New method for transactions
+	/**
+	 * Saves the list of receipt items using a provided database connection.
+	 * This method is intended to be used within a transaction.
+	 * @param conn The active database connection (with auto-commit set to false).
+	 * @return true if the batch execution was successful.
+	 * @throws SQLException if a database access error occurs.
+	 */
+	public boolean saveReceiptItems(Connection conn, int receiptId, List<SevaEntry> sevas) throws SQLException {
+		String sql = "INSERT INTO Receipt_Items (receipt_id, seva_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			for (SevaEntry seva : sevas) {
+				pstmt.setInt(1, receiptId);
+				pstmt.setString(2, seva.getName());
+				pstmt.setInt(3, seva.getQuantity());
+				pstmt.setDouble(4, seva.getAmount());
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+			return true;
+		}
+		// We don't catch SQLException here, we let it propagate up to the transaction manager
+	}
+	// MODIFICATION END
+
 	public boolean saveReceiptItems(int receiptId, List<SevaEntry> sevas) {
 		String sql = "INSERT INTO Receipt_Items (receipt_id, seva_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
-
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -96,7 +157,6 @@ public class SevaReceiptRepository {
 				String nakshatra = rs.getString("nakshatra");
 
 				ObservableList<SevaEntry> sevas = getSevasForReceipt(conn, receiptId);
-
 				boolean hasDonation = sevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
 				String donationStatus = hasDonation ? "ಹೌದು" : "ಇಲ್ಲ";
 				String paymentMode = rs.getString("payment_mode");

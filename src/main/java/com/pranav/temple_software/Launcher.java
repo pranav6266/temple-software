@@ -1,6 +1,5 @@
 package com.pranav.temple_software;
 
-import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.utils.BackupService;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.application.Application;
@@ -14,15 +13,15 @@ import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.Properties;
 
 public class Launcher extends Application {
 	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
@@ -30,7 +29,6 @@ public class Launcher extends Application {
 		launch(args);
 	}
 
-	// Replace your existing start() method
 	@Override
 	public void start(Stage stage) throws IOException {
 
@@ -55,23 +53,24 @@ public class Launcher extends Application {
 		new Thread(() -> checkForUpdates(stage)).start();
 	}
 
-	// Replace your existing checkForUpdates() method
 	private void checkForUpdates(Stage owner) {
-		// IMPORTANT: Replace these URLs with your actual GitHub URLs from Steps 1 and 2
+		// IMPORTANT: This URL points to your GitHub repository's version.txt file
 		String versionUrl = "https://raw.githubusercontent.com/pranav6266/temple-software/refs/heads/main/version.txt";
-		String downloadUrl = "https://github.com/pranav6266/temple-software/releases/latest"; // Corrected the URL based on your repo
+		String downloadUrl = "https://github.com/pranav6266/temple-software/releases/latest";
 
 		try {
-			// 1. Get the current version from application.properties
-			Properties props = new Properties();
-			try (InputStream is = Launcher.class.getResourceAsStream("/application.properties")) { // Assuming version is in application.properties
+			// MODIFICATION START: Corrected version reading logic
+			// 1. Get the current version from version.txt inside the application resources.
+			String currentVersion;
+			try (InputStream is = Launcher.class.getResourceAsStream("/version.txt")) {
 				if (is == null) {
-					System.err.println("application.properties not found in resources.");
+					logger.error("Could not find version.txt in resources. Skipping update check.");
 					return;
 				}
-				props.load(is);
+				// Read all bytes from the file and convert to a trimmed string
+				currentVersion = new String(is.readAllBytes(), StandardCharsets.UTF_8).trim();
 			}
-			String currentVersion = props.getProperty("app.version", "0.0.0"); // Provide a default
+			// MODIFICATION END
 
 			// 2. Fetch the latest version from your URL
 			HttpClient client = HttpClient.newHttpClient();
@@ -80,11 +79,11 @@ public class Launcher extends Application {
 			String latestVersion = response.body().trim();
 
 			// 3. Compare versions
-			if (currentVersion != null && !currentVersion.equalsIgnoreCase(latestVersion)) {
+			if (!currentVersion.isEmpty() && !currentVersion.equalsIgnoreCase(latestVersion)) {
 				// If versions are different, show an alert on the UI thread
 				Platform.runLater(() -> {
 					Alert alert = new Alert(Alert.AlertType.INFORMATION);
-					alert.initOwner(owner);
+					alert.initOwner(owner); // Set owner to prevent it from hiding
 					alert.setTitle("Update Available");
 					alert.setHeaderText("A new version (" + latestVersion + ") is available!");
 					alert.setContentText("Would you like to go to the download page now?");
@@ -98,57 +97,7 @@ public class Launcher extends Application {
 							// Open the download link in the user's default browser
 							Desktop.getDesktop().browse(new URI(downloadUrl));
 						} catch (Exception e) {
-							logger.error("Error occured while trying to get new version ",e);
-						}
-					}
-				});
-			} else {
-				System.out.println("Application is up to date.");
-			}
-		} catch (Exception e) {
-			System.err.println("Could not check for updates: " + e.getMessage());
-			// Fail silently, as this is not a critical feature
-		}
-	}
-
-	private void checkForUpdates() {
-		// IMPORTANT: Replace these URLs with your actual GitHub URLs from Steps 1 and 2
-		String versionUrl = "https://raw.githubusercontent.com/pranav6266/temple-software/refs/heads/main/version.txt";
-		String downloadUrl = "https://github.com/your-username/pranav6266-temple-software/releases/latest"; // Link to the latest release page
-
-		try {
-			// 1. Get the current version from application.properties
-			Properties props = new Properties();
-			try (InputStream is = Launcher.class.getResourceAsStream("/application.properties")) {
-				props.load(is);
-			}
-			String currentVersion = props.getProperty("app.version");
-
-			// 2. Fetch the latest version from your URL
-			HttpClient client = HttpClient.newHttpClient();
-			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(versionUrl)).build();
-			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-			String latestVersion = response.body().trim();
-
-			// 3. Compare versions
-			if (currentVersion != null && !currentVersion.equalsIgnoreCase(latestVersion)) {
-				// If versions are different, show an alert on the UI thread
-				Platform.runLater(() -> {
-					Alert alert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setTitle("Update Available");
-					alert.setHeaderText("A new version (" + latestVersion + ") is available!");
-					alert.setContentText("Would you like to go to the download page now?");
-
-					ButtonType downloadButton = new ButtonType("Download");
-					alert.getButtonTypes().setAll(downloadButton, ButtonType.CANCEL);
-
-					Optional<ButtonType> result = alert.showAndWait();
-					if (result.isPresent() && result.get() == downloadButton) {
-						try {
-							// Open the download link in the user's default browser
-							Desktop.getDesktop().browse(new URI(downloadUrl));
-						} catch (Exception e) {
-							logger.error("Error occured while trying to get new version ",e);
+							logger.error("Error occurred while trying to get new version ",e);
 						}
 					}
 				});

@@ -2,9 +2,12 @@ package com.pranav.temple_software.services;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -99,27 +102,56 @@ public class ReceiptServices {
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode
 		);
 
+		// MODIFICATION START: The database logic is now wrapped in a transaction here.
 		Consumer<Boolean> afterActionCallback = (printSuccess) -> {
 			if (printSuccess) {
-				int actualSavedId = controller.sevaReceiptRepository.saveReceipt(
-						devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
-						date, sevaTotal, paymentMode
-				);
-				if (actualSavedId != -1) {
-					boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(actualSavedId, sevaEntries);
-					if (itemsSaved) {
-						markItemsAsSuccess(sevaEntries);
+				Connection conn = null;
+				try {
+					conn = DatabaseManager.getConnection();
+					conn.setAutoCommit(false); // Start transaction
+
+					int actualSavedId = controller.sevaReceiptRepository.saveReceipt(
+							conn, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
+							date, sevaTotal, paymentMode
+					);
+
+					if (actualSavedId != -1) {
+						boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(conn, actualSavedId, sevaEntries);
+						if (itemsSaved) {
+							conn.commit(); // All good, commit the transaction
+							markItemsAsSuccess(sevaEntries);
+						} else {
+							conn.rollback(); // Something failed, rollback
+							markItemsAsFailed(sevaEntries, "Saved receipt, but failed to save receipt items.");
+						}
 					} else {
-						markItemsAsFailed(sevaEntries, "Saved receipt, but failed to save receipt items.");
+						conn.rollback(); // Something failed, rollback
+						markItemsAsFailed(sevaEntries, "Failed to save receipt to database.");
 					}
-				} else {
-					markItemsAsFailed(sevaEntries, "Failed to save receipt to database");
+				} catch (SQLException e) {
+					if (conn != null) {
+						try {
+							conn.rollback(); // Rollback on any SQL error
+						} catch (SQLException ex) {
+							// Log rollback failure
+						}
+					}
+					markItemsAsFailed(sevaEntries, "A database error occurred: " + e.getMessage());
+				} finally {
+					if (conn != null) {
+						try {
+							conn.close(); // Return connection to the pool
+						} catch (SQLException e) {
+							// Log connection closing failure
+						}
+					}
 				}
 			} else {
 				markItemsAsFailed(sevaEntries, "Print job was cancelled or failed");
 			}
 			controller.updatePrintStatusLabel();
 		};
+		// MODIFICATION END
 
 		Runnable onDialogClosed = () -> {
 			boolean stillPrinting = sevaEntries.stream()
@@ -130,7 +162,6 @@ public class ReceiptServices {
 		};
 		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
 	}
-
 
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {
 		Platform.runLater(() -> {

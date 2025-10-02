@@ -4,6 +4,7 @@ import com.pranav.temple_software.repositories.DevoteeRepository;
 import com.pranav.temple_software.repositories.KaryakramaReceiptRepository;
 import com.pranav.temple_software.repositories.KaryakramaRepository;
 import com.pranav.temple_software.repositories.OthersRepository;
+import com.pranav.temple_software.utils.DatabaseManager;
 import com.pranav.temple_software.utils.ReceiptPrinter;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -13,6 +14,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -122,7 +125,6 @@ public class KaryakramaController {
 	@FXML
 	private void handleSaveAndPrint() {
 		if (!validateInput()) return;
-
 		Karyakrama selectedKaryakrama = karyakramaComboBox.getValue();
 		double totalAmount = selectedOthers.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 		if (totalAmount > 2000 && (panNumberField.getText() == null || panNumberField.getText().trim().isEmpty())) {
@@ -130,7 +132,6 @@ public class KaryakramaController {
 			return;
 		}
 
-		// Create the data object, but DON'T save it yet
 		KaryakramaReceiptData receiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), "", "", selectedKaryakrama.getName(), receiptDatePicker.getValue(),
@@ -138,22 +139,45 @@ public class KaryakramaController {
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
-		// FIX: Database saving logic is now inside this callback
+		// MODIFICATION START: The database logic is now wrapped in a transaction here.
 		Consumer<Boolean> afterActionCallback = (success) -> {
 			if (success) {
-				int savedId = receiptRepository.saveReceipt(receiptData);
-				if (savedId != -1) {
-					receiptRepository.saveReceiptItems(savedId, receiptData.getSevas());
-				} else {
-					Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt."));
+				Connection conn = null;
+				try {
+					conn = DatabaseManager.getConnection();
+					conn.setAutoCommit(false); // Start transaction
+
+					int savedId = receiptRepository.saveReceipt(conn, receiptData);
+
+					if (savedId != -1) {
+						boolean itemsSaved = receiptRepository.saveReceiptItems(conn, savedId, receiptData.getSevas());
+						if (itemsSaved) {
+							conn.commit(); // All good, commit transaction
+						} else {
+							conn.rollback();
+							Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items."));
+						}
+					} else {
+						conn.rollback();
+						Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt."));
+					}
+				} catch (SQLException e) {
+					if (conn != null) {
+						try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
+					}
+					Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "A database error occurred: " + e.getMessage()));
+				} finally {
+					if (conn != null) {
+						try { conn.close(); } catch (SQLException e) { /* Log error */ }
+					}
 				}
 			}
 			Platform.runLater(this::closeWindow);
 		};
+		// MODIFICATION END
 
 		Runnable onDialogClosed = this::closeWindow;
 		Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-		// Pass unsaved object for preview
 		KaryakramaReceiptData previewData = new KaryakramaReceiptData(receiptRepository.getAllReceipts().size()+1, receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode());
 		receiptPrinter.showKaryakramaPrintPreview(previewData, ownerStage, afterActionCallback, onDialogClosed);
 	}

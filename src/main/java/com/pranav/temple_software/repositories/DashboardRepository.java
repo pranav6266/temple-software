@@ -29,6 +29,9 @@ public class DashboardRepository {
 		sql.append("LEFT JOIN Sevas s ON ri.seva_name = s.seva_name ");
 		sql.append("WHERE 1=1 ");
 
+		// Exclude items that are listed as Vishesha Poojas
+		sql.append("AND ri.seva_name NOT IN (SELECT vishesha_pooje_name FROM VisheshaPooje) ");
+
 		List<Object> parameters = new ArrayList<>();
 		if (fromDate != null) {
 			sql.append("AND r.seva_date >= ? ");
@@ -74,6 +77,7 @@ public class DashboardRepository {
 		}
 		return stats;
 	}
+
 
 	public List<DashboardStats> getDonationStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificDonationId) {
 		List<DashboardStats> stats = new ArrayList<>();

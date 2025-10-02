@@ -19,6 +19,35 @@ public class KaryakramaReceiptRepository {
 		return DatabaseManager.getConnection();
 	}
 
+	// MODIFICATION START: New method for transactions
+	public int saveReceipt(Connection conn, KaryakramaReceiptData data) throws SQLException {
+		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, karyakrama_name, receipt_date, total_amount, payment_mode) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+			pstmt.setString(1, data.getDevoteeName());
+			pstmt.setString(2, data.getPhoneNumber());
+			pstmt.setString(3, data.getAddress());
+			pstmt.setString(4, data.getPanNumber());
+			pstmt.setString(5, data.getRashi());
+			pstmt.setString(6, data.getNakshatra());
+			pstmt.setString(7, data.getKaryakramaName());
+			pstmt.setDate(8, Date.valueOf(data.getReceiptDate()));
+			pstmt.setDouble(9, data.getTotalAmount());
+			pstmt.setString(10, data.getPaymentMode());
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						return generatedKeys.getInt(1);
+					}
+				}
+			}
+		}
+		return -1;
+	}
+	// MODIFICATION END
+
 	public int saveReceipt(KaryakramaReceiptData data) {
 		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, karyakrama_name, receipt_date, total_amount, payment_mode) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -49,6 +78,23 @@ public class KaryakramaReceiptRepository {
 		}
 		return -1;
 	}
+
+	// MODIFICATION START: New method for transactions
+	public boolean saveReceiptItems(Connection conn, int receiptId, List<SevaEntry> items) throws SQLException {
+		String sql = "INSERT INTO Karyakrama_Receipt_Items (receipt_id, item_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			for (SevaEntry item : items) {
+				pstmt.setInt(1, receiptId);
+				pstmt.setString(2, item.getName());
+				pstmt.setInt(3, item.getQuantity());
+				pstmt.setDouble(4, item.getAmount());
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+			return true;
+		}
+	}
+	// MODIFICATION END
 
 	public boolean saveReceiptItems(int receiptId, List<SevaEntry> items) {
 		String sql = "INSERT INTO Karyakrama_Receipt_Items (receipt_id, item_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
