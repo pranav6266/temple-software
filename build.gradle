@@ -2,8 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.1.0'
-    // Plugin to create a fat/shadow JAR
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'org.beryx.runtime' version '1.13.1'
 }
 
 group = 'com.pranav'
@@ -15,7 +15,6 @@ repositories {
 }
 
 java {
-    // Keep Java 23 as requested
     toolchain {
         languageVersion = JavaLanguageVersion.of(23)
     }
@@ -27,40 +26,35 @@ javafx {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    // Keep UTF-8 encoding as requested
     options.encoding = 'UTF-8'
 }
 
 dependencies {
-    // Your existing dependencies
     implementation 'org.apache.pdfbox:pdfbox:3.0.0'
     implementation 'com.h2database:h2:2.2.224'
     implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'com.github.anastaciocintra:escpos-coffee:4.0.3'
-    // For Connection Pooling
     implementation 'com.zaxxer:HikariCP:5.1.0'
-
-// For Logging (SLF4J API + Logback Implementation)
     implementation 'org.slf4j:slf4j-api:2.0.7'
     implementation 'ch.qos.logback:logback-classic:1.5.13'
 }
 
 application {
-    // This tells the application plugin where your main method is
-    // The shadow plugin will also use this as the entry point for the JAR
     mainClass = 'com.pranav.temple_software.Main'
 }
 
-// Configure the shadowJar task
 shadowJar {
-    // Specifies the base name for the generated archive.
-    archiveBaseName = 'temple-software'
-    // Specifies the classifier for the generated archive.
+    archiveBaseName = 'Temple_Software'
     archiveClassifier = 'all'
-    // Specifies the version for the generated archive.
     archiveVersion = project.version
-
-    // This ensures that service files from different dependencies are merged correctly.
-    // It's often necessary for libraries that use Java's ServiceLoader mechanism.
     mergeServiceFiles()
+}
+
+runtime {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+
+    jpackage {
+        // Only keep essential options
+        installerOptions = ['--vendor', 'Pranav']
+    }
 }
