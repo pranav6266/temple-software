@@ -19,7 +19,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -103,8 +102,8 @@ public class MainController {
 		sevaTableView.setItems(selectedSevas);
 		table.setupTableView();
 		validationServices.initializeTotalCalculation();
-		smartActionButton.setOnAction(e -> handleSmartAction());
-		addVisheshaPoojeButton.setOnAction(e -> handleAddGeneric("Vishesha Pooja", visheshaPoojeComboBox, VisheshaPoojeRepository.getAllVisheshaPooje()));
+		smartActionButton.setOnAction(_ -> handleSmartAction());
+		addVisheshaPoojeButton.setOnAction(_ -> handleAddGeneric("Vishesha Pooja", visheshaPoojeComboBox, VisheshaPoojeRepository.getAllVisheshaPooje()));
 		sevaListener.initiateSevaListener();
 		validationServices.calenderChecker();
 		validationServices.radioCheck();
@@ -138,7 +137,8 @@ public class MainController {
 		selectedSevas.addListener((ListChangeListener<SevaEntry>) change -> {
 			while (change.next()) {
 				for (SevaEntry entry : change.getAddedSubList()) {
-					entry.totalAmountProperty().addListener((obs, oldVal, newVal) ->
+					entry.totalAmountProperty().addListener((
+							_, _, _) ->
 							validationServices.initializeTotalCalculation()
 					);
 				}
@@ -206,7 +206,7 @@ public class MainController {
 					smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
 					smartActionButton.setDisable(true);
 					smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
-					new Timeline(new KeyFrame(Duration.seconds(1.5), e -> clearForm())).play();
+					new Timeline(new KeyFrame(Duration.seconds(1.5), _ -> clearForm())).play();
 				}
 			} else if (pendingCount > 0) {
 				smartActionButton.setText("ಮುದ್ರಿಸಿ (" + pendingCount + " ಐಟಂಗಳು)");
@@ -216,10 +216,6 @@ public class MainController {
 				smartActionButton.setText("ವಿಫಲವಾದವುಗಳನ್ನು ಮರುಪ್ರಯತ್ನಿಸಿ (" + failedCount + ")");
 				smartActionButton.setDisable(false);
 				smartActionButton.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
-			} else if (successCount > 0) {
-				smartActionButton.setText("ಯಶಸ್ವಿಯಾದವುಗಳನ್ನು ತೆರವುಮಾಡಿ (" + successCount + ")");
-				smartActionButton.setDisable(false);
-				smartActionButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 			} else {
 				smartActionButton.setText("ಐಟಂಗಳನ್ನು ಸೇರಿಸಿ");
 				smartActionButton.setDisable(selectedSevas.isEmpty());
@@ -292,7 +288,7 @@ public class MainController {
 
 	private boolean isValidPanFormat(String pan) {
 		if (pan == null || pan.length() != 10) return false;
-		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]");
 	}
 
 	@FXML
@@ -542,7 +538,8 @@ public class MainController {
 	}
 
 	private void setupFocusLostHandlers() {
-		contactField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+		contactField.focusedProperty().addListener((
+				_, _, newVal) -> {
 			if (!newVal) {
 				String phone = contactField.getText();
 				if (!phone.matches("\\d{10}")) {
@@ -580,7 +577,7 @@ public class MainController {
 						.map(seva -> seva.getName() + " - ₹" + String.format("%.2f", seva.getAmount()))
 						.collect(Collectors.toList())
 		);
-		names.add(0, "ಆಯ್ಕೆ");
+		names.addFirst("ಆಯ್ಕೆ");
 		visheshaPoojeComboBox.setItems(names);
 		logger.debug("Vishesha Pooja ComboBox refreshed with {} items.", entries.size());
 	}
@@ -636,7 +633,7 @@ public class MainController {
 	}
 
 	@FXML
-	public void handleBackupAndRestore(ActionEvent event) {
+	public void handleBackupAndRestore() {
 		BackupService.showBackupRestoreDialog(mainStage);
 	}
 

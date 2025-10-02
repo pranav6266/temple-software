@@ -59,8 +59,6 @@ public class VisheshaPoojeManagerController extends BaseManagerController<SevaEn
 
 	@Override
 	protected String getItemId(SevaEntry item) { return item.getName(); }
-	@Override
-	protected String getItemName(SevaEntry item) { return item.getName(); }
 
 	@Override
 	protected void refreshGridPane() {

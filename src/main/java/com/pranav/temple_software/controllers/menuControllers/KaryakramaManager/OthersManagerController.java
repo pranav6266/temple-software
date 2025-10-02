@@ -3,7 +3,6 @@ package com.pranav.temple_software.controllers.menuControllers.KaryakramaManager
 
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
 import com.pranav.temple_software.models.Others;
-import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.OthersRepository;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -28,7 +27,7 @@ public class OthersManagerController extends BaseManagerController<Others> {
 	public void initialize() {
 		super.initialize();
 		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-		slNoColumn.setCellFactory(col -> new TableCell<>() {
+		slNoColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(Integer item, boolean empty) {
 				super.updateItem(item, empty);
@@ -36,16 +35,6 @@ public class OthersManagerController extends BaseManagerController<Others> {
 			}
 		});
 		refreshGridPane();
-	}
-
-	@Override
-	protected String getItemId(SevaEntry item) {
-		return "";
-	}
-
-	@Override
-	protected String getItemName(SevaEntry item) {
-		return "";
 	}
 
 	@Override
@@ -65,11 +54,6 @@ public class OthersManagerController extends BaseManagerController<Others> {
 	@Override
 	protected String getItemId(Others item) {
 		return String.valueOf(item.getId());
-	}
-
-	@Override
-	protected String getItemName(Others item) {
-		return item.getName();
 	}
 
 	@Override

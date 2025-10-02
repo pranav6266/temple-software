@@ -4,7 +4,6 @@ import com.pranav.temple_software.Launcher;
 import com.pranav.temple_software.repositories.CredentialsRepository;
 import com.pranav.temple_software.utils.PasswordUtils;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -31,7 +30,7 @@ public class LoginController {
 	}
 
 	@FXML
-	void handleLogin(ActionEvent event) {
+	void handleLogin() {
 		String enteredPassword = passwordField.getText();
 		if (enteredPassword == null || enteredPassword.isBlank()) {
 			errorLabel.setText("Password cannot be empty.");
@@ -58,7 +57,7 @@ public class LoginController {
 	}
 
 	@FXML
-	void handleAdminLoginLink(ActionEvent event) {
+	void handleAdminLoginLink() {
 		logger.debug("Redirecting to Admin Login screen.");
 		closeCurrentStage();
 		try {

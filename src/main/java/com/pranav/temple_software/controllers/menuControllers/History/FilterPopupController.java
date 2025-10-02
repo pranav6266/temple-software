@@ -197,11 +197,6 @@ public class FilterPopupController {
 				items.addAll(sevaEntries.stream().map(Seva::getName).toList());
 				break;
 
-//			case "ಇತರೆ ಸೇವೆ":
-//				List<SevaEntry> otherSevaEntries = OthersRepository.getAllOthers();
-//				items.addAll(otherSevaEntries.stream().map(SevaEntry::getName).toList());
-//				break;
-
 			case "ದೇಣಿಗೆ":
 				List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
 				items.addAll(donationEntries.stream().map(Donations::getName).toList());
@@ -236,19 +231,19 @@ public class FilterPopupController {
 		LocalDate toDate = toDatePicker.getValue();
 
 		if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-			showValidationAlert("Invalid Date Range",
-					"From date cannot be after to date.");
+			showValidationAlert(
+			);
 			return false;
 		}
 
 		return true;
 	}
 
-	private void showValidationAlert(String title, String message) {
+	private void showValidationAlert() {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
-		alert.setTitle(title);
+		alert.setTitle("Invalid Date Range");
 		alert.setHeaderText(null);
-		alert.setContentText(message);
+		alert.setContentText("From date cannot be after to date.");
 		alert.showAndWait();
 	}
 }

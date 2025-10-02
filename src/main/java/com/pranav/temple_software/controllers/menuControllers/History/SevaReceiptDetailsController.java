@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pranav.temple_software.utils.ReceiptPrinter;
-import javafx.scene.Node;
 
 public class SevaReceiptDetailsController {
 
@@ -68,11 +67,7 @@ public class SevaReceiptDetailsController {
 	private void handleReprint() {
 		if (currentReceiptData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			receiptPrinter.showPrintPreview(currentReceiptData, stage, success -> {
-				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
-			}, () -> {
-				System.out.println("Reprint preview was closed without action.");
-			});
+			receiptPrinter.showPrintPreview(currentReceiptData, stage, success -> System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled")), () -> System.out.println("Reprint preview was closed without action."));
 		}
 	}
 

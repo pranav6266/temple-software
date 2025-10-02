@@ -3,7 +3,6 @@ package com.pranav.temple_software.controllers.menuControllers.DonationManager;
 import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
 import com.pranav.temple_software.models.Donations;
-import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.DonationRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,11 +33,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	public Button editButton;
 	public Button openDeleteButton;
 
-	@Override
-	protected String getItemId(SevaEntry item) { return ""; }
-	@Override
-	protected String getItemName(SevaEntry item) { return ""; }
-
 	private final DonationRepository donationRepository = DonationRepository.getInstance();
 	private final Map<String, Integer> originalOrderMap = new HashMap<>();
 
@@ -61,8 +55,6 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 	@Override
 	protected String getItemId(Donations item) { return item.getId(); }
-	@Override
-	protected String getItemName(Donations item) { return item.getName(); }
 
 	@Override
 	protected void refreshGridPane() {
@@ -102,9 +94,9 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		mainContainer.getChildren().addAll(titleLabel, contentContainer, buttonContainer);
 
 		Scene scene = new Scene(mainContainer);
-		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
+		scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/modern-manager-popups.css")).toExternalForm());
 		popupStage.setScene(scene);
-		submitButton.setOnAction(e -> {
+		submitButton.setOnAction(_ -> {
 			String donationName = nameField.getText();
 
 			if (donationName == null || donationName.trim().isEmpty()) {
@@ -125,7 +117,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 			showAlert(Alert.AlertType.INFORMATION, "Success", "Donation '" + donationName + "' staged for addition. Press 'Save' to commit.");
 			popupStage.close();
 		});
-		cancelPopupBtn.setOnAction(e -> popupStage.close());
+		cancelPopupBtn.setOnAction(_ -> popupStage.close());
 		popupStage.showAndWait();
 	}
 
@@ -144,7 +136,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		ListView<Donations> listView = new ListView<>(popupTempList);
 		listView.getStyleClass().add("manager-list-view");
 		listView.setPrefSize(500, 400);
-		listView.setCellFactory(lv -> {
+		listView.setCellFactory(_ -> {
 			ListCell<Donations> cell = new ListCell<>() {
 				@Override
 				protected void updateItem(Donations donation, boolean empty) {
@@ -218,13 +210,13 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		savePopupBtn.getStyleClass().addAll("manager-button", "manager-save-button");
 		Button cancelPopupBtn = new Button("Cancel");
 		cancelPopupBtn.getStyleClass().addAll("manager-button", "manager-cancel-button");
-		savePopupBtn.setOnAction(ev -> {
+		savePopupBtn.setOnAction(_ -> {
 			tempItemList.setAll(popupTempList);
 			refreshGridPane();
 			popupStage.close();
 		});
 
-		cancelPopupBtn.setOnAction(ev -> popupStage.close());
+		cancelPopupBtn.setOnAction(_ -> popupStage.close());
 
 		popupStage.setOnCloseRequest((WindowEvent windowEvent) -> {
 			windowEvent.consume();
@@ -253,7 +245,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		layout.getChildren().addAll(titleLabel, contentContainer, buttonBox);
 
 		Scene scene = new Scene(layout);
-		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
+		scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/modern-manager-popups.css")).toExternalForm());
 		popupStage.setScene(scene);
 		popupStage.showAndWait();
 	}
@@ -291,7 +283,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 		Button cancelPopupBtn = new Button("Cancel");
 		cancelPopupBtn.getStyleClass().addAll("manager-button", "manager-cancel-button");
 
-		deleteSelectedButton.setOnAction(e -> {
+		deleteSelectedButton.setOnAction(_ -> {
 			List<Donations> toRemoveFromTemp = new ArrayList<>();
 			for (CheckBox cb : donationCheckBoxes) {
 				if (cb.isSelected()) {
@@ -322,7 +314,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 			popupStage.close();
 		});
 
-		cancelPopupBtn.setOnAction(e -> popupStage.close());
+		cancelPopupBtn.setOnAction(_ -> popupStage.close());
 
 		HBox buttonBox = new HBox(15);
 		buttonBox.getStyleClass().add("popup-button-container");
@@ -330,7 +322,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 
 		mainContainer.getChildren().addAll(titleLabel, scrollPane, buttonBox);
 		Scene scene = new Scene(mainContainer);
-		scene.getStylesheets().add(getClass().getResource("/css/modern-manager-popups.css").toExternalForm());
+		scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/modern-manager-popups.css")).toExternalForm());
 		popupStage.setScene(scene);
 		popupStage.showAndWait();
 	}
@@ -422,7 +414,7 @@ public class DonationManagerController extends BaseManagerController<Donations> 
 	@Override
 	public void initialize() {
 		super.initialize();
-		slNoColumn.setCellFactory(col -> new TableCell<>() {
+		slNoColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(Integer item, boolean empty) {
 				super.updateItem(item, empty);

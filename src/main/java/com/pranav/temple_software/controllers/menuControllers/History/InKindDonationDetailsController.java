@@ -7,7 +7,6 @@ import javafx.scene.control.Label;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pranav.temple_software.utils.ReceiptPrinter;
-import javafx.scene.Node;
 
 public class InKindDonationDetailsController {
 
@@ -53,11 +52,7 @@ public class InKindDonationDetailsController {
 	private void handleReprint() {
 		if (currentDonationData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			receiptPrinter.showInKindDonationPrintPreview(currentDonationData, stage, success -> {
-				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
-			}, () -> {
-				System.out.println("Reprint preview was closed without action.");
-			});
+			receiptPrinter.showInKindDonationPrintPreview(currentDonationData, stage, success -> System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled")), () -> System.out.println("Reprint preview was closed without action."));
 		}
 	}
 

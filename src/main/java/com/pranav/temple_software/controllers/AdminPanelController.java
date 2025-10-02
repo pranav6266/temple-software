@@ -7,7 +7,6 @@ import javafx.animation.PauseTransition;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -48,8 +47,9 @@ public class AdminPanelController {
 	@FXML
 	public void initialize() {
 		// Initialize Log Viewer
-		handleRefreshLogs(null);
-		logFilesComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+		handleRefreshLogs();
+		logFilesComboBox.getSelectionModel().selectedItemProperty().addListener((
+				_, _, newVal) -> {
 			if (newVal != null) {
 				loadLogFileContent(newVal);
 			}
@@ -57,7 +57,8 @@ public class AdminPanelController {
 
 		// Initialize Database Editor
 		loadTableNames();
-		tablesComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+		tablesComboBox.getSelectionModel().selectedItemProperty().addListener((
+				_, _, newVal) -> {
 			if (newVal != null) {
 				loadTableData(newVal);
 			}
@@ -66,21 +67,21 @@ public class AdminPanelController {
 
 	// --- Password Management Logic ---
 	@FXML
-	void handleChangeNormalPassword(ActionEvent event) {
+	void handleChangeNormalPassword() {
 		String pass1 = normalPassField.getText();
 		String pass2 = normalPassConfirmField.getText();
 		updatePassword("NORMAL_PASSWORD", pass1, pass2);
 	}
 
 	@FXML
-	void handleChangeSpecialPassword(ActionEvent event) {
+	void handleChangeSpecialPassword() {
 		String pass1 = specialPassField.getText();
 		String pass2 = specialPassConfirmField.getText();
 		updatePassword("SPECIAL_PASSWORD", pass1, pass2);
 	}
 
 	@FXML
-	void handleChangeAdminCredentials(ActionEvent event) {
+	void handleChangeAdminCredentials() {
 		String username = adminUserField.getText();
 		String pass1 = adminPassField.getText();
 		String pass2 = adminPassConfirmField.getText();
@@ -123,12 +124,12 @@ public class AdminPanelController {
 
 	// --- Log Viewer Logic ---
 	@FXML
-	void handleRefreshLogs(ActionEvent event) {
+	void handleRefreshLogs() {
 		logContentArea.clear();
 		logFilesComboBox.getItems().clear();
 		File logDirectory = new File(logDir);
 		if (logDirectory.exists() && logDirectory.isDirectory()) {
-			File[] logFiles = logDirectory.listFiles((dir, name) -> name.toLowerCase().endsWith(".log"));
+			File[] logFiles = logDirectory.listFiles((_, name) -> name.toLowerCase().endsWith(".log"));
 			if (logFiles != null) {
 				logFilesComboBox.getItems().addAll(logFiles);
 			}
@@ -165,7 +166,7 @@ public class AdminPanelController {
 
 	private void loadTableData(String tableName) {
 		if (!allowedTableNames.contains(tableName)) {
-			showAlert("Security Warning", "Access to this table is not permitted.");
+			showAlert();
 			return;
 		}
 
@@ -207,12 +208,13 @@ public class AdminPanelController {
 	}
 
 	@FXML
-	void handleSaveChanges(ActionEvent event) {
+	void handleSaveChanges() {
 		String selectedTable = tablesComboBox.getSelectionModel().getSelectedItem();
 		if (selectedTable == null) return;
 		if (!allowedTableNames.contains(selectedTable)) return;
 
-		TableColumn<ObservableList<String>, ?> primaryKeyColumn = databaseTableView.getColumns().get(0);
+		TableColumn<ObservableList<String>, ?> primaryKeyColumn =
+				databaseTableView.getColumns().getFirst();
 		String pkColumnName = primaryKeyColumn.getText();
 
 		try (Connection conn = DatabaseManager.getConnection()) {
@@ -230,7 +232,7 @@ public class AdminPanelController {
 					for (int i = 1; i < row.size(); i++) {
 						pstmt.setString(paramIndex++, row.get(i));
 					}
-					pstmt.setString(paramIndex, row.get(0));
+					pstmt.setString(paramIndex, row.getFirst());
 					pstmt.addBatch();
 				}
 				pstmt.executeBatch();
@@ -247,7 +249,7 @@ public class AdminPanelController {
 	}
 
 	@FXML
-	void handleDeleteRow(ActionEvent event) {
+	void handleDeleteRow() {
 		String selectedTable = tablesComboBox.getSelectionModel().getSelectedItem();
 		ObservableList<String> selectedRow = databaseTableView.getSelectionModel().getSelectedItem();
 		if (selectedTable == null || selectedRow == null) {
@@ -256,8 +258,8 @@ public class AdminPanelController {
 		}
 		if (!allowedTableNames.contains(selectedTable)) return;
 
-		String pkColumnName = databaseTableView.getColumns().get(0).getText();
-		String pkValue = selectedRow.get(0);
+		String pkColumnName = databaseTableView.getColumns().getFirst().getText();
+		String pkValue = selectedRow.getFirst();
 
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to permanently delete row with " + pkColumnName + " = " + pkValue + "? This action cannot be undone.", ButtonType.YES, ButtonType.CANCEL);
 		Optional<ButtonType> result = alert.showAndWait();
@@ -286,15 +288,15 @@ public class AdminPanelController {
 		statusLabel.setText(message);
 		statusLabel.setTextFill(isError ? Color.RED : Color.GREEN);
 		PauseTransition delay = new PauseTransition(Duration.seconds(5));
-		delay.setOnFinished(event -> statusLabel.setText(""));
+		delay.setOnFinished(_ -> statusLabel.setText(""));
 		delay.play();
 	}
 
-	private void showAlert(String title, String content) {
+	private void showAlert() {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
-		alert.setTitle(title);
+		alert.setTitle("Security Warning");
 		alert.setHeaderText(null);
-		alert.setContentText(content);
+		alert.setContentText("Access to this table is not permitted.");
 		alert.showAndWait();
 	}
 

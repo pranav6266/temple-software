@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pranav.temple_software.utils.ReceiptPrinter;
-import javafx.scene.Node;
+
 public class ShashwathaPoojaDetailsController {
 
 	@FXML private Label receiptIdLabel;
@@ -47,11 +47,7 @@ public class ShashwathaPoojaDetailsController {
 	private void handleReprint() {
 		if (currentPoojaData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			receiptPrinter.showShashwathaPoojaPrintPreview(currentPoojaData, stage, success -> {
-				System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled"));
-			}, () -> {
-				System.out.println("Reprint preview was closed without action.");
-			});
+			receiptPrinter.showShashwathaPoojaPrintPreview(currentPoojaData, stage, success -> System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled")), () -> System.out.println("Reprint preview was closed without action."));
 		}
 	}
 

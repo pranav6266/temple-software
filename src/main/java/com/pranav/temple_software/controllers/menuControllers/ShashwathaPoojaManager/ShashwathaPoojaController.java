@@ -12,6 +12,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -22,6 +24,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ShashwathaPoojaController {
+
+	private static final Logger logger = LoggerFactory.getLogger(ShashwathaPoojaController.class);
 
 	@FXML private TextField devoteeNameField;
 	@FXML private TextField contactField;
@@ -34,7 +38,6 @@ public class ShashwathaPoojaController {
 	@FXML private Label amountLabel;
 	@FXML private RadioButton cashRadio;
 	@FXML private RadioButton onlineRadio;
-	@FXML private ToggleGroup paymentGroup;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
 
@@ -80,10 +83,10 @@ public class ShashwathaPoojaController {
 
 	// Replace the existing setupPhoneNumberListener method with this one
 	private void setupPhoneNumberListener() {
-		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+		contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
 				// First, ensure only up to 10 digits can be entered
-				String digitsOnly = newValue.replaceAll("[^\\d]", "");
+				String digitsOnly = newValue.replaceAll("\\D", "");
 				if (digitsOnly.length() > 10) {
 					digitsOnly = digitsOnly.substring(0, 10);
 				}
@@ -127,43 +130,24 @@ public class ShashwathaPoojaController {
 		if (!validateInput()) {
 			return;
 		}
-
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
-
-		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(
-				0,
-				devoteeNameField.getText(),
-				contactField.getText(),
-				addressField.getText(),
-				panNumberField.getText(),
-				raashiComboBox.getValue(),
-				nakshatraComboBox.getValue(),
-				receiptDatePicker.getValue(),
-				poojaDateField.getText(),
-				currentPoojaAmount,
-				paymentMode
-		);
-
+		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(), receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode);
 		boolean success = repository.saveShashwathaPooja(newReceipt);
 		if (success) {
 			List<ShashwathaPoojaReceipt> latest = repository.getAllShashwathaPoojaReceipts();
 			if (!latest.isEmpty()) {
-				ShashwathaPoojaReceipt savedReceipt = latest.get(0);
-
+				ShashwathaPoojaReceipt savedReceipt = latest.getFirst();
 				if (receiptPrinter != null) {
-					Consumer<Boolean> onPrintComplete = (printSuccess) -> {
-						Platform.runLater(() -> {
-							showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja receipt saved successfully!");
-							closeWindow();
-						});
-					};
+					Consumer<Boolean> onPrintComplete = (_) -> Platform.runLater(() -> {
+						showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja receipt saved successfully!");
+						closeWindow();
+					});
 					Runnable onDialogClosed = this::closeWindow;
-
 					try {
 						Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 						receiptPrinter.showShashwathaPoojaPrintPreview(savedReceipt, ownerStage, onPrintComplete, onDialogClosed);
 					} catch (Exception e) {
-						e.printStackTrace();
+						logger.error("Failed to open print preview for Shashwatha Pooja", e);
 						showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
 						closeWindow();
 					}
@@ -209,7 +193,7 @@ public class ShashwathaPoojaController {
 		if (pan == null || pan.length() != 10) {
 			return false;
 		}
-		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]");
 	}
 
 	@FXML
@@ -249,7 +233,7 @@ public class ShashwathaPoojaController {
 
 		nakshatraComboBox.setDisable(true);
 		raashiComboBox.getSelectionModel().selectedItemProperty().addListener(
-				(obs, oldVal, newVal) -> {
+				(_, _, newVal) -> {
 					if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
 						nakshatraComboBox.setDisable(true);
 						nakshatraComboBox.getItems().clear();

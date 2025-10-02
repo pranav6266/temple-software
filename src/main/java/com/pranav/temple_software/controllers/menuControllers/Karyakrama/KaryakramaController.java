@@ -14,8 +14,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class KaryakramaController {
 
@@ -52,9 +52,9 @@ public class KaryakramaController {
 	}
 
 	private void setupDevoteeFields() {
-		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+		contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
-				String digitsOnly = newValue.replaceAll("[^\\d]", "");
+				String digitsOnly = newValue.replaceAll("\\D", "");
 				if (digitsOnly.length() > 10) {
 					digitsOnly = digitsOnly.substring(0, 10);
 				}
@@ -133,7 +133,7 @@ public class KaryakramaController {
 		KaryakramaReceiptData receiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), "", "", selectedKaryakrama.getName(), receiptDatePicker.getValue(),
-				selectedOthers.stream().collect(Collectors.toList()),
+				new ArrayList<>(selectedOthers),
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
@@ -151,7 +151,7 @@ public class KaryakramaController {
 					receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(),
 					receiptData.getTotalAmount(), receiptData.getPaymentMode());
 
-			Consumer<Boolean> onPrintComplete = (success) -> Platform.runLater(this::closeWindow);
+			Consumer<Boolean> onPrintComplete = (_) -> Platform.runLater(this::closeWindow);
 			Runnable onDialogClosed = this::closeWindow;
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 			receiptPrinter.showKaryakramaPrintPreview(savedReceiptData, ownerStage, onPrintComplete, onDialogClosed);

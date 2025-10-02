@@ -3,7 +3,6 @@ package com.pranav.temple_software.controllers.menuControllers.KaryakramaManager
 
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
 import com.pranav.temple_software.models.Karyakrama;
-import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.KaryakramaRepository;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -25,7 +24,7 @@ public class KaryakramaManagerController extends BaseManagerController<Karyakram
 	public void initialize() {
 		super.initialize();
 		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-		slNoColumn.setCellFactory(col -> new TableCell<>() {
+		slNoColumn.setCellFactory(_ -> new TableCell<>() {
 			@Override
 			protected void updateItem(Integer item, boolean empty) {
 				super.updateItem(item, empty);
@@ -33,16 +32,6 @@ public class KaryakramaManagerController extends BaseManagerController<Karyakram
 			}
 		});
 		refreshGridPane();
-	}
-
-	@Override
-	protected String getItemId(SevaEntry item) {
-		return "";
-	}
-
-	@Override
-	protected String getItemName(SevaEntry item) {
-		return "";
 	}
 
 	@Override
@@ -61,11 +50,6 @@ public class KaryakramaManagerController extends BaseManagerController<Karyakram
 	@Override
 	protected String getItemId(Karyakrama item) {
 		return String.valueOf(item.getId());
-	}
-
-	@Override
-	protected String getItemName(Karyakrama item) {
-		return item.getName();
 	}
 
 	@Override

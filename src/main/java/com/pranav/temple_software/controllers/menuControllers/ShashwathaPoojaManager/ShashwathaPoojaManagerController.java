@@ -1,23 +1,25 @@
 package com.pranav.temple_software.controllers.menuControllers.ShashwathaPoojaManager;
 
+import ch.qos.logback.classic.Logger;
 import com.pranav.temple_software.repositories.CredentialsRepository;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public class ShashwathaPoojaManagerController {
+	private static final Logger logger = (Logger) LoggerFactory.getLogger(ShashwathaPoojaManagerController.class);
 
 	@FXML private Label statusLabel;
 	@FXML private TextField amountField;
-	@FXML private Button saveButton;
+	@FXML public Button saveButton;
 	@FXML private Button cancelButton;
 
 	private final CredentialsRepository credentialsRepository = new CredentialsRepository();
@@ -25,12 +27,9 @@ public class ShashwathaPoojaManagerController {
 
 	@FXML
 	public void initialize() {
-		// Load the current amount and display it
 		Optional<String> currentAmountOpt = credentialsRepository.getCredential(PRICE_KEY);
 		currentAmountOpt.ifPresent(amount -> amountField.setText(amount));
-
-		// Add a listener to allow only numeric input
-		amountField.textProperty().addListener((observable, oldValue, newValue) -> {
+		amountField.textProperty().addListener((_, oldValue, newValue) -> {
 			if (!newValue.matches("\\d*(\\.\\d*)?")) {
 				amountField.setText(oldValue);
 			}
@@ -38,12 +37,33 @@ public class ShashwathaPoojaManagerController {
 	}
 
 	@FXML
-	private void handleSave() {
+	public void handleSave() {
 		String newAmountStr = amountField.getText();
 		if (newAmountStr == null || newAmountStr.trim().isEmpty()) {
 			showStatus("Amount cannot be empty.", true);
 			return;
 		}
+
+		try {
+			double newAmount = Double.parseDouble(newAmountStr);
+			if (newAmount < 0) {
+				showStatus("Amount cannot be negative.", true);
+				return;
+			}
+			boolean success = credentialsRepository.updateCredential(PRICE_KEY, String.format("%.2f", newAmount));
+			if (success) {
+				showStatus("Price updated successfully!", false);
+				PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
+				delay.setOnFinished(_ -> closeWindow());
+				delay.play();
+			} else {
+				showStatus("Failed to update price. Check logs.", true);
+			}
+		} catch (NumberFormatException e) {
+			logger.warn("Invalid amount format entered: {}", newAmountStr);
+			showStatus("Invalid amount format.", true);
+		}
+
 
 		try {
 			double newAmount = Double.parseDouble(newAmountStr);
@@ -57,7 +77,7 @@ public class ShashwathaPoojaManagerController {
 				showStatus("Price updated successfully!", false);
 				// Optionally close window after a short delay
 				PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
-				delay.setOnFinished(event -> closeWindow());
+				delay.setOnFinished(_ -> closeWindow());
 				delay.play();
 			} else {
 				showStatus("Failed to update price. Check logs.", true);
@@ -82,7 +102,7 @@ public class ShashwathaPoojaManagerController {
 		statusLabel.setText(message);
 		statusLabel.setTextFill(isError ? Color.RED : Color.GREEN);
 		PauseTransition delay = new PauseTransition(Duration.seconds(4));
-		delay.setOnFinished(event -> statusLabel.setText(""));
+		delay.setOnFinished(_ -> statusLabel.setText(""));
 		delay.play();
 	}
 }

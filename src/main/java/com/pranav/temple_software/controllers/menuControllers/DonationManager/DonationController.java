@@ -35,7 +35,6 @@ public class DonationController {
 	@FXML private TextField panNumberField;
 	@FXML private RadioButton cashRadio;
 	@FXML private RadioButton onlineRadio;
-	@FXML private ToggleGroup paymentGroup;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
 
@@ -68,7 +67,7 @@ public class DonationController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-		amountField.textProperty().addListener((observable, oldValue, newValue) -> {
+		amountField.textProperty().addListener((_, oldValue, newValue) -> {
 			if (newValue != null && !newValue.matches("\\d*(\\.\\d*)?")) {
 				amountField.setText(oldValue);
 			}
@@ -77,10 +76,10 @@ public class DonationController {
 
 	// Replace the existing setupPhoneNumberListener method with this one
 	private void setupPhoneNumberListener() {
-		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
+		contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
 				// First, ensure only up to 10 digits can be entered
-				String digitsOnly = newValue.replaceAll("[^\\d]", "");
+				String digitsOnly = newValue.replaceAll("\\D", "");
 				if (digitsOnly.length() > 10) {
 					digitsOnly = digitsOnly.substring(0, 10);
 				}
@@ -148,7 +147,7 @@ public class DonationController {
 					paymentMode
 			);
 			if (receiptPrinter != null) {
-				Consumer<Boolean> onPrintComplete = (printSuccess) -> Platform.runLater(this::closeWindow);
+				Consumer<Boolean> onPrintComplete = (_) -> Platform.runLater(this::closeWindow);
 				Runnable onDialogClosed = this::closeWindow;
 				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 				receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, onPrintComplete, onDialogClosed);
@@ -196,7 +195,7 @@ public class DonationController {
 		if (pan == null || pan.length() != 10) {
 			return false;
 		}
-		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
+		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]");
 	}
 
 	@FXML
@@ -214,7 +213,7 @@ public class DonationController {
 		List<String> donationNames = donationRepository.getAllDonations().stream()
 				.map(Donations::getName)
 				.collect(Collectors.toList());
-		donationNames.add(0, "ಆಯ್ಕೆ");
+		donationNames.addFirst("ಆಯ್ಕೆ");
 		donationComboBox.setItems(FXCollections.observableArrayList(donationNames));
 	}
 
@@ -253,7 +252,8 @@ public class DonationController {
 		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಾಭಾದ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
 
 		nakshatraComboBox.setDisable(true);
-		raashiComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+		raashiComboBox.getSelectionModel().selectedItemProperty().addListener((
+				_, _, newVal) -> {
 			if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
 				nakshatraComboBox.setDisable(true);
 				nakshatraComboBox.getItems().clear();

@@ -2,7 +2,6 @@
 package com.pranav.temple_software.controllers.menuControllers;
 
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.models.SevaEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,7 +18,6 @@ public abstract class BaseManagerController<T> {
 	@FXML protected Button saveButton;
 	@FXML protected Button cancelButton;
 	@FXML protected Button openAddButton;
-	@FXML protected Button openEditButton;
 	@FXML protected Button openDeleteButton;
 
 	protected MainController mainControllerInstance;
@@ -39,24 +37,20 @@ public abstract class BaseManagerController<T> {
 		refreshGridPane();
 	}
 
-	protected abstract String getItemId(SevaEntry item);
-
-	protected abstract String getItemName(SevaEntry item);
-
 	// --- Abstract Methods ---
 	protected abstract void loadData();
 	protected abstract void refreshGridPane();
 	@FXML public abstract void handleSave(ActionEvent event);
 	protected abstract void storeOriginalState();
 	protected abstract String getItemId(T item);
-	protected abstract String getItemName(T item);
+
 	@FXML protected abstract void openAddPopup(ActionEvent event);
 	@FXML protected abstract void openEditPopup(ActionEvent event);
 	@FXML protected abstract void openDeletePopup(ActionEvent event);
 
 	// --- Common Helper Methods ---
 	@FXML
-	public void handleCancelButton(ActionEvent actionEvent) {
+	public void handleCancelButton() {
 		if (checkForUnsavedChanges()) {
 			Optional<ButtonType> result = showConfirmationDialog(
 					"Confirm Cancel",

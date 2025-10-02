@@ -10,7 +10,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -18,6 +17,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,9 +26,11 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DashboardController {
-	// --- UI Controls from FXML ---
+	private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
+
 	@FXML private TableView<DashboardStats> dashboardTable;
 	@FXML private TableColumn<DashboardStats, String> itemNameColumn;
 	@FXML private TableColumn<DashboardStats, String> itemTypeColumn;
@@ -38,13 +41,11 @@ public class DashboardController {
 	@FXML private Label totalRecordsLabel;
 	@FXML private Label totalAmountLabel;
 	@FXML private ProgressIndicator progressIndicator;
-	@FXML private StackPane tableStackPane;
 
-	// --- Instance variables to STORE filter values (replaces direct @FXML controls) ---
 	private String typeValue;
 	private String itemValue;
 	private LocalDate fromDateValue;
-	private LocalDate toDateValue; // This was hidden but is still needed
+	private LocalDate toDateValue;
 	private String monthValue;
 	private String yearValue;
 	private String paymentModeValue;
@@ -53,7 +54,6 @@ public class DashboardController {
 
 	@FXML
 	public void initialize() {
-		// Set default filter values
 		clearAllFiltersAndRunReport();
 		setupTableColumns();
 		generateReport();
@@ -63,12 +63,11 @@ public class DashboardController {
 	private void generateReport() {
 		progressIndicator.setVisible(true);
 		dashboardTable.setDisable(true);
-		dashboardTable.setItems(FXCollections.observableArrayList()); // Clear previous results
+		dashboardTable.setItems(FXCollections.observableArrayList());
 
 		Task<List<DashboardStats>> loadReportTask = new Task<>() {
 			@Override
-			protected List<DashboardStats> call() throws Exception {
-				// This runs on a background thread
+			protected List<DashboardStats> call() {
 				List<DashboardStats> allStats = new ArrayList<>();
 				if ("ಎಲ್ಲಾ".equals(typeValue) || "ಸೇವೆ".equals(typeValue)) {
 					allStats.addAll(dashboardRepository.getSevaStatistics(fromDateValue, toDateValue, paymentModeValue, getIdFromName(itemValue, dashboardRepository.getAllSevaNames())));
@@ -89,8 +88,7 @@ public class DashboardController {
 			}
 		};
 
-		loadReportTask.setOnSucceeded(e -> {
-			// This runs on the UI thread
+		loadReportTask.setOnSucceeded(_ -> {
 			List<DashboardStats> result = loadReportTask.getValue();
 			dashboardTable.setItems(FXCollections.observableArrayList(result));
 			updateSummaryLabels(result);
@@ -98,12 +96,11 @@ public class DashboardController {
 			dashboardTable.setDisable(false);
 		});
 
-		loadReportTask.setOnFailed(e -> {
-			// This runs on the UI thread if an error occurs
+		loadReportTask.setOnFailed(_ -> {
 			progressIndicator.setVisible(false);
 			dashboardTable.setDisable(false);
 			showAlert("Error", "Failed to load dashboard report.");
-			loadReportTask.getException().printStackTrace();
+			logger.error("Failed to load dashboard report", loadReportTask.getException());
 		});
 
 		new Thread(loadReportTask).start();
@@ -119,7 +116,7 @@ public class DashboardController {
 			filterStage.initOwner(dashboardTable.getScene().getWindow());
 			filterStage.setResizable(false);
 			Scene scene = new Scene(loader.load());
-			scene.getStylesheets().add(getClass().getResource("/css/modern-dashboard.css").toExternalForm());
+			scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/modern-dashboard.css")).toExternalForm());
 			filterStage.setScene(scene);
 			FilterPopupController filterController = loader.getController();
 			filterController.initializeWithCurrentFilters(
@@ -128,7 +125,6 @@ public class DashboardController {
 			);
 
 			filterController.setFilterApplyHandler(() -> {
-				// Update the stored values from the popup controller
 				this.typeValue = filterController.getTypeValue();
 				this.itemValue = filterController.getItemValue();
 				this.fromDateValue = filterController.getFromDateValue();
@@ -142,7 +138,7 @@ public class DashboardController {
 
 			filterStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Failed to open filter window", e);
 			showAlert("Error", "Failed to open filter window: " + e.getMessage());
 		}
 	}
@@ -229,12 +225,10 @@ public class DashboardController {
 			showAlert("No Data", "There is no data to export.");
 			return;
 		}
-
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Save Excel File");
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
 		File file = fileChooser.showSaveDialog(dashboardTable.getScene().getWindow());
-
 		if (file != null) {
 			try (Workbook workbook = new XSSFWorkbook()) {
 				Sheet sheet = workbook.createSheet("Dashboard Report");
@@ -243,7 +237,6 @@ public class DashboardController {
 				for (int i = 0; i < headers.length; i++) {
 					headerRow.createCell(i).setCellValue(headers[i]);
 				}
-
 				int rowNum = 1;
 				for (DashboardStats stats : data) {
 					Row row = sheet.createRow(rowNum++);
@@ -254,15 +247,13 @@ public class DashboardController {
 					row.createCell(4).setCellValue(stats.getOnlineCount());
 					row.createCell(5).setCellValue(stats.getTotalAmount());
 				}
-
 				try (FileOutputStream fileOut = new FileOutputStream(file)) {
 					workbook.write(fileOut);
 				}
-
 				showAlert("Success", "Data exported successfully to " + file.getName());
 			} catch (IOException e) {
 				showAlert("Error", "Failed to write the Excel file: " + e.getMessage());
-				e.printStackTrace();
+				logger.error("Failed to write Excel file", e);
 			}
 		}
 	}

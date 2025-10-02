@@ -12,9 +12,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class HistoryController {
+	private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
+
 	public Label totalRecordsLabel;
 
 	private enum HistoryView {
@@ -48,8 +51,6 @@ public class HistoryController {
 	// FXML elements
 	@FXML private ComboBox<HistoryView> viewSelectionComboBox;
 	@FXML private Label currentViewLabel;
-	@FXML private Button dashboardButton;
-	@FXML private StackPane tableStackPane;
 	@FXML private ProgressIndicator progressIndicator;
 
 	// Seva Table
@@ -109,28 +110,25 @@ public class HistoryController {
 
 	private <T> void loadDataInBackground(Supplier<List<T>> dataSupplier, Consumer<List<T>> successConsumer) {
 		progressIndicator.setVisible(true);
-		setTableVisibility(false, false, false, false, false); // Hide all tables
-		updateRecordCount(0); // Reset count
+		setTableVisibility(false, false, false, false, false);
+		updateRecordCount(0);
 
 		Task<List<T>> loadTask = new Task<>() {
 			@Override
-			protected List<T> call() throws Exception {
-				// This runs on a background thread
+			protected List<T> call() {
 				return dataSupplier.get();
 			}
 		};
 
-		loadTask.setOnSucceeded(e -> {
-			// This runs on the UI thread after success
+		loadTask.setOnSucceeded(_ -> {
 			successConsumer.accept(loadTask.getValue());
 			progressIndicator.setVisible(false);
 		});
 
-		loadTask.setOnFailed(e -> {
-			// This runs on the UI thread on failure
+		loadTask.setOnFailed(_ -> {
 			progressIndicator.setVisible(false);
-			showAlert("Error", "Failed to load history data from the database.");
-			loadTask.getException().printStackTrace();
+			showAlert("Failed to load history data from the database.");
+			logger.error("Failed to load history data from the database", loadTask.getException());
 		});
 
 		new Thread(loadTask).start();
@@ -139,7 +137,7 @@ public class HistoryController {
 	private void setupViewSelectionComboBox() {
 		viewSelectionComboBox.setItems(FXCollections.observableArrayList(HistoryView.values()));
 		viewSelectionComboBox.setValue(HistoryView.SEVA);
-		viewSelectionComboBox.setOnAction(event -> {
+		viewSelectionComboBox.setOnAction(_ -> {
 			HistoryView selectedView = viewSelectionComboBox.getValue();
 			if (selectedView != null && selectedView != currentView) {
 				switchToView(selectedView);
@@ -164,7 +162,7 @@ public class HistoryController {
 
 	private void switchToSevaView() {
 		loadDataInBackground(
-				() -> sevaReceiptRepository.getAllReceipts(),
+				sevaReceiptRepository::getAllReceipts,
 				receipts -> {
 					setTableVisibility(true, false, false, false, false);
 					historyTable.setItems(FXCollections.observableArrayList(receipts));
@@ -175,7 +173,7 @@ public class HistoryController {
 
 	private void switchToDonationView() {
 		loadDataInBackground(
-				() -> donationReceiptRepository.getAllDonationReceipts(),
+				donationReceiptRepository::getAllDonationReceipts,
 				receipts -> {
 					setTableVisibility(false, true, false, false, false);
 					donationHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -186,7 +184,7 @@ public class HistoryController {
 
 	private void switchToInKindDonationView() {
 		loadDataInBackground(
-				() -> inKindDonationRepository.getAllInKindDonations(),
+				inKindDonationRepository::getAllInKindDonations,
 				receipts -> {
 					setTableVisibility(false, false, true, false, false);
 					inKindDonationHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -197,7 +195,7 @@ public class HistoryController {
 
 	private void switchToShashwathaPoojaView() {
 		loadDataInBackground(
-				() -> shashwathaPoojaRepository.getAllShashwathaPoojaReceipts(),
+				shashwathaPoojaRepository::getAllShashwathaPoojaReceipts,
 				receipts -> {
 					setTableVisibility(false, false, false, true, false);
 					shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -208,7 +206,7 @@ public class HistoryController {
 
 	private void switchToKaryakramaView() {
 		loadDataInBackground(
-				() -> karyakramaReceiptRepository.getAllReceipts(),
+				karyakramaReceiptRepository::getAllReceipts,
 				receipts -> {
 					setTableVisibility(false, false, false, false, true);
 					karyakramaHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -231,7 +229,7 @@ public class HistoryController {
 		karyakramaNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getKaryakramaName()));
 		karyakramaReceiptDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedReceiptDate()));
 		karyakramaTotalAmountColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getTotalAmount()).asObject());
-		karyakramaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showKaryakramaDetails));
+		karyakramaDetailsColumn.setCellFactory(_ -> createDetailsButtonCell(this::showKaryakramaDetails));
 	}
 
 	private void showKaryakramaDetails(KaryakramaReceiptData receiptData) {
@@ -248,8 +246,8 @@ public class HistoryController {
 			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Could not load Karyakrama details view.");
+			logger.error("Could not load Karyakrama details view", e);
+			showAlert("Could not load Karyakrama details view.");
 		}
 	}
 
@@ -264,7 +262,7 @@ public class HistoryController {
 		shashwathaDevoteeNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDevoteeName()));
 		shashwathaReceiptDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedReceiptDate()));
 		shashwathaPoojaDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPoojaDate()));
-		shashwathaDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showShashwathaPoojaDetails));
+		shashwathaDetailsColumn.setCellFactory(_ -> createDetailsButtonCell(this::showShashwathaPoojaDetails));
 	}
 
 	private void showShashwathaPoojaDetails(ShashwathaPoojaReceipt poojaData) {
@@ -281,8 +279,8 @@ public class HistoryController {
 			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Could not load Shashwatha Pooja details view.");
+			logger.error("Could not load ShashwathaPooja details view",e);
+			showAlert("Could not load Shashwatha Pooja details view.");
 		}
 	}
 
@@ -314,22 +312,22 @@ public class HistoryController {
 	}
 
 	private void setupSevaDetailsColumn() {
-		detailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showSevaReceiptDetails));
+		detailsColumn.setCellFactory(_ -> createDetailsButtonCell(this::showSevaReceiptDetails));
 	}
 
 	private void setupDonationDetailsColumn() {
-		donationDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showDonationDetails));
+		donationDetailsColumn.setCellFactory(_ -> createDetailsButtonCell(this::showDonationDetails));
 	}
 
 	private void setupInKindDonationDetailsColumn() {
-		inKindDetailsColumn.setCellFactory(param -> createDetailsButtonCell(this::showInKindDonationDetails));
+		inKindDetailsColumn.setCellFactory(_ -> createDetailsButtonCell(this::showInKindDonationDetails));
 	}
 
 	private <T> TableCell<T, Void> createDetailsButtonCell(Consumer<T> action) {
 		return new TableCell<>() {
 			private final Button viewButton = new Button("ವಿವರ ನೋಡಿ");
 			{
-				viewButton.setOnAction(event -> {
+				viewButton.setOnAction(_ -> {
 					if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
 						T item = getTableView().getItems().get(getIndex());
 						action.accept(item);
@@ -360,11 +358,10 @@ public class HistoryController {
 			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Could not load receipt details view.");
+			logger.error("Could not load receipt details view", e);
+			showAlert("Could not load receipt details view.");
 		}
 	}
-
 	private void showDonationDetails(DonationReceiptData donationData) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/DonationReceiptDetailsView.fxml"));
@@ -379,11 +376,10 @@ public class HistoryController {
 			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Could not load donation details view.");
+			logger.error("Could not load donation details view", e);
+			showAlert("Could not load donation details view.");
 		}
 	}
-
 	private void showInKindDonationDetails(InKindDonation donationData) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/InKindDonationDetailsView.fxml"));
@@ -398,14 +394,14 @@ public class HistoryController {
 			detailsStage.setMaxHeight(650);
 			detailsStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Could not load in-kind donation details view.");
+			logger.error("Couldn't load In-Kind Donation view",e);
+			showAlert("Could not load in-kind donation details view.");
 		}
 	}
 
-	private void showAlert(String title, String message) {
+	private void showAlert(String message) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
-		alert.setTitle(title);
+		alert.setTitle("Error");
 		alert.setHeaderText(null);
 		alert.setContentText(message);
 		alert.showAndWait();
@@ -443,8 +439,8 @@ public class HistoryController {
 			dashboardStage.setWidth(1024);
 			dashboardStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load dashboard view: " + e.getMessage());
+			logger.error("Failed to load dashboard view", e);
+			showAlert("Failed to load dashboard view: " + e.getMessage());
 		}
 	}
 }

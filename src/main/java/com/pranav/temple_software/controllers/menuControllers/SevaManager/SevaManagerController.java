@@ -1,9 +1,7 @@
 package com.pranav.temple_software.controllers.menuControllers.SevaManager;
 
-import com.pranav.temple_software.controllers.MainController;
 import com.pranav.temple_software.controllers.menuControllers.BaseManagerController;
 import com.pranav.temple_software.models.Seva;
-import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.repositories.SevaRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -38,16 +36,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	@FXML private TableColumn<Seva, Double> amountColumn;
 
 
-	@Override
-	protected String getItemId(SevaEntry item) {
-		return "";
-	}
-
-	@Override
-	protected String getItemName(SevaEntry item) {
-		return "";
-	}
-
 	private final SevaRepository sevaRepository = SevaRepository.getInstance();
 	private final Map<String, Double> originalAmounts = new HashMap<>();
 	private final Map<String, Integer> originalOrder = new HashMap<>();
@@ -74,10 +62,6 @@ public class SevaManagerController extends BaseManagerController<Seva> {
 	@Override
 	protected String getItemId(Seva item) {
 		return item.getId();
-	}
-	@Override
-	protected String getItemName(Seva item) {
-		return item.getName();
 	}
 
 	@Override

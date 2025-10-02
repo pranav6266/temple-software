@@ -4,7 +4,6 @@ import com.pranav.temple_software.Launcher;
 import com.pranav.temple_software.repositories.CredentialsRepository;
 import com.pranav.temple_software.utils.PasswordUtils;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -33,7 +32,7 @@ public class AdminLoginController {
 	}
 
 	@FXML
-	void handleAdminLogin(ActionEvent event) {
+	void handleAdminLogin() {
 		String username = usernameField.getText();
 		String password = passwordField.getText();
 
@@ -65,7 +64,7 @@ public class AdminLoginController {
 	}
 
 	@FXML
-	void handleBackToUserLogin(ActionEvent event) {
+	void handleBackToUserLogin() {
 		closeCurrentStage();
 		try {
 			new Launcher().start(new Stage());

@@ -52,7 +52,7 @@ public class PrinterSettingsController {
 		showStatus("Printer setting saved successfully!", false);
 
 		PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
-		delay.setOnFinished(event -> handleCancel());
+		delay.setOnFinished(_ -> handleCancel());
 		delay.play();
 	}
 
