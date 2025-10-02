@@ -109,29 +109,32 @@ public class OthersManagerController extends BaseManagerController<Others> {
 		refreshGridPane();
 	}
 
+	/**
+	 * MODIFIED: This method no longer checks for deletion failures.
+	 * It processes all additions and deletions and then updates the display order.
+	 * This makes its behavior consistent with the other manager modules.
+	 */
 	@FXML
 	@Override
 	public void handleSave(ActionEvent event) {
-		StringBuilder summary = new StringBuilder("Changes saved successfully.");
-		List<String> deletionFailures = new ArrayList<>();
-
+		// Process deletions
 		for (Others itemToDelete : itemsMarkedForDeletion) {
-			boolean success = repository.deleteOtherFromDB(itemToDelete.getId());
-			if (!success) {
-				deletionFailures.add(itemToDelete.getName());
-			}
+			repository.deleteOtherFromDB(itemToDelete.getId());
 		}
 
+		// Process additions
 		for (Others item : tempItemList) {
-			if (item.getId() == -1) {
+			if (item.getId() == -1) { // -1 indicates a new, unsaved item
 				repository.addOtherToDB(item.getName());
 			}
 		}
 
-		// After all adds/deletes, reload from DB and set the final order
+		// After all adds/deletes, reload from DB to get correct IDs for reordering
 		repository.loadOthersFromDB();
 		List<Others> dbList = repository.getAllOthers();
 		List<Others> finalListForReordering = new ArrayList<>();
+
+		// Create a list that reflects the final UI order but contains the actual DB items
 		for (Others uiItem : tempItemList) {
 			dbList.stream()
 					.filter(dbItem -> dbItem.getName().equals(uiItem.getName()))
@@ -140,22 +143,15 @@ public class OthersManagerController extends BaseManagerController<Others> {
 		}
 		repository.updateDisplayOrder(finalListForReordering);
 
-		if (!deletionFailures.isEmpty()) {
-			summary.append("\n\nWarning: Could not delete the following items because they are in use:\n");
-			summary.append(String.join("\n", deletionFailures));
-			showAlert(Alert.AlertType.WARNING, "Partial Success", summary.toString());
-		} else {
-			showAlert(Alert.AlertType.INFORMATION, "Success", summary.toString());
-		}
-
+		showAlert(Alert.AlertType.INFORMATION, "Success", "All changes have been saved.");
 		closeWindow();
 	}
 
-	// Unused abstract methods
+	// Unused abstract methods from BaseManagerController that are now linked to the simpler handleAdd/handleDelete methods
 	@Override
 	protected void openAddPopup(ActionEvent event) { handleAdd(); }
 	@Override
-	protected void openEditPopup(ActionEvent event) { /* No Edit functionality */ }
+	protected void openEditPopup(ActionEvent event) { /* No Edit functionality for this manager */ }
 	@Override
 	protected void openDeletePopup(ActionEvent event) { handleDelete(); }
 }

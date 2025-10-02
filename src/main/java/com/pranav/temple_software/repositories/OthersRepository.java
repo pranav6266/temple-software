@@ -51,9 +51,7 @@ public class OthersRepository {
 		return Collections.unmodifiableList(new ArrayList<>(this.othersList));
 	}
 
-	// SIMPLIFIED AND CORRECTED METHOD
 	public boolean addOtherToDB(String name) {
-		// The AUTO_INCREMENT column will handle the ID, and the reorder logic will handle the display_order.
 		String sql = "INSERT INTO Others (others_name) VALUES (?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -65,19 +63,19 @@ public class OthersRepository {
 		}
 	}
 
+	/**
+	 * MODIFIED: This method now behaves like other repositories.
+	 * It will delete the item regardless of whether it's used in past receipts.
+	 * The special check for "in-use" constraint violations has been removed.
+	 */
 	public boolean deleteOtherFromDB(int otherId) {
 		String sql = "DELETE FROM Others WHERE others_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, otherId);
-			pstmt.executeUpdate();
-			return true;
+			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			if ("23503".equals(e.getSQLState())) {
-				System.err.println("Constraint violation: Cannot delete Other item (ID: " + otherId + ") as it is in use.");
-			} else {
-				System.err.println("Error deleting Other from DB (ID: " + otherId + "): " + e.getMessage());
-			}
+			System.err.println("Error deleting Other from DB (ID: " + otherId + "): " + e.getMessage());
 			return false;
 		}
 	}

@@ -8,26 +8,28 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="700.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.KaryakramaManager.KaryakramaManagerController">
+<BorderPane prefHeight="600.0" prefWidth="700.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.KaryakramaManager.OthersManagerController">
     <top>
-        <Label styleClass="popup-title" text="ಕಾರ್ಯಕ್ರಮ ನಿರ್ವಹಿಸಿ" BorderPane.alignment="CENTER" />
+        <Label styleClass="popup-title" text="ಇತರೆ ನಿರ್ವಹಿಸಿ" BorderPane.alignment="CENTER" />
     </top>
     <center>
         <VBox styleClass="popup-content">
-            <TableView fx:id="karyakramaTable" styleClass="modern-table" VBox.vgrow="ALWAYS">
+            <TableView fx:id="othersTable" styleClass="modern-table" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="slNoColumn" prefWidth="75.0" text="Sl. No." />
-                    <TableColumn fx:id="nameColumn" prefWidth="550.0" text="Karyakrama Name" />
+                    <TableColumn fx:id="nameColumn" prefWidth="550.0" text="Item Name" />
                 </columns>
-                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                </columnResizePolicy>
             </TableView>
         </VBox>
     </center>
     <bottom>
         <HBox styleClass="popup-button-container">
             <Button onAction="#handleSave" styleClass="manager-button, manager-save-button" text="Save Changes" />
-            <Button onAction="#handleAddKaryakrama" styleClass="manager-button" text="Add Karyakrama" />
-            <Button onAction="#handleDeleteKaryakrama" styleClass="manager-button, manager-delete-button" text="Delete Selected" />
+            <Button onAction="#handleAdd" styleClass="manager-button" text="Add Item" />
+            <Button onAction="#handleDelete" styleClass="manager-button, manager-delete-button" text="Delete Selected" />
             <Button fx:id="cancelButton" onAction="#handleCancelButton" styleClass="manager-button, manager-cancel-button" text="Cancel" />
         </HBox>
     </bottom>
