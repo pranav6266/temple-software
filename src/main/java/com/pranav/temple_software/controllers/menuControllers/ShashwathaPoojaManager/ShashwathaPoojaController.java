@@ -130,37 +130,38 @@ public class ShashwathaPoojaController {
 		if (!validateInput()) {
 			return;
 		}
+		// Create the data object, but DON'T save it yet
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
-		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(), receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode);
-		boolean success = repository.saveShashwathaPooja(newReceipt);
-		if (success) {
-			List<ShashwathaPoojaReceipt> latest = repository.getAllShashwathaPoojaReceipts();
-			if (!latest.isEmpty()) {
-				ShashwathaPoojaReceipt savedReceipt = latest.getFirst();
-				if (receiptPrinter != null) {
-					Consumer<Boolean> onPrintComplete = (_) -> Platform.runLater(() -> {
-						showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja receipt saved successfully!");
-						closeWindow();
-					});
-					Runnable onDialogClosed = this::closeWindow;
-					try {
-						Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-						receiptPrinter.showShashwathaPoojaPrintPreview(savedReceipt, ownerStage, onPrintComplete, onDialogClosed);
-					} catch (Exception e) {
-						logger.error("Failed to open print preview for Shashwatha Pooja", e);
-						showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
-						closeWindow();
-					}
-				} else {
-					showAlert(Alert.AlertType.ERROR, "Print Error", "Receipt printer is not initialized.");
-					closeWindow();
+		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(
+				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(),
+				receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode
+		);
+
+		if (receiptPrinter != null) {
+			// FIX: Database saving logic is now inside this callback
+			Consumer<Boolean> afterActionCallback = (success) -> {
+				if (success) {
+					repository.saveShashwathaPooja(newReceipt);
+					Platform.runLater(() -> showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja receipt saved successfully!"));
 				}
-			} else {
-				showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve saved receipt for printing.");
+				Platform.runLater(this::closeWindow);
+			};
+
+			Runnable onDialogClosed = this::closeWindow;
+			try {
+				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
+				// Pass the unsaved object for preview.
+				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(repository.getAllShashwathaPoojaReceipts().size()+1, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(), newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(), newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode());
+				receiptPrinter.showShashwathaPoojaPrintPreview(previewReceipt, ownerStage, afterActionCallback, onDialogClosed);
+			} catch (Exception e) {
+				logger.error("Failed to open print preview for Shashwatha Pooja", e);
+				showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
 				closeWindow();
 			}
 		} else {
-			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the Pooja. Please check the logs.");
+			showAlert(Alert.AlertType.ERROR, "Print Error", "Receipt printer is not initialized.");
+			closeWindow();
 		}
 	}
 

@@ -123,41 +123,39 @@ public class InKindDonationController {
 		if (!validateInput()) {
 			return;
 		}
-		InKindDonation newDonation = new InKindDonation(0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(), donationDatePicker.getValue(), itemDescriptionArea.getText());
-		boolean success = repository.saveInKindDonation(newDonation);
-		if (success) {
-			List<InKindDonation> donations = repository.getAllInKindDonations();
-			if (!donations.isEmpty()) {
-				InKindDonation savedDonation = donations.getFirst();
-				try {
-					ReceiptPrinter receiptPrinter = new ReceiptPrinter();
-					Consumer<Boolean> onPrintComplete = (printSuccess) -> {
-						if (printSuccess) {
-							Platform.runLater(() -> {
-								showAlert(Alert.AlertType.INFORMATION, "Success", "In-kind donation receipt printed successfully!");
-								closeWindow();
-							});
-						} else {
-							Platform.runLater(() -> {
-								showAlert(Alert.AlertType.WARNING, "Print Cancelled", "Receipt was saved but printing was cancelled.");
-								closeWindow();
-							});
-						}
-					};
-					Runnable onDialogClosed = this::closeWindow;
-					Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-					receiptPrinter.showInKindDonationPrintPreview(savedDonation, ownerStage, onPrintComplete, onDialogClosed);
-				} catch (Exception e) {
-					logger.error("Receipt saved, but failed to open print preview", e);
-					showAlert(Alert.AlertType.ERROR, "Print Error", "Receipt saved but failed to open print preview: " + e.getMessage());
-					closeWindow();
+		// Create the data object, but DON'T save it yet
+		InKindDonation newDonation = new InKindDonation(
+				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(),
+				donationDatePicker.getValue(), itemDescriptionArea.getText()
+		);
+
+		try {
+			ReceiptPrinter receiptPrinter = new ReceiptPrinter();
+			// FIX: Database saving logic is now inside this callback
+			Consumer<Boolean> afterActionCallback = (success) -> {
+				if (success) {
+					boolean saved = repository.saveInKindDonation(newDonation);
+					if (saved) {
+						Platform.runLater(() -> showAlert(Alert.AlertType.INFORMATION, "Success", "In-kind donation saved."));
+					} else {
+						Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Error", "Failed to save donation to database."));
+					}
 				}
-			} else {
-				showAlert(Alert.AlertType.ERROR, "Error", "Failed to retrieve saved donation for printing.");
-				closeWindow();
-			}
-		} else {
-			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the donation. Please check the logs.");
+				Platform.runLater(this::closeWindow);
+			};
+
+			Runnable onDialogClosed = this::closeWindow;
+			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
+			// We need to get the latest saved ID for the preview, so we'll pass the unsaved object
+			// and the printer service will generate a preview without an ID. The actual save happens after.
+			InKindDonation previewDonation = new InKindDonation(repository.getAllInKindDonations().size() + 1, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(), newDonation.getRashi(), newDonation.getNakshatra(), newDonation.getDonationDate(), newDonation.getItemDescription());
+			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
+
+		} catch (Exception e) {
+			logger.error("Failed to open print preview", e);
+			showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
+			closeWindow();
 		}
 	}
 

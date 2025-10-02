@@ -130,6 +130,7 @@ public class KaryakramaController {
 			return;
 		}
 
+		// Create the data object, but DON'T save it yet
 		KaryakramaReceiptData receiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), "", "", selectedKaryakrama.getName(), receiptDatePicker.getValue(),
@@ -137,27 +138,24 @@ public class KaryakramaController {
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
-		int savedId = receiptRepository.saveReceipt(receiptData);
-
-		if (savedId != -1) {
-			boolean itemsSaved = receiptRepository.saveReceiptItems(savedId, receiptData.getSevas());
-			if (!itemsSaved) {
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items.");
-				return;
+		// FIX: Database saving logic is now inside this callback
+		Consumer<Boolean> afterActionCallback = (success) -> {
+			if (success) {
+				int savedId = receiptRepository.saveReceipt(receiptData);
+				if (savedId != -1) {
+					receiptRepository.saveReceiptItems(savedId, receiptData.getSevas());
+				} else {
+					Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt."));
+				}
 			}
+			Platform.runLater(this::closeWindow);
+		};
 
-			KaryakramaReceiptData savedReceiptData = new KaryakramaReceiptData(savedId,
-					receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(),
-					receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(),
-					receiptData.getTotalAmount(), receiptData.getPaymentMode());
-
-			Consumer<Boolean> onPrintComplete = (_) -> Platform.runLater(this::closeWindow);
-			Runnable onDialogClosed = this::closeWindow;
-			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-			receiptPrinter.showKaryakramaPrintPreview(savedReceiptData, ownerStage, onPrintComplete, onDialogClosed);
-		} else {
-			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt.");
-		}
+		Runnable onDialogClosed = this::closeWindow;
+		Stage ownerStage = (Stage) saveButton.getScene().getWindow();
+		// Pass unsaved object for preview
+		KaryakramaReceiptData previewData = new KaryakramaReceiptData(receiptRepository.getAllReceipts().size()+1, receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode());
+		receiptPrinter.showKaryakramaPrintPreview(previewData, ownerStage, afterActionCallback, onDialogClosed);
 	}
 
 	private boolean validateInput() {

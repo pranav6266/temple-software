@@ -123,40 +123,36 @@ public class DonationController {
 			return;
 		}
 
+		// Create the data object, but DON'T save it yet
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		double amount = Double.parseDouble(amountField.getText());
-
-		int savedId = donationReceiptRepository.saveDonationReceipt(
-				devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(), donationDatePicker.getValue(),
+		DonationReceiptData newReceipt = new DonationReceiptData(
+				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
+				raashiComboBox.getValue(), nakshatraComboBox.getValue(), donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);
 
-		if (savedId != -1) {
-			DonationReceiptData newReceipt = new DonationReceiptData(
-					savedId,
-					devoteeNameField.getText(),
-					contactField.getText(),
-					addressField.getText(),
-					panNumberField.getText(),
-					raashiComboBox.getValue(),
-					nakshatraComboBox.getValue(),
-					donationDatePicker.getValue(),
-					donationComboBox.getValue(),
-					amount,
-					paymentMode
-			);
-			if (receiptPrinter != null) {
-				Consumer<Boolean> onPrintComplete = (_) -> Platform.runLater(this::closeWindow);
-				Runnable onDialogClosed = this::closeWindow;
-				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-				receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, onPrintComplete, onDialogClosed);
-			} else {
-				showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt saved successfully, but printer is not configured.");
-				closeWindow();
-			}
+		if (receiptPrinter != null) {
+			// FIX: Database saving logic is now inside this callback
+			Consumer<Boolean> afterActionCallback = (success) -> {
+				if (success) {
+					donationReceiptRepository.saveDonationReceipt(
+							newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(),
+							newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(),
+							donationDatePicker.getValue(), newReceipt.getDonationName(), newReceipt.getDonationAmount(),
+							newReceipt.getPaymentMode()
+					);
+				}
+				Platform.runLater(this::closeWindow);
+			};
+
+			Runnable onDialogClosed = this::closeWindow;
+			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
+			receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, afterActionCallback, onDialogClosed);
+
 		} else {
-			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the donation receipt.");
+			showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt saved successfully, but printer is not configured.");
+			closeWindow();
 		}
 	}
 

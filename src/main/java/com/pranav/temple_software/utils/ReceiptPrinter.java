@@ -199,7 +199,8 @@ public class ReceiptPrinter {
 
 // FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
 
-	private void showPreviewDialog(Node receiptNode, String title, Stage ownerStage, Consumer<Boolean> onPrintComplete, Runnable onDialogClosed, FailableRunnable onPrintAction, Runnable onSavePreviewAction) {
+	// In ReceiptPrinter.java
+	private void showPreviewDialog(Node receiptNode, String title, Stage ownerStage, Consumer<Boolean> afterActionCallback, Runnable onDialogClosed, FailableRunnable onPrintAction, Runnable onSavePreviewAction) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
@@ -213,14 +214,19 @@ public class ReceiptPrinter {
 		Button printButton = new Button("Print");
 		printButton.setOnAction(_ -> {
 			boolean success = onPrintAction.run();
-			if (onPrintComplete != null) Platform.runLater(() -> onPrintComplete.accept(success));
+			if (afterActionCallback != null) Platform.runLater(() -> afterActionCallback.accept(success));
 			previewStage.close();
 		});
 
 		Button savePreviewButton = new Button("Save PNG Preview");
 		savePreviewButton.setOnAction(_ -> {
-			onSavePreviewAction.run();
-			// FIX: Add this line to close the preview window after saving the PNG.
+			onSavePreviewAction.run(); // First, run the action to save the PNG
+
+			// FIX: After saving, also trigger the success callback to save the data to the database.
+			// We pass 'true' to indicate the action was successful.
+			if (afterActionCallback != null) {
+				Platform.runLater(() -> afterActionCallback.accept(true));
+			}
 			previewStage.close();
 		});
 
@@ -241,6 +247,7 @@ public class ReceiptPrinter {
 		previewStage.setScene(scene);
 		previewStage.show();
 	}
+
 	private void showAlert(Stage owner, String title, String message) {
 		Platform.runLater(() -> {
 			Alert alert = new Alert(Alert.AlertType.INFORMATION);

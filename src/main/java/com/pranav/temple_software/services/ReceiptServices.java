@@ -90,27 +90,22 @@ public class ReceiptServices {
 	}
 
 	private void handleSevaReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
-	                                                 String raashi, String nakshatra, LocalDate date,
+	                                                 String rashi, String nakshatra, LocalDate date,
 	                                                 List<SevaEntry> sevaEntries, String paymentMode) {
 
 		double sevaTotal = sevaEntries.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-
-		// Create a temporary receipt data object for the print preview
 		SevaReceiptData sevaReceiptData = new SevaReceiptData(
-				0, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+				0, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode
 		);
 
 		Consumer<Boolean> afterActionCallback = (printSuccess) -> {
 			if (printSuccess) {
-				// First, save the main receipt to get its ID
 				int actualSavedId = controller.sevaReceiptRepository.saveReceipt(
-						devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+						devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 						date, sevaTotal, paymentMode
 				);
-
 				if (actualSavedId != -1) {
-					// Then, save the associated items using the new receipt ID
 					boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(actualSavedId, sevaEntries);
 					if (itemsSaved) {
 						markItemsAsSuccess(sevaEntries);
@@ -135,6 +130,7 @@ public class ReceiptServices {
 		};
 		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
 	}
+
 
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {
 		Platform.runLater(() -> {
