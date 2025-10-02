@@ -3,24 +3,20 @@ package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
 
 public class SevaRepository {
-
-	private static final String DB_URL = DatabaseManager.DB_URL;
-	private static final String USER = "sa";
-	private static final String PASS = "";
+	private static final Logger logger = LoggerFactory.getLogger(SevaRepository.class);
 
 	private static final SevaRepository instance = new SevaRepository();
 	private final List<Seva> sevaList = new ArrayList<>();
-	// A flag to ensure we only load from the DB once.
 	private boolean isDataLoaded = false;
 
-	// Private constructor prevents instantiation from other classes
 	private SevaRepository() {
-		// Data is no longer loaded in the constructor to prevent race conditions.
 	}
 
 	public static SevaRepository getInstance() {
@@ -28,17 +24,16 @@ public class SevaRepository {
 	}
 
 	private Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DB_URL, USER, PASS);
+		return DatabaseManager.getConnection();
 	}
 
-	public void loadSevasFromDB() {
-		System.out.println("DEBUG: SevaRepository.loadSevasFromDB() called");
+	public synchronized void loadSevasFromDB() {
+		logger.debug("SevaRepository.loadSevasFromDB() called");
 		sevaList.clear();
 
-		String sql = "SELECT * FROM SEVAS";
-		System.out.println("DEBUG: Executing SQL: " + sql);
-
-		try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+		String sql = "SELECT * FROM SEVAS ORDER BY display_order";
+		logger.debug("Executing SQL: {}", sql);
+		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql);
 		     ResultSet rs = pstmt.executeQuery()) {
 
@@ -48,39 +43,28 @@ public class SevaRepository {
 				Seva seva = new Seva(
 						rs.getString("seva_id"),
 						rs.getString("seva_name"),
-						rs.getDouble("amount")
+						rs.getDouble("amount"),
+						rs.getInt("display_order")
 				);
 				sevaList.add(seva);
-				System.out.println("DEBUG: Loaded seva " + count + ": " + seva.getName());
 			}
-
-			System.out.println("DEBUG: Total sevas loaded from DB: " + count);
-			System.out.println("DEBUG: SevasList size after loading: " + sevaList.size());
-
+			logger.info("Loaded {} sevas from database.", count);
 			isDataLoaded = true;
-
 		} catch (SQLException e) {
-			System.err.println("❌ Error loading sevas from database: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("❌ Error loading sevas from database", e);
 		}
 	}
 
 
 
-	public List<Seva> getAllSevas() {
-		// *** KEY CHANGE ***
-		// If data is not loaded, load it first. This is a "lazy-loading" approach.
+	public synchronized List<Seva> getAllSevas() {
 		if (!isDataLoaded) {
 			loadSevasFromDB();
 		}
-		// Return a new list containing copies or an unmodifiable view
-		sevaList.sort(Comparator.comparingInt(Seva::getDisplayOrder));
 		return List.copyOf(sevaList);
 	}
 
-	// ... The rest of your SevaRepository methods (add, delete, update, etc.) remain the same ...
-	// NOTE: I have applied this same lazy-loading pattern to DonationRepository.java and OthersRepository.java
-	public int getMaxSevaId() {
+	public synchronized int getMaxSevaId() {
 		String sql = "SELECT MAX(CAST(seva_id AS INT)) FROM Sevas";
 		int maxId = 0;
 		try (Connection conn = getConnection();
@@ -91,9 +75,9 @@ public class SevaRepository {
 				maxId = rs.getInt(1);
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching max Seva ID: " + e.getMessage());
+			logger.error("Error fetching max Seva ID", e);
 		} catch (Exception e) {
-			System.err.println("Error casting Seva ID to INT for MAX function: " + e.getMessage());
+			logger.error("Error casting Seva ID to INT for MAX function", e);
 			maxId = sevaList.stream()
 					.mapToInt(s -> {
 						try {
@@ -107,7 +91,7 @@ public class SevaRepository {
 		return maxId;
 	}
 
-	public int getMaxDisplayOrder() {
+	public synchronized int getMaxDisplayOrder() {
 		String sql = "SELECT MAX(display_order) FROM Sevas";
 		int maxOrder = 0;
 		try (Connection conn = getConnection();
@@ -117,16 +101,15 @@ public class SevaRepository {
 				maxOrder = rs.getInt(1);
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching max display_order: " + e.getMessage());
+			logger.error("Error fetching max display_order", e);
 			maxOrder = sevaList.stream().mapToInt(Seva::getDisplayOrder).max().orElse(0);
 		}
 		return maxOrder;
 	}
 
-	public boolean addSevaToDB(Seva seva) {
+	public synchronized boolean addSevaToDB(Seva seva) {
 		int nextOrder = getMaxDisplayOrder() + 1;
 		seva.setDisplayOrder(nextOrder);
-
 		String sql = "INSERT INTO Sevas (seva_id, seva_name, amount, display_order) VALUES (?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -140,35 +123,34 @@ public class SevaRepository {
 			if (affectedRows > 0) {
 				sevaList.add(seva);
 				sevaList.sort(Comparator.comparingInt(Seva::getDisplayOrder));
-				System.out.println("Seva added successfully: " + seva.getId() + " with order " + seva.getDisplayOrder());
+				logger.info("Seva added successfully: {} with order {}", seva.getId(), seva.getDisplayOrder());
 				return true;
 			}
 		} catch (SQLException e) {
-			System.err.println("Error adding Seva to database (ID: " + seva.getId() + "): " + e.getMessage());
+			logger.error("Error adding Seva to database (ID: {})", seva.getId(), e);
 		}
 		return false;
 	}
 
-	public boolean deleteSevaFromDB(String sevaId) {
+	public synchronized boolean deleteSevaFromDB(String sevaId) {
 		String sql = "DELETE FROM Sevas WHERE seva_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
 			pstmt.setString(1, sevaId);
 			int affectedRows = pstmt.executeUpdate();
-
 			if (affectedRows > 0) {
 				sevaList.removeIf(s -> s.getId().equals(sevaId));
-				System.out.println("Seva deleted successfully: " + sevaId);
+				logger.info("Seva deleted successfully: {}", sevaId);
 				return true;
 			}
 		} catch (SQLException e) {
-			System.err.println("Error deleting Seva from database (ID: " + sevaId + "): " + e.getMessage());
+			logger.error("Error deleting Seva from database (ID: {})", sevaId, e);
 		}
 		return false;
 	}
 
-	public boolean updateDisplayOrder(String sevaId, int newOrder) {
+	public synchronized boolean updateDisplayOrder(String sevaId, int newOrder) {
 		String sql = "UPDATE Sevas SET display_order = ? WHERE seva_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -177,12 +159,12 @@ public class SevaRepository {
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
 		} catch (SQLException e) {
-			System.err.println("Error updating display order for Seva " + sevaId + ": " + e.getMessage());
+			logger.error("Error updating display order for Seva {}", sevaId, e);
 			return false;
 		}
 	}
 
-	public boolean updateAmount(String sevaId, double newAmount) {
+	public synchronized boolean updateAmount(String sevaId, double newAmount) {
 		String sql = "UPDATE Sevas SET amount = ? WHERE seva_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -191,7 +173,7 @@ public class SevaRepository {
 			int affectedRows = stmt.executeUpdate();
 			return affectedRows > 0;
 		} catch (SQLException e) {
-			System.err.println("Error updating amount for seva ID " + sevaId + ": " + e.getMessage());
+			logger.error("Error updating amount for seva ID {}", sevaId, e);
 			return false;
 		}
 	}

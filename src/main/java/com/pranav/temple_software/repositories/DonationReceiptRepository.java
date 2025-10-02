@@ -12,7 +12,6 @@ public class DonationReceiptRepository {
 	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
-	private static final String H2_PK_VIOLATION_STATE = "23505";
 
 	private static Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(DB_URL, USER, PASS);
@@ -21,7 +20,6 @@ public class DonationReceiptRepository {
 	public List<DonationReceiptData> getAllDonationReceipts() {
 		List<DonationReceiptData> donationReceipts = new ArrayList<>();
 		String sql = "SELECT * FROM DonationReceipts ORDER BY donation_receipt_id DESC";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -31,7 +29,7 @@ public class DonationReceiptRepository {
 				String devoteeName = rs.getString("devotee_name");
 				String phoneNumber = rs.getString("phone_number");
 				String address = rs.getString("address");
-				String panNumber = rs.getString("pan_number"); // Get PAN
+				String panNumber = rs.getString("pan_number");
 				String rashi = rs.getString("rashi");
 				String nakshatra = rs.getString("nakshatra");
 				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
@@ -43,12 +41,10 @@ public class DonationReceiptRepository {
 						donationReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 						sevaDate, donationName, donationAmount, paymentMode
 				);
-
 				donationReceipts.add(donationReceipt);
 			}
 
 			System.out.println("✅ Loaded " + donationReceipts.size() + " donation receipts from database.");
-
 		} catch (SQLException e) {
 			System.err.println("❌ SQL error while fetching donation receipts: " + e.getMessage());
 		} catch (Exception e) {
@@ -58,75 +54,19 @@ public class DonationReceiptRepository {
 		return donationReceipts;
 	}
 
-	public static int getNextDonationReceiptId() {
-		String sql = "SELECT MAX(donation_receipt_id) FROM DonationReceipts";
-		int nextId = 1;
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
-			if (rs.next()) {
-				int maxId = rs.getInt(1);
-				if (!rs.wasNull()) {
-					nextId = maxId + 1;
-				}
-			}
-		} catch (SQLException e) {
-			System.err.println("Error fetching next donation receipt ID: " + e.getMessage());
-			return -1;
-		}
-		return nextId;
-	}
-
-	public int saveSpecificDonationReceipt(int id, String name, String phone, String address, String panNumber,
-	                                       String rashi, String nakshatra, LocalDate date,
-	                                       String donationName, double amount, String paymentMode) {
-		String sql = "INSERT INTO DonationReceipts (donation_receipt_id, devotee_name, phone_number, " +
+	public int saveDonationReceipt(String name, String phone, String address, String panNumber,
+	                               String rashi, String nakshatra, LocalDate date,
+	                               String donationName, double amount, String paymentMode) {
+		String sql = "INSERT INTO DonationReceipts (devotee_name, phone_number, " +
 				"address, pan_number, rashi, nakshatra, seva_date, donation_name, donation_amount, payment_mode) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setInt(1, id);
-			pstmt.setString(2, name);
-			pstmt.setString(3, phone);
-			pstmt.setString(4, address);
-			pstmt.setString(5, panNumber); // Add PAN
-			pstmt.setString(6, rashi);
-			pstmt.setString(7, nakshatra);
-			pstmt.setDate(8, java.sql.Date.valueOf(date));
-			pstmt.setString(9, donationName);
-			pstmt.setDouble(10, amount);
-			pstmt.setString(11, paymentMode);
-
-			int affectedRows = pstmt.executeUpdate();
-			if (affectedRows > 0) {
-				return id;
-			}
-		} catch (SQLException e) {
-			if (H2_PK_VIOLATION_STATE.equals(e.getSQLState())) {
-				System.out.println("Donation Receipt ID " + id + " already exists. Falling back to auto-increment ID.");
-				return saveAutoIncrementDonationReceipt(name, phone, address, panNumber, rashi, nakshatra, date, donationName, amount, paymentMode);
-			} else {
-				System.err.println("Error inserting donation receipt: " + e.getMessage());
-				return -1;
-			}
-		}
-		return id;
-	}
-
-	private int saveAutoIncrementDonationReceipt(String name, String phone, String address, String panNumber, String rashi,
-	                                             String nakshatra, LocalDate date, String donationName,
-	                                             double amount, String paymentMode) {
-		String sql = "INSERT INTO DonationReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +
-				"seva_date, donation_name, donation_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		int generatedId = -1;
-
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			pstmt.setString(1, name);
 			pstmt.setString(2, phone);
 			pstmt.setString(3, address);
-			pstmt.setString(4, panNumber); // Add PAN
+			pstmt.setString(4, panNumber);
 			pstmt.setString(5, rashi);
 			pstmt.setString(6, nakshatra);
 			pstmt.setDate(7, java.sql.Date.valueOf(date));
@@ -143,7 +83,7 @@ public class DonationReceiptRepository {
 				}
 			}
 		} catch (SQLException e) {
-			System.err.println("Error inserting auto-increment donation receipt: " + e.getMessage());
+			System.err.println("Error inserting donation receipt: " + e.getMessage());
 			return -1;
 		}
 		return generatedId;

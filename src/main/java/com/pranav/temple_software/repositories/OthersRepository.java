@@ -43,7 +43,7 @@ public class OthersRepository {
 		}
 	}
 
-	public List<Others> getAllOthers() {
+	public synchronized List<Others> getAllOthers() {
 		if (!isDataLoaded) {
 			loadOthersFromDB();
 		}
@@ -51,7 +51,7 @@ public class OthersRepository {
 		return Collections.unmodifiableList(new ArrayList<>(this.othersList));
 	}
 
-	public boolean addOtherToDB(String name) {
+	public synchronized boolean addOtherToDB(String name) {
 		String sql = "INSERT INTO Others (others_name) VALUES (?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -63,12 +63,7 @@ public class OthersRepository {
 		}
 	}
 
-	/**
-	 * MODIFIED: This method now behaves like other repositories.
-	 * It will delete the item regardless of whether it's used in past receipts.
-	 * The special check for "in-use" constraint violations has been removed.
-	 */
-	public boolean deleteOtherFromDB(int otherId) {
+	public synchronized boolean deleteOtherFromDB(int otherId) {
 		String sql = "DELETE FROM Others WHERE others_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -80,7 +75,7 @@ public class OthersRepository {
 		}
 	}
 
-	public boolean updateDisplayOrder(List<Others> orderedList) {
+	public synchronized boolean updateDisplayOrder(List<Others> orderedList) {
 		String sql = "UPDATE Others SET display_order = ? WHERE others_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			for (int i = 0; i < orderedList.size(); i++) {

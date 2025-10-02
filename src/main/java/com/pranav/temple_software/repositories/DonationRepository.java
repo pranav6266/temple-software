@@ -10,14 +10,11 @@ public class DonationRepository {
 	private static final String DB_URL = DatabaseManager.DB_URL;
 	private static final String USER = "sa";
 	private static final String PASS = "";
-
 	private static final DonationRepository instance = new DonationRepository();
 	private final List<Donations> donationList = new ArrayList<>();
-	// A flag to ensure we only load from the DB once.
 	private boolean isDataLoaded = false;
 
 	private DonationRepository() {
-		// Data is no longer loaded in the constructor.
 	}
 
 	public static DonationRepository getInstance() {
@@ -29,12 +26,10 @@ public class DonationRepository {
 	}
 
 	public synchronized void loadDonationsFromDB() {
-		// *** SOLUTION 1: Force reload regardless of flag ***
 		donationList.clear();
 		isDataLoaded = false;
 
 		String sql = "SELECT donation_id, donation_name, display_order FROM Donations ORDER BY display_order";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -47,7 +42,6 @@ public class DonationRepository {
 			}
 			isDataLoaded = true;
 			System.out.println("✅ Loaded " + donationList.size() + " donations from database.");
-
 		} catch (SQLException e) {
 			System.err.println("❌ Error loading Donations from database: " + e.getMessage());
 			e.printStackTrace();
@@ -55,17 +49,14 @@ public class DonationRepository {
 	}
 
 
-	public List<Donations> getAllDonations() {
-		// *** KEY CHANGE ***
-		// If data is not loaded, load it first (lazy-loading).
+	public synchronized List<Donations> getAllDonations() {
 		if (!isDataLoaded) {
 			loadDonationsFromDB();
 		}
 		return Collections.unmodifiableList(new ArrayList<>(this.donationList));
 	}
 
-	// ... The rest of your DonationRepository methods remain the same ...
-	public int getMaxDonationId() {
+	public synchronized int getMaxDonationId() {
 		String sql = "SELECT MAX(CAST(donation_id AS INT)) FROM Donations";
 		int maxId = 0;
 		try (Connection conn = getConnection();
@@ -80,7 +71,7 @@ public class DonationRepository {
 		return maxId;
 	}
 
-	public String getDonationIdByName(String name) {
+	public synchronized String getDonationIdByName(String name) {
 		String sql = "SELECT donation_id FROM Donations WHERE donation_name = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -95,7 +86,7 @@ public class DonationRepository {
 		return null;
 	}
 
-	public boolean addDonationToDB(String donationId, String donationName, double amount) {
+	public synchronized boolean addDonationToDB(String donationId, String donationName, double amount) {
 		int nextOrder = getMaxDonationId() + 1;
 		String sql = "INSERT INTO Donations (donation_id, donation_name, display_order) VALUES (?, ?, ?)";
 		try (Connection conn = getConnection();
@@ -114,7 +105,7 @@ public class DonationRepository {
 		return false;
 	}
 
-	public boolean deleteDonationFromDB(String donationId) {
+	public synchronized boolean deleteDonationFromDB(String donationId) {
 		String sql = "DELETE FROM Donations WHERE donation_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -129,7 +120,7 @@ public class DonationRepository {
 		return false;
 	}
 
-	public boolean updateDisplayOrder(String donationId, int newOrder) {
+	public synchronized boolean updateDisplayOrder(String donationId, int newOrder) {
 		String sql = "UPDATE Donations SET display_order = ? WHERE donation_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {

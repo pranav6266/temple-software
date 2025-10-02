@@ -1,6 +1,11 @@
 // FILE: src/main/java/com/pranav/temple_software/utils/DatabaseManager.java
 package com.pranav.temple_software.utils;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,20 +13,41 @@ import java.nio.file.Paths;
 import java.sql.*;
 
 public class DatabaseManager {
+	private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 	public static final String APP_DATA_FOLDER = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware";
 	public static final Path DB_FOLDER_PATH = Paths.get(APP_DATA_FOLDER, "db");
 	public static final String DB_URL = "jdbc:h2:" + DB_FOLDER_PATH.toString() + File.separator + "temple_data";
 	private static final String USER = "sa";
 	private static final String PASS = "";
+	private static HikariDataSource dataSource;
+
 
 	public DatabaseManager() {
 		try {
 			Files.createDirectories(DB_FOLDER_PATH);
-			Class.forName("org.h2.Driver");
+			initializeDataSource();
 			createTablesAndRunMigrations();
 		} catch (Exception e) {
-			System.err.println("❌ Error initializing database: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("❌ Error initializing database", e);
+		}
+	}
+
+	private void initializeDataSource() {
+		if (dataSource == null) {
+			try {
+				Class.forName("org.h2.Driver");
+				HikariConfig config = new HikariConfig();
+				config.setJdbcUrl(DB_URL);
+				config.setUsername(USER);
+				config.setPassword(PASS);
+				config.addDataSourceProperty("cachePrepStmts", "true");
+				config.addDataSourceProperty("prepStmtCacheSize", "250");
+				config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+				dataSource = new HikariDataSource(config);
+				logger.info("✅ HikariCP Connection Pool initialized.");
+			} catch (ClassNotFoundException e) {
+				logger.error("H2 JDBC Driver not found!", e);
+			}
 		}
 	}
 
@@ -31,6 +57,7 @@ public class DatabaseManager {
 			createVisheshaPoojeTableIfNotExists(conn);
 			createDonationsTableIfNotExists(conn);
 			createReceiptTableIfNotExists(conn);
+			createReceiptItemsTableIfNotExists(conn);
 			createDonationReceiptTableIfNotExists(conn);
 			createInKindDonationTableIfNotExists(conn);
 			createShashwathaPoojaTableIfNotExists(conn);
@@ -38,69 +65,62 @@ public class DatabaseManager {
 			createKaryakramagaluTableIfNotExists(conn);
 			createOthersTableIfNotExists(conn);
 			createKaryakramaReceiptsTableIfNotExists(conn);
+			createKaryakramaReceiptItemsTableIfNotExists(conn);
 
 			runMigrations(conn);
 		} catch (SQLException e) {
-			System.err.println("❌ Error creating tables or running migrations: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("❌ Error creating tables or running migrations", e);
 		}
 	}
 
 	private void runMigrations(Connection conn) throws SQLException {
 		DatabaseMetaData meta = conn.getMetaData();
-
-		// --- NEW MIGRATION to fix OTHERS_ID AUTO_INCREMENT ---
 		try (ResultSet rs = meta.getColumns(null, null, "OTHERS", "OTHERS_ID")) {
 			if (rs.next()) {
-				// The IS_AUTOINCREMENT column can be "YES", "NO", or ""
 				String isAutoIncrement = rs.getString("IS_AUTOINCREMENT");
 				if (!"YES".equalsIgnoreCase(isAutoIncrement)) {
-					System.out.println("⏳ Running migration: Fixing AUTO_INCREMENT property for OTHERS_ID...");
+					logger.info("⏳ Running migration: Fixing AUTO_INCREMENT property for OTHERS_ID...");
 					try (Statement stmt = conn.createStatement()) {
 						stmt.executeUpdate("ALTER TABLE OTHERS ALTER COLUMN OTHERS_ID INT AUTO_INCREMENT");
-						System.out.println("✅ Migration successful for OTHERS_ID.");
+						logger.info("✅ Migration successful for OTHERS_ID.");
 					} catch (SQLException e) {
-						System.err.println("❌ Failed to apply OTHERS_ID migration: " + e.getMessage());
+						logger.error("❌ Failed to apply OTHERS_ID migration", e);
 					}
 				}
 			}
 		}
 
-		// Migration for ShashwathaPoojaReceipts AMOUNT
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "AMOUNT")) {
 			if (!rs.next()) {
-				System.out.println("⏳ Running migration: Adding AMOUNT column to ShashwathaPoojaReceipts...");
+				logger.info("⏳ Running migration: Adding AMOUNT column to ShashwathaPoojaReceipts...");
 				try (Statement stmt = conn.createStatement()) {
 					stmt.executeUpdate("ALTER TABLE ShashwathaPoojaReceipts ADD COLUMN amount DECIMAL(10, 2) NOT NULL DEFAULT 1000.00");
-					System.out.println("✅ Migration successful for AMOUNT column.");
+					logger.info("✅ Migration successful for AMOUNT column.");
 				}
 			}
 		}
 
-		// Migration for ShashwathaPoojaReceipts PAYMENT_MODE
 		try (ResultSet rs = meta.getColumns(null, null, "SHASHWATHAPOOJARECEIPTS", "PAYMENT_MODE")) {
 			if (!rs.next()) {
-				System.out.println("⏳ Running migration: Adding PAYMENT_MODE column to ShashwathaPoojaReceipts...");
+				logger.info("⏳ Running migration: Adding PAYMENT_MODE column to ShashwathaPoojaReceipts...");
 				try (Statement stmt = conn.createStatement()) {
 					stmt.executeUpdate("ALTER TABLE ShashwathaPoojaReceipts ADD COLUMN payment_mode VARCHAR(10) DEFAULT 'Cash'");
-					System.out.println("✅ Migration successful for PAYMENT_MODE column.");
+					logger.info("✅ Migration successful for PAYMENT_MODE column.");
 				}
 			}
 		}
 
-		// Migration for KaryakramaReceipts KARYAKRAMA_NAME
 		try (ResultSet rs = meta.getColumns(null, null, "KARYAKRAMARECEIPTS", "KARYAKRAMA_NAME")) {
 			if (!rs.next()) {
-				System.out.println("⏳ Running migration: Adding KARYAKRAMA_NAME column to KaryakramaReceipts...");
+				logger.info("⏳ Running migration: Adding KARYAKRAMA_NAME column to KaryakramaReceipts...");
 				try (Statement stmt = conn.createStatement()) {
 					stmt.executeUpdate("ALTER TABLE KaryakramaReceipts ADD COLUMN karyakrama_name VARCHAR(255)");
-					System.out.println("✅ Migration successful for KARYAKRAMA_NAME column.");
+					logger.info("✅ Migration successful for KARYAKRAMA_NAME column.");
 				}
 			}
 		}
 	}
 
-	// ... rest of the file is unchanged ...
 	private void createOthersTableIfNotExists(Connection conn) throws SQLException {
 		String sql = "CREATE TABLE IF NOT EXISTS Others (" +
 				"others_id INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -108,7 +128,7 @@ public class DatabaseManager {
 				"display_order INT)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ Others table checked/created successfully.");
+			logger.debug("✅ Others table checked/created successfully.");
 		}
 	}
 
@@ -119,7 +139,7 @@ public class DatabaseManager {
 				"is_active BOOLEAN DEFAULT TRUE)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ Karyakramagalu table checked/created successfully.");
+			logger.debug("✅ Karyakramagalu table checked/created successfully.");
 		}
 	}
 
@@ -134,13 +154,26 @@ public class DatabaseManager {
 				"nakshatra VARCHAR(20), " +
 				"karyakrama_name VARCHAR(255), " +
 				"receipt_date DATE, " +
-				"sevas_details TEXT, " +
 				"total_amount DECIMAL(10, 2), " +
 				"payment_mode VARCHAR(10), " +
 				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ KaryakramaReceipts table checked/created successfully.");
+			logger.debug("✅ KaryakramaReceipts table checked/created successfully.");
+		}
+	}
+
+	private void createKaryakramaReceiptItemsTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS Karyakrama_Receipt_Items (" +
+				"item_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"receipt_id INT, " +
+				"item_name VARCHAR(255), " +
+				"quantity INT, " +
+				"price_at_sale DECIMAL(10, 2), " +
+				"FOREIGN KEY(receipt_id) REFERENCES KaryakramaReceipts(receipt_id) ON DELETE CASCADE)";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			logger.debug("✅ Karyakrama_Receipt_Items table checked/created successfully.");
 		}
 	}
 
@@ -151,7 +184,7 @@ public class DatabaseManager {
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
 			initializeCredentials(conn);
-			System.out.println("✅ Credentials table checked/created successfully.");
+			logger.debug("✅ Credentials table checked/created successfully.");
 		}
 	}
 
@@ -169,7 +202,7 @@ public class DatabaseManager {
 				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ InKindDonations table checked/created successfully.");
+			logger.debug("✅ InKindDonations table checked/created successfully.");
 		}
 	}
 
@@ -189,7 +222,7 @@ public class DatabaseManager {
 				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ ShashwathaPoojaReceipts table checked/created successfully.");
+			logger.debug("✅ ShashwathaPoojaReceipts table checked/created successfully.");
 		}
 	}
 
@@ -213,7 +246,7 @@ public class DatabaseManager {
 					insertStmt.setString(1, key);
 					insertStmt.setString(2, value);
 					insertStmt.executeUpdate();
-					System.out.println("✅ Initialized default credential for: " + key);
+					logger.info("✅ Initialized default credential for: " + key);
 				}
 			}
 		}
@@ -229,13 +262,26 @@ public class DatabaseManager {
 				"rashi VARCHAR(20), " +
 				"nakshatra VARCHAR(20), " +
 				"seva_date DATE, " +
-				"sevas_details TEXT, " +
 				"total_amount DECIMAL(10, 2), " +
 				"payment_mode VARCHAR(10), " +
 				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ Receipts table checked/created successfully.");
+			logger.debug("✅ Receipts table checked/created successfully.");
+		}
+	}
+
+	private void createReceiptItemsTableIfNotExists(Connection conn) throws SQLException {
+		String sql = "CREATE TABLE IF NOT EXISTS Receipt_Items (" +
+				"receipt_item_id INT AUTO_INCREMENT PRIMARY KEY, " +
+				"receipt_id INT, " +
+				"seva_name VARCHAR(255), " +
+				"quantity INT, " +
+				"price_at_sale DECIMAL(10, 2), " +
+				"FOREIGN KEY(receipt_id) REFERENCES Receipts(receipt_id) ON DELETE CASCADE)";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute(sql);
+			logger.debug("✅ Receipt_Items table checked/created successfully.");
 		}
 	}
 
@@ -256,7 +302,7 @@ public class DatabaseManager {
 				"timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ DonationReceipts table checked/created successfully.");
+			logger.debug("✅ DonationReceipts table checked/created successfully.");
 		}
 	}
 
@@ -268,7 +314,7 @@ public class DatabaseManager {
 				"display_order INT)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ Sevas table checked/created successfully.");
+			logger.debug("✅ Sevas table checked/created successfully.");
 			ensureDisplayOrderExists(conn);
 		}
 	}
@@ -281,7 +327,7 @@ public class DatabaseManager {
 				"display_order INT NOT NULL)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ VisheshaPooje table checked/created successfully.");
+			logger.debug("✅ VisheshaPooje table checked/created successfully.");
 		}
 	}
 
@@ -301,7 +347,7 @@ public class DatabaseManager {
 				"display_order INT)";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.execute(sql);
-			System.out.println("✅ Donations table checked/created successfully.");
+			logger.debug("✅ Donations table checked/created successfully.");
 			ensureDisplayOrderExistsForDonations(conn);
 		}
 	}
@@ -316,18 +362,26 @@ public class DatabaseManager {
 	}
 
 	public static Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DB_URL, USER, PASS);
+		if (dataSource == null) {
+			throw new SQLException("DataSource is not initialized.");
+		}
+		return dataSource.getConnection();
 	}
 
 	public static void closeConnection() {
-		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+		if (dataSource != null && !dataSource.isClosed()) {
+			dataSource.close();
+			logger.info("✅ HikariCP Connection Pool closed.");
+		}
+		try (Connection conn = DriverManager.getConnection(DB_URL + ";ifexists=true", USER, PASS);
+		     Statement stmt = conn.createStatement()) {
 			stmt.execute("SHUTDOWN");
-			System.out.println("✅ Database shutdown command issued.");
+			logger.info("✅ Database shutdown command issued.");
 		} catch (SQLException e) {
-			if (!"08006".equals(e.getSQLState())) {
-				System.err.println("❌ Error during database shutdown: " + e.getMessage());
+			if (e.getSQLState().equals("08006")) {
+				logger.info("✅ Database already shut down.");
 			} else {
-				System.out.println("✅ Database connection closed successfully.");
+				logger.error("❌ Error during database shutdown", e);
 			}
 		}
 	}

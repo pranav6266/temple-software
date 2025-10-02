@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -127,29 +126,27 @@ public class DonationController {
 
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		double amount = Double.parseDouble(amountField.getText());
-		int receiptId = DonationReceiptRepository.getNextDonationReceiptId();
 
-		DonationReceiptData newReceipt = new DonationReceiptData(
-				receiptId,
-				devoteeNameField.getText(),
-				contactField.getText(),
-				addressField.getText(),
-				panNumberField.getText(),
-				raashiComboBox.getValue(),
-				nakshatraComboBox.getValue(),
-				donationDatePicker.getValue(),
-				donationComboBox.getValue(),
-				amount,
-				paymentMode
-		);
-
-		int savedId = donationReceiptRepository.saveSpecificDonationReceipt(
-				receiptId, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(),
-				newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(), newReceipt.getSevaDate(),
-				newReceipt.getDonationName(), newReceipt.getDonationAmount(), newReceipt.getPaymentMode()
+		int savedId = donationReceiptRepository.saveDonationReceipt(
+				devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(), donationDatePicker.getValue(),
+				donationComboBox.getValue(), amount, paymentMode
 		);
 
 		if (savedId != -1) {
+			DonationReceiptData newReceipt = new DonationReceiptData(
+					savedId,
+					devoteeNameField.getText(),
+					contactField.getText(),
+					addressField.getText(),
+					panNumberField.getText(),
+					raashiComboBox.getValue(),
+					nakshatraComboBox.getValue(),
+					donationDatePicker.getValue(),
+					donationComboBox.getValue(),
+					amount,
+					paymentMode
+			);
 			if (receiptPrinter != null) {
 				Consumer<Boolean> onPrintComplete = (printSuccess) -> Platform.runLater(this::closeWindow);
 				Runnable onDialogClosed = this::closeWindow;
@@ -230,7 +227,7 @@ public class DonationController {
 	}
 
 	private void setupRashiNakshatraListener() {
-		// ಮೇಷ (Aries)
+		// మేష (Aries)
 		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
 		// ವೃಷಭ (Taurus)
 		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));

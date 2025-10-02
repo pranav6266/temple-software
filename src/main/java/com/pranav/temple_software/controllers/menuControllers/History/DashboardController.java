@@ -3,12 +3,14 @@ package com.pranav.temple_software.controllers.menuControllers.History;
 import com.pranav.temple_software.models.DashboardStats;
 import com.pranav.temple_software.repositories.DashboardRepository;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -23,17 +25,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DashboardController {
-	@FXML private ComboBox<String> typeComboBox;
-	@FXML private ComboBox<String> itemComboBox;
-	@FXML private DatePicker fromDatePicker;
-	@FXML private DatePicker toDatePicker;
-	@FXML private ComboBox<String> monthComboBox;
-	@FXML private ComboBox<String> yearComboBox;
-	@FXML private ComboBox<String> paymentModeComboBox;
-	@FXML private Button clearFiltersButton;
+	// --- UI Controls from FXML ---
 	@FXML private TableView<DashboardStats> dashboardTable;
 	@FXML private TableColumn<DashboardStats, String> itemNameColumn;
 	@FXML private TableColumn<DashboardStats, String> itemTypeColumn;
@@ -43,85 +37,78 @@ public class DashboardController {
 	@FXML private TableColumn<DashboardStats, Double> totalAmountColumn;
 	@FXML private Label totalRecordsLabel;
 	@FXML private Label totalAmountLabel;
+	@FXML private ProgressIndicator progressIndicator;
+	@FXML private StackPane tableStackPane;
+
+	// --- Instance variables to STORE filter values (replaces direct @FXML controls) ---
+	private String typeValue;
+	private String itemValue;
+	private LocalDate fromDateValue;
+	private LocalDate toDateValue; // This was hidden but is still needed
+	private String monthValue;
+	private String yearValue;
+	private String paymentModeValue;
+
 	private final DashboardRepository dashboardRepository = new DashboardRepository();
 
 	@FXML
 	public void initialize() {
-		setupComboBoxes();
+		// Set default filter values
+		clearAllFiltersAndRunReport();
 		setupTableColumns();
-		setupEventHandlers();
 		generateReport();
-	}
-
-	private void setupComboBoxes() {
-		typeComboBox.setItems(FXCollections.observableArrayList(
-				"ಎಲ್ಲಾ", "ಸೇವೆ", "ದೇಣಿಗೆ", "ವಸ್ತು ದೇಣಿಗೆ", "ಶಾಶ್ವತ ಪೂಜೆ", "ವಿಶೇಷ ಪೂಜೆ", "ಕಾರ್ಯಕ್ರಮ"
-		));
-		typeComboBox.setValue("ಎಲ್ಲಾ");
-		paymentModeComboBox.setItems(FXCollections.observableArrayList("All", "Cash", "Online"));
-		paymentModeComboBox.setValue("All");
-		monthComboBox.setItems(FXCollections.observableArrayList("All", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"));
-		monthComboBox.setValue("All");
-		List<String> years = new ArrayList<>();
-		years.add("");
-		int currentYear = LocalDate.now().getYear();
-		for (int y = currentYear; y >= 2000; y--) {
-			years.add(String.valueOf(y));
-		}
-		yearComboBox.setItems(FXCollections.observableArrayList(years));
-		yearComboBox.setValue("");
-		itemComboBox.setItems(FXCollections.observableArrayList("ಎಲ್ಲಾ"));
-		itemComboBox.setValue("ಎಲ್ಲಾ");
-	}
-
-	private void updateItemComboBox() {
-		String selectedType = typeComboBox.getValue();
-		List<String> items = new ArrayList<>();
-		items.add("ಎಲ್ಲಾ");
-		switch (selectedType) {
-			case "ಸೇವೆ" -> items.addAll(dashboardRepository.getAllSevaNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
-			case "ದೇಣಿಗೆ" -> items.addAll(dashboardRepository.getAllDonationNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
-			case "ವಸ್ತು ದೇಣಿಗೆ" -> items.add("ವಸ್ತು ದೇಣಿಗೆ");
-			case "ಶಾಶ್ವತ ಪೂಜೆ" -> items.addAll(dashboardRepository.getAllShashwathaPoojaNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
-			case "ವಿಶೇಷ ಪೂಜೆ" -> items.addAll(dashboardRepository.getAllVisheshaPoojaNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
-			case "ಕಾರ್ಯಕ್ರಮ" -> items.addAll(dashboardRepository.getAllKaryakramaNames().stream().map(s -> s.split(":")[1]).collect(Collectors.toList()));
-		}
-
-		itemComboBox.setItems(FXCollections.observableArrayList(items));
-		itemComboBox.setValue("ಎಲ್ಲಾ");
 	}
 
 	@FXML
 	private void generateReport() {
-		String selectedType = typeComboBox.getValue();
-		String selectedItem = itemComboBox.getValue();
-		LocalDate fromDate = fromDatePicker.getValue();
-		LocalDate toDate = toDatePicker.getValue();
-		String paymentMode = paymentModeComboBox.getValue();
+		progressIndicator.setVisible(true);
+		dashboardTable.setDisable(true);
+		dashboardTable.setItems(FXCollections.observableArrayList()); // Clear previous results
 
-		List<DashboardStats> allStats = new ArrayList<>();
-		if ("ಎಲ್ಲಾ".equals(selectedType) || "ಸೇವೆ".equals(selectedType)) {
-			allStats.addAll(dashboardRepository.getSevaStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllSevaNames())));
-		}
-		if ("ಎಲ್ಲಾ".equals(selectedType) || "ದೇಣಿಗೆ".equals(selectedType)) {
-			allStats.addAll(dashboardRepository.getDonationStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllDonationNames())));
-		}
-		if ("ಎಲ್ಲಾ".equals(selectedType) || "ಶಾಶ್ವತ ಪೂಜೆ".equals(selectedType)) {
-			allStats.addAll(dashboardRepository.getShashwathaPoojaStatistics(fromDate, toDate));
-		}
-		if ("ಎಲ್ಲಾ".equals(selectedType) || "ವಿಶೇಷ ಪೂಜೆ".equals(selectedType)) {
-			allStats.addAll(dashboardRepository.getVisheshaPoojaStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllVisheshaPoojaNames())));
-		}
-		if ("ಎಲ್ಲಾ".equals(selectedType) || "ಕಾರ್ಯಕ್ರಮ".equals(selectedType)) {
-			allStats.addAll(dashboardRepository.getKaryakramaStatistics(fromDate, toDate, paymentMode, getIdFromName(selectedItem, dashboardRepository.getAllKaryakramaNames())));
-		}
+		Task<List<DashboardStats>> loadReportTask = new Task<>() {
+			@Override
+			protected List<DashboardStats> call() throws Exception {
+				// This runs on a background thread
+				List<DashboardStats> allStats = new ArrayList<>();
+				if ("ಎಲ್ಲಾ".equals(typeValue) || "ಸೇವೆ".equals(typeValue)) {
+					allStats.addAll(dashboardRepository.getSevaStatistics(fromDateValue, toDateValue, paymentModeValue, getIdFromName(itemValue, dashboardRepository.getAllSevaNames())));
+				}
+				if ("ಎಲ್ಲಾ".equals(typeValue) || "ದೇಣಿಗೆ".equals(typeValue)) {
+					allStats.addAll(dashboardRepository.getDonationStatistics(fromDateValue, toDateValue, paymentModeValue, getIdFromName(itemValue, dashboardRepository.getAllDonationNames())));
+				}
+				if ("ಎಲ್ಲಾ".equals(typeValue) || "ಶಾಶ್ವತ ಪೂಜೆ".equals(typeValue)) {
+					allStats.addAll(dashboardRepository.getShashwathaPoojaStatistics(fromDateValue, toDateValue));
+				}
+				if ("ಎಲ್ಲಾ".equals(typeValue) || "ವಿಶೇಷ ಪೂಜೆ".equals(typeValue)) {
+					allStats.addAll(dashboardRepository.getVisheshaPoojaStatistics(fromDateValue, toDateValue, paymentModeValue, getIdFromName(itemValue, dashboardRepository.getAllVisheshaPoojaNames())));
+				}
+				if ("ಎಲ್ಲಾ".equals(typeValue) || "ಕಾರ್ಯಕ್ರಮ".equals(typeValue)) {
+					allStats.addAll(dashboardRepository.getKaryakramaStatistics(fromDateValue, toDateValue, paymentModeValue, getIdFromName(itemValue, dashboardRepository.getAllKaryakramaNames())));
+				}
+				return allStats;
+			}
+		};
 
-		dashboardTable.setItems(FXCollections.observableArrayList(allStats));
-		updateSummaryLabels(allStats);
+		loadReportTask.setOnSucceeded(e -> {
+			// This runs on the UI thread
+			List<DashboardStats> result = loadReportTask.getValue();
+			dashboardTable.setItems(FXCollections.observableArrayList(result));
+			updateSummaryLabels(result);
+			progressIndicator.setVisible(false);
+			dashboardTable.setDisable(false);
+		});
+
+		loadReportTask.setOnFailed(e -> {
+			// This runs on the UI thread if an error occurs
+			progressIndicator.setVisible(false);
+			dashboardTable.setDisable(false);
+			showAlert("Error", "Failed to load dashboard report.");
+			loadReportTask.getException().printStackTrace();
+		});
+
+		new Thread(loadReportTask).start();
 	}
 
-	// The rest of the file (utility methods like setupTableColumns, handleExportToExcel, etc.) remains the same.
-	// Ensure you copy them from your existing file. I'm omitting them here for brevity but they must be present.
 	@FXML
 	public void openFilterWindow() {
 		try {
@@ -136,23 +123,19 @@ public class DashboardController {
 			filterStage.setScene(scene);
 			FilterPopupController filterController = loader.getController();
 			filterController.initializeWithCurrentFilters(
-					typeComboBox.getValue(),
-					itemComboBox.getValue(),
-					fromDatePicker.getValue(),
-					toDatePicker.getValue(),
-					monthComboBox.getValue(),
-					yearComboBox.getValue(),
-					paymentModeComboBox.getValue()
+					typeValue, itemValue, fromDateValue, toDateValue,
+					monthValue, yearValue, paymentModeValue
 			);
 
 			filterController.setFilterApplyHandler(() -> {
-				typeComboBox.setValue(filterController.getTypeValue());
-				itemComboBox.setValue(filterController.getItemValue());
-				fromDatePicker.setValue(filterController.getFromDateValue());
-				toDatePicker.setValue(filterController.getToDateValue());
-				monthComboBox.setValue(filterController.getMonthValue());
-				yearComboBox.setValue(filterController.getYearValue());
-				paymentModeComboBox.setValue(filterController.getPaymentModeValue());
+				// Update the stored values from the popup controller
+				this.typeValue = filterController.getTypeValue();
+				this.itemValue = filterController.getItemValue();
+				this.fromDateValue = filterController.getFromDateValue();
+				this.toDateValue = filterController.getToDateValue();
+				this.monthValue = filterController.getMonthValue();
+				this.yearValue = filterController.getYearValue();
+				this.paymentModeValue = filterController.getPaymentModeValue();
 				generateReport();
 				filterStage.close();
 			});
@@ -214,11 +197,6 @@ public class DashboardController {
 		};
 	}
 
-	private void setupEventHandlers() {
-		typeComboBox.setOnAction(e -> updateItemComboBox());
-		clearFiltersButton.setOnAction(e -> clearAllFilters());
-	}
-
 	private void updateSummaryLabels(List<DashboardStats> stats) {
 		int totalRecords = stats.stream().mapToInt(DashboardStats::getTotalCount).sum();
 		double totalAmount = stats.stream().mapToDouble(DashboardStats::getTotalAmount).sum();
@@ -234,16 +212,14 @@ public class DashboardController {
 				.findFirst().orElse(null);
 	}
 
-	@FXML
-	private void clearAllFilters() {
-		typeComboBox.setValue("ಎಲ್ಲಾ");
-		itemComboBox.setValue("ಎಲ್ಲಾ");
-		fromDatePicker.setValue(null);
-		toDatePicker.setValue(null);
-		monthComboBox.setValue("All");
-		yearComboBox.setValue("");
-		paymentModeComboBox.setValue("All");
-		generateReport();
+	private void clearAllFiltersAndRunReport() {
+		typeValue = "ಎಲ್ಲಾ";
+		itemValue = "ಎಲ್ಲಾ";
+		fromDateValue = null;
+		toDateValue = null;
+		monthValue = "All";
+		yearValue = "";
+		paymentModeValue = "All";
 	}
 
 	@FXML
@@ -284,7 +260,6 @@ public class DashboardController {
 				}
 
 				showAlert("Success", "Data exported successfully to " + file.getName());
-
 			} catch (IOException e) {
 				showAlert("Error", "Failed to write the Excel file: " + e.getMessage());
 				e.printStackTrace();

@@ -3,11 +3,12 @@ package com.pranav.temple_software.repositories;
 import com.pranav.temple_software.models.KaryakramaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.utils.DatabaseManager;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class KaryakramaReceiptRepository {
@@ -16,8 +17,8 @@ public class KaryakramaReceiptRepository {
 	}
 
 	public int saveReceipt(KaryakramaReceiptData data) {
-		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, karyakrama_name, receipt_date, sevas_details, total_amount, payment_mode) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, karyakrama_name, receipt_date, total_amount, payment_mode) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -27,11 +28,10 @@ public class KaryakramaReceiptRepository {
 			pstmt.setString(4, data.getPanNumber());
 			pstmt.setString(5, data.getRashi());
 			pstmt.setString(6, data.getNakshatra());
-			pstmt.setString(7, data.getKaryakramaName()); // <-- SAVE NEW FIELD
+			pstmt.setString(7, data.getKaryakramaName());
 			pstmt.setDate(8, Date.valueOf(data.getReceiptDate()));
-			pstmt.setString(9, formatSevasForDatabase(data.getSevas()));
-			pstmt.setDouble(10, data.getTotalAmount());
-			pstmt.setString(11, data.getPaymentMode());
+			pstmt.setDouble(9, data.getTotalAmount());
+			pstmt.setString(10, data.getPaymentMode());
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
@@ -41,11 +41,30 @@ public class KaryakramaReceiptRepository {
 					}
 				}
 			}
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return -1;
+	}
+
+	public boolean saveReceiptItems(int receiptId, List<SevaEntry> items) {
+		String sql = "INSERT INTO Karyakrama_Receipt_Items (receipt_id, item_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+			for (SevaEntry item : items) {
+				pstmt.setInt(1, receiptId);
+				pstmt.setString(2, item.getName());
+				pstmt.setInt(3, item.getQuantity());
+				pstmt.setDouble(4, item.getAmount());
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Error batch inserting Karyakrama receipt items: " + e.getMessage());
+			return false;
+		}
 	}
 
 	public List<KaryakramaReceiptData> getAllReceipts() {
@@ -56,17 +75,19 @@ public class KaryakramaReceiptRepository {
 		     ResultSet rs = stmt.executeQuery(sql)) {
 
 			while (rs.next()) {
+				int receiptId = rs.getInt("receipt_id");
+				ObservableList<SevaEntry> items = getItemsForReceipt(conn, receiptId);
 				receipts.add(new KaryakramaReceiptData(
-						rs.getInt("receipt_id"),
+						receiptId,
 						rs.getString("devotee_name"),
 						rs.getString("phone_number"),
 						rs.getString("address"),
 						rs.getString("pan_number"),
 						rs.getString("rashi"),
 						rs.getString("nakshatra"),
-						rs.getString("karyakrama_name"), // <-- LOAD NEW FIELD
+						rs.getString("karyakrama_name"),
 						rs.getDate("receipt_date").toLocalDate(),
-						parseSevas(rs.getString("sevas_details")),
+						items,
 						rs.getDouble("total_amount"),
 						rs.getString("payment_mode")
 				));
@@ -77,39 +98,21 @@ public class KaryakramaReceiptRepository {
 		return receipts;
 	}
 
-	private String formatSevasForDatabase(List<SevaEntry> sevas) {
-		StringBuilder sb = new StringBuilder();
-		for (SevaEntry seva : sevas) {
-			// Format is now name:amount:quantity (quantity will be 1)
-			sb.append(seva.getName()).append(":")
-					.append(seva.getAmount()).append(":")
-					.append(seva.getQuantity()).append(";");
-		}
-		if (sb.length() > 0) sb.setLength(sb.length() - 1); // Remove trailing semicolon
-		return sb.toString();
-	}
-
-	private List<SevaEntry> parseSevas(String sevasString) {
-		List<SevaEntry> sevas = new ArrayList<>();
-		if (sevasString == null || sevasString.isEmpty()) {
-			return sevas;
-		}
-		String[] entries = sevasString.split(";");
-		for (String entry : entries) {
-			try {
-				String[] parts = entry.split(":");
-				if (parts.length >= 3) {
-					String name = String.join(":", Arrays.copyOfRange(parts, 0, parts.length - 2)).trim();
-					double amount = Double.parseDouble(parts[parts.length - 2].trim());
-					int quantity = Integer.parseInt(parts[parts.length - 1].trim());
-					SevaEntry seva = new SevaEntry(name, amount);
-					seva.setQuantity(quantity);
-					sevas.add(seva);
-				}
-			} catch (Exception e) {
-				System.err.println("Could not parse Karyakrama seva entry: " + entry);
+	private ObservableList<SevaEntry> getItemsForReceipt(Connection conn, int receiptId) throws SQLException {
+		ObservableList<SevaEntry> items = FXCollections.observableArrayList();
+		String sql = "SELECT item_name, quantity, price_at_sale FROM Karyakrama_Receipt_Items WHERE receipt_id = ?";
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setInt(1, receiptId);
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				String name = rs.getString("item_name");
+				int quantity = rs.getInt("quantity");
+				double price = rs.getDouble("price_at_sale");
+				SevaEntry entry = new SevaEntry(name, price);
+				entry.setQuantity(quantity);
+				items.add(entry);
 			}
 		}
-		return sevas;
+		return items;
 	}
 }

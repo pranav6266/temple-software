@@ -6,17 +6,20 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class HistoryController {
 	public Label totalRecordsLabel;
@@ -27,11 +30,11 @@ public class HistoryController {
 		IN_KIND("ವಸ್ತು ದೇಣಿಗೆ ಇತಿಹಾಸ"),
 		SHASHWATHA_POOJA("ಶಾಶ್ವತ ಪೂಜೆ ಇತಿಹಾಸ"),
 		KARYAKRAMA("ಕಾರ್ಯಕ್ರಮ ರಶೀದಿ ಇತಿಹಾಸ");
-
 		private final String displayName;
 		HistoryView(String displayName) { this.displayName = displayName; }
 		@Override
-		public String toString() { return displayName; }
+		public String toString() { return displayName;
+		}
 	}
 
 	private HistoryView currentView = HistoryView.SEVA;
@@ -46,6 +49,8 @@ public class HistoryController {
 	@FXML private ComboBox<HistoryView> viewSelectionComboBox;
 	@FXML private Label currentViewLabel;
 	@FXML private Button dashboardButton;
+	@FXML private StackPane tableStackPane;
+	@FXML private ProgressIndicator progressIndicator;
 
 	// Seva Table
 	@FXML private TableView<SevaReceiptData> historyTable;
@@ -102,6 +107,35 @@ public class HistoryController {
 		switchToView(HistoryView.SEVA);
 	}
 
+	private <T> void loadDataInBackground(Supplier<List<T>> dataSupplier, Consumer<List<T>> successConsumer) {
+		progressIndicator.setVisible(true);
+		setTableVisibility(false, false, false, false, false); // Hide all tables
+		updateRecordCount(0); // Reset count
+
+		Task<List<T>> loadTask = new Task<>() {
+			@Override
+			protected List<T> call() throws Exception {
+				// This runs on a background thread
+				return dataSupplier.get();
+			}
+		};
+
+		loadTask.setOnSucceeded(e -> {
+			// This runs on the UI thread after success
+			successConsumer.accept(loadTask.getValue());
+			progressIndicator.setVisible(false);
+		});
+
+		loadTask.setOnFailed(e -> {
+			// This runs on the UI thread on failure
+			progressIndicator.setVisible(false);
+			showAlert("Error", "Failed to load history data from the database.");
+			loadTask.getException().printStackTrace();
+		});
+
+		new Thread(loadTask).start();
+	}
+
 	private void setupViewSelectionComboBox() {
 		viewSelectionComboBox.setItems(FXCollections.observableArrayList(HistoryView.values()));
 		viewSelectionComboBox.setValue(HistoryView.SEVA);
@@ -129,38 +163,58 @@ public class HistoryController {
 	}
 
 	private void switchToSevaView() {
-		setTableVisibility(true, false, false, false, false);
-		List<SevaReceiptData> sevaList = sevaReceiptRepository.getAllReceipts();
-		historyTable.setItems(FXCollections.observableArrayList(sevaList));
-		updateRecordCount(sevaList.size());
+		loadDataInBackground(
+				() -> sevaReceiptRepository.getAllReceipts(),
+				receipts -> {
+					setTableVisibility(true, false, false, false, false);
+					historyTable.setItems(FXCollections.observableArrayList(receipts));
+					updateRecordCount(receipts.size());
+				}
+		);
 	}
 
 	private void switchToDonationView() {
-		setTableVisibility(false, true, false, false, false);
-		List<DonationReceiptData> donationList = donationReceiptRepository.getAllDonationReceipts();
-		donationHistoryTable.setItems(FXCollections.observableArrayList(donationList));
-		updateRecordCount(donationList.size());
+		loadDataInBackground(
+				() -> donationReceiptRepository.getAllDonationReceipts(),
+				receipts -> {
+					setTableVisibility(false, true, false, false, false);
+					donationHistoryTable.setItems(FXCollections.observableArrayList(receipts));
+					updateRecordCount(receipts.size());
+				}
+		);
 	}
 
 	private void switchToInKindDonationView() {
-		setTableVisibility(false, false, true, false, false);
-		List<InKindDonation> inKindList = inKindDonationRepository.getAllInKindDonations();
-		inKindDonationHistoryTable.setItems(FXCollections.observableArrayList(inKindList));
-		updateRecordCount(inKindList.size());
+		loadDataInBackground(
+				() -> inKindDonationRepository.getAllInKindDonations(),
+				receipts -> {
+					setTableVisibility(false, false, true, false, false);
+					inKindDonationHistoryTable.setItems(FXCollections.observableArrayList(receipts));
+					updateRecordCount(receipts.size());
+				}
+		);
 	}
 
 	private void switchToShashwathaPoojaView() {
-		setTableVisibility(false, false, false, true, false);
-		List<ShashwathaPoojaReceipt> shashwathaList = shashwathaPoojaRepository.getAllShashwathaPoojaReceipts();
-		shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(shashwathaList));
-		updateRecordCount(shashwathaList.size());
+		loadDataInBackground(
+				() -> shashwathaPoojaRepository.getAllShashwathaPoojaReceipts(),
+				receipts -> {
+					setTableVisibility(false, false, false, true, false);
+					shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(receipts));
+					updateRecordCount(receipts.size());
+				}
+		);
 	}
 
 	private void switchToKaryakramaView() {
-		setTableVisibility(false, false, false, false, true);
-		List<KaryakramaReceiptData> karyakramaList = karyakramaReceiptRepository.getAllReceipts();
-		karyakramaHistoryTable.setItems(FXCollections.observableArrayList(karyakramaList));
-		updateRecordCount(karyakramaList.size());
+		loadDataInBackground(
+				() -> karyakramaReceiptRepository.getAllReceipts(),
+				receipts -> {
+					setTableVisibility(false, false, false, false, true);
+					karyakramaHistoryTable.setItems(FXCollections.observableArrayList(receipts));
+					updateRecordCount(receipts.size());
+				}
+		);
 	}
 
 	private void setTableVisibility(boolean seva, boolean donation, boolean inKind, boolean shashwatha, boolean karyakrama) {
@@ -384,7 +438,6 @@ public class HistoryController {
 			dashboardStage.setScene(new Scene(loader.load()));
 			dashboardStage.initModality(Modality.WINDOW_MODAL);
 			dashboardStage.initOwner(historyTable.getScene().getWindow());
-//			dashboardStage.setMaximized(true);
 			dashboardStage.setResizable(true);
 			dashboardStage.setHeight(768);
 			dashboardStage.setWidth(1024);

@@ -18,9 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class AdminPanelController {
 
@@ -33,7 +31,6 @@ public class AdminPanelController {
 	@FXML private PasswordField adminPassField;
 	@FXML private PasswordField adminPassConfirmField;
 	@FXML private Label statusLabel;
-
 	// Log Viewer Tab
 	@FXML private ComboBox<File> logFilesComboBox;
 	@FXML private TextArea logContentArea;
@@ -44,6 +41,8 @@ public class AdminPanelController {
 
 	private final CredentialsRepository credentialsRepository = new CredentialsRepository();
 	private final String logDir = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware" + File.separator + "logs";
+	private final Set<String> allowedTableNames = new HashSet<>();
+
 
 	@FXML
 	public void initialize() {
@@ -85,7 +84,6 @@ public class AdminPanelController {
 		String username = adminUserField.getText();
 		String pass1 = adminPassField.getText();
 		String pass2 = adminPassConfirmField.getText();
-
 		if (username == null || username.isBlank()) {
 			showStatus("Admin username cannot be empty.", true);
 			return;
@@ -115,7 +113,6 @@ public class AdminPanelController {
 
 		String hashedPassword = PasswordUtils.hashPassword(pass1);
 		boolean success = credentialsRepository.updateCredential(key, hashedPassword);
-
 		if (success) {
 			showStatus(key.replace("_", " ") + " updated successfully!", false);
 			clearPasswordFields(key);
@@ -154,10 +151,12 @@ public class AdminPanelController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			DatabaseMetaData metaData = conn.getMetaData();
 			ResultSet rs = metaData.getTables(null, "PUBLIC", "%", new String[]{"TABLE"});
-			ObservableList<String>
-					tableNames = FXCollections.observableArrayList();
+			ObservableList<String> tableNames = FXCollections.observableArrayList();
+			allowedTableNames.clear();
 			while (rs.next()) {
-				tableNames.add(rs.getString("TABLE_NAME"));
+				String tableName = rs.getString("TABLE_NAME");
+				tableNames.add(tableName);
+				allowedTableNames.add(tableName);
 			}
 			tablesComboBox.setItems(tableNames);
 		} catch (SQLException e) {
@@ -166,6 +165,12 @@ public class AdminPanelController {
 	}
 
 	private void loadTableData(String tableName) {
+		// SECURITY HARDENING: Validate table name against a whitelist
+		if (!allowedTableNames.contains(tableName)) {
+			showAlert("Security Warning", "Access to this table is not permitted.");
+			return;
+		}
+
 		databaseTableView.getColumns().clear();
 		databaseTableView.getItems().clear();
 
@@ -209,6 +214,7 @@ public class AdminPanelController {
 	void handleSaveChanges(ActionEvent event) {
 		String selectedTable = tablesComboBox.getSelectionModel().getSelectedItem();
 		if (selectedTable == null) return;
+		if (!allowedTableNames.contains(selectedTable)) return; // Security check
 
 		TableColumn<ObservableList<String>, ?> primaryKeyColumn = databaseTableView.getColumns().get(0);
 		String pkColumnName = primaryKeyColumn.getText();
@@ -252,6 +258,7 @@ public class AdminPanelController {
 			showStatus("Please select a row to delete.", true);
 			return;
 		}
+		if (!allowedTableNames.contains(selectedTable)) return; // Security check
 
 		String pkColumnName = databaseTableView.getColumns().get(0).getText();
 		String pkValue = selectedRow.get(0);
@@ -286,6 +293,14 @@ public class AdminPanelController {
 		PauseTransition delay = new PauseTransition(Duration.seconds(5));
 		delay.setOnFinished(event -> statusLabel.setText(""));
 		delay.play();
+	}
+
+	private void showAlert(String title, String content) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(content);
+		alert.showAndWait();
 	}
 
 	private void clearPasswordFields(String key) {

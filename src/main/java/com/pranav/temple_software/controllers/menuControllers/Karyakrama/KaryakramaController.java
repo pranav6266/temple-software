@@ -1,5 +1,4 @@
 package com.pranav.temple_software.controllers.menuControllers.Karyakrama;
-
 import com.pranav.temple_software.models.*;
 import com.pranav.temple_software.repositories.DevoteeRepository;
 import com.pranav.temple_software.repositories.KaryakramaReceiptRepository;
@@ -15,7 +14,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -53,23 +51,18 @@ public class KaryakramaController {
 		updateTotal();
 	}
 
-	// Replace the existing setupDevoteeFields method with this one
 	private void setupDevoteeFields() {
 		contactField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue != null) {
-				// First, ensure only up to 10 digits can be entered
 				String digitsOnly = newValue.replaceAll("[^\\d]", "");
 				if (digitsOnly.length() > 10) {
 					digitsOnly = digitsOnly.substring(0, 10);
 				}
 
-				// prevent listener recursion
 				if (!digitsOnly.equals(newValue)) {
 					contactField.setText(digitsOnly);
 				}
 
-				// --- NEW LOGIC ---
-				// If the new value has exactly 10 digits, trigger the search
 				if (digitsOnly.length() == 10) {
 					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
 							.ifPresent(this::populateDevoteeDetails);
@@ -98,7 +91,6 @@ public class KaryakramaController {
 	private void handleAddOther() {
 		Others selectedOther = othersComboBox.getValue();
 		String amountStr = amountField.getText();
-
 		if (selectedOther == null) {
 			showAlert(Alert.AlertType.WARNING, "Invalid Input", "Please select an 'Other' item.");
 			return;
@@ -116,9 +108,8 @@ public class KaryakramaController {
 			return;
 		}
 
-		// For Karyakrama, we can add the same "Other" multiple times if needed, so we don't check for duplicates.
 		SevaEntry newEntry = new SevaEntry(selectedOther.getName(), amount);
-		newEntry.setQuantity(1); // Quantity is always 1 in this new model
+		newEntry.setQuantity(1);
 		selectedOthers.add(newEntry);
 
 		othersTableView.refresh();
@@ -134,7 +125,6 @@ public class KaryakramaController {
 
 		Karyakrama selectedKaryakrama = karyakramaComboBox.getValue();
 		double totalAmount = selectedOthers.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-
 		if (totalAmount > 2000 && (panNumberField.getText() == null || panNumberField.getText().trim().isEmpty())) {
 			showAlert(Alert.AlertType.ERROR, "Validation Error", "PAN number is mandatory for transactions above ₹2000.");
 			return;
@@ -150,7 +140,12 @@ public class KaryakramaController {
 		int savedId = receiptRepository.saveReceipt(receiptData);
 
 		if (savedId != -1) {
-			// Re-create object with the correct ID for printing
+			boolean itemsSaved = receiptRepository.saveReceiptItems(savedId, receiptData.getSevas());
+			if (!itemsSaved) {
+				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items.");
+				return;
+			}
+
 			KaryakramaReceiptData savedReceiptData = new KaryakramaReceiptData(savedId,
 					receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(),
 					receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(),

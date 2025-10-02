@@ -1,6 +1,5 @@
 // FILE: src/main/java/com/pranav/temple_software/repositories/VisheshaPoojeRepository.java
 package com.pranav.temple_software.repositories;
-
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.utils.DatabaseManager;
 
@@ -14,9 +13,7 @@ public class VisheshaPoojeRepository {
 	private static final VisheshaPoojeRepository instance = new VisheshaPoojeRepository();
 	private final List<SevaEntry> visheshaPoojeList = new ArrayList<>();
 	private boolean isDataLoaded = false;
-
 	private VisheshaPoojeRepository() {
-		// Constructor remains empty for lazy loading
 	}
 
 	public static VisheshaPoojeRepository getInstance() {
@@ -30,7 +27,6 @@ public class VisheshaPoojeRepository {
 	public static synchronized void loadVisheshaPoojeFromDB() {
 		instance.visheshaPoojeList.clear();
 		instance.isDataLoaded = false;
-
 		String sql = "SELECT * FROM VisheshaPooje ORDER BY display_order";
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
@@ -53,7 +49,7 @@ public class VisheshaPoojeRepository {
 		}
 	}
 
-	public static List<SevaEntry> getAllVisheshaPooje() {
+	public static synchronized List<SevaEntry> getAllVisheshaPooje() {
 		if (!instance.isDataLoaded) {
 			loadVisheshaPoojeFromDB();
 		}
@@ -61,7 +57,7 @@ public class VisheshaPoojeRepository {
 		return Collections.unmodifiableList(instance.visheshaPoojeList);
 	}
 
-	public int getMaxVisheshaPoojeId() {
+	public synchronized int getMaxVisheshaPoojeId() {
 		String sql = "SELECT MAX(CAST(vishesha_pooje_id AS INT)) FROM VisheshaPooje";
 		try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 			if (rs.next()) return rs.getInt(1);
@@ -71,7 +67,7 @@ public class VisheshaPoojeRepository {
 		return 0;
 	}
 
-	public void addVisheshaPoojeToDB(String id, String name, int amount) {
+	public synchronized void addVisheshaPoojeToDB(String id, String name, int amount) {
 		String sql = "INSERT INTO VisheshaPooje (vishesha_pooje_id, vishesha_pooje_name, vishesha_pooje_amount, display_order) VALUES (?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -85,7 +81,7 @@ public class VisheshaPoojeRepository {
 		}
 	}
 
-	public boolean deleteVisheshaPoojeFromDB(String id) {
+	public synchronized boolean deleteVisheshaPoojeFromDB(String id) {
 		String sql = "DELETE FROM VisheshaPooje WHERE vishesha_pooje_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, id);
@@ -97,7 +93,7 @@ public class VisheshaPoojeRepository {
 		return false;
 	}
 
-	public static boolean updateDisplayOrder(String id, int order) {
+	public static synchronized boolean updateDisplayOrder(String id, int order) {
 		String sql = "UPDATE VisheshaPooje SET display_order = ? WHERE vishesha_pooje_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, order);
@@ -110,7 +106,7 @@ public class VisheshaPoojeRepository {
 		}
 	}
 
-	public String getVisheshaPoojeIdByName(String name) {
+	public synchronized String getVisheshaPoojeIdByName(String name) {
 		String sql = "SELECT vishesha_pooje_id FROM VisheshaPooje WHERE vishesha_pooje_name = ?";
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, name);
@@ -124,7 +120,7 @@ public class VisheshaPoojeRepository {
 		return null;
 	}
 
-	public static boolean updateAmount(String visheshaPoojeId, double newAmount) {
+	public static synchronized boolean updateAmount(String visheshaPoojeId, double newAmount) {
 		String sql = "UPDATE VisheshaPooje SET vishesha_pooje_amount = ? WHERE vishesha_pooje_id = ?";
 		try (Connection conn = getConnection();
 		     PreparedStatement stmt = conn.prepareStatement(sql)) {
