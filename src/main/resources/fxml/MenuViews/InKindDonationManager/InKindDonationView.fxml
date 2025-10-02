@@ -4,68 +4,58 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.InKindDonationManager.InKindDonationController">
+<BorderPane prefWidth="800.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.InKindDonationManager.InKindDonationController">
     <top>
         <Label styleClass="popup-title" text="ವಸ್ತು ದೇಣಿಗೆಯನ್ನು ಸೇರಿಸಿ" BorderPane.alignment="CENTER" />
     </top>
     <center>
-        <VBox styleClass="popup-content">
-            <GridPane hgap="15" vgap="15">
-                <columnConstraints>
-                    <ColumnConstraints hgrow="NEVER" minWidth="120.0" />
-                    <ColumnConstraints hgrow="ALWAYS" />
-                </columnConstraints>
-                <rowConstraints>
-                    <RowConstraints />
-                    <RowConstraints />
-                    <RowConstraints />
-                    <RowConstraints />
-                    <RowConstraints />
-                    <RowConstraints />
-                    <RowConstraints minHeight="100.0" />
-                </rowConstraints>
+        <ScrollPane fitToWidth="true" styleClass="manager-scroll-pane">
+            <VBox styleClass="popup-content">
+                <GridPane hgap="20" vgap="15">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="120.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints hgrow="NEVER" minWidth="120.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                    </columnConstraints>
 
-                <Label styleClass="popup-field-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.rowIndex="0" />
-                <TextField fx:id="devoteeNameField" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <Label styleClass="popup-field-label" text="ಭಕ್ತರ ಹೆಸರು:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="devoteeNameField" maxWidth="Infinity" promptText="ಹೆಸರನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <Label styleClass="popup-field-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                    <TextField fx:id="contactField" maxWidth="Infinity" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="popup-text-field" GridPane.columnIndex="3" GridPane.rowIndex="0" />
 
-                <Label styleClass="popup-field-label" text="ಸಂಪರ್ಕ ಸಂಖ್ಯೆ:" GridPane.rowIndex="1" />
-                <TextField fx:id="contactField" promptText="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (10 ಅಂಕೆಗಳು)" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <Label styleClass="popup-field-label" text="ದೇಣಿಗೆ ದಿನಾಂಕ:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <DatePicker fx:id="donationDatePicker" maxWidth="Infinity" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <Label styleClass="popup-field-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                    <TextField fx:id="panNumberField" maxWidth="Infinity" promptText="PAN ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="3" GridPane.rowIndex="1" />
 
-                <Label styleClass="popup-field-label" text="ದೇಣಿಗೆ ದಿನಾಂಕ:" GridPane.rowIndex="2" />
-                <DatePicker fx:id="donationDatePicker" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    <Label styleClass="popup-field-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <ComboBox fx:id="raashiComboBox" maxWidth="Infinity" promptText="ರಾಶಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    <Label styleClass="popup-field-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                    <ComboBox fx:id="nakshatraComboBox" maxWidth="Infinity" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="3" GridPane.rowIndex="2" />
 
-                <Label styleClass="popup-field-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.rowIndex="3" />
-                <ComboBox fx:id="raashiComboBox" promptText="ರಾಶಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                    <Label styleClass="popup-field-label" text="ವಿಳಾಸ:" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                    <TextArea fx:id="addressField" prefRowCount="2" promptText="ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="3" />
 
-                <Label styleClass="popup-field-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="4" />
-                <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                    <Label styleClass="popup-field-label" text="ವಸ್ತುವಿನ ವಿವರಣೆ:" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.valignment="TOP" />
+                    <TextArea fx:id="itemDescriptionArea" prefRowCount="3" promptText="ಉದಾ: 1 ಬೆಳ್ಳಿ ದೀಪ, 1 ಫ್ರಿಡ್ಜ್" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4" />
 
-                <Label styleClass="popup-field-label" text="ವಸ್ತುವಿನ ವಿವರಣೆ:" GridPane.rowIndex="5" />
-                <TextArea fx:id="itemDescriptionArea" prefRowCount="3" promptText="ಉದಾ: 1 ಬೆಳ್ಳಿ ದೀಪ, 1 ಫ್ರಿಡ್ಜ್" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-
-                <Label styleClass="popup-field-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.rowIndex="6" />
-                <TextField fx:id="panNumberField" promptText="PAN ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-
-                <Label styleClass="popup-field-label" text="ವಿಳಾಸ:" GridPane.rowIndex="7" />
-                <TextArea fx:id="addressField" prefRowCount="3" promptText="ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-
-
-
-            </GridPane>
-        </VBox>
+                </GridPane>
+            </VBox>
+        </ScrollPane>
     </center>
     <bottom>
         <HBox styleClass="popup-button-container">
-            <Button fx:id="saveButton" onAction="#handleSave" styleClass="manager-button, manager-save-button" text="ಉಳಿಸಿ" />
+            <Button fx:id="saveButton" onAction="#handleSave" styleClass="manager-button, manager-save-button" text="ಉಳಿಸಿ ಮತ್ತು ಮುದ್ರಿಸಿ" />
             <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="manager-button, manager-cancel-button" text="ರದ್ದುಮಾಡಿ" />
         </HBox>
     </bottom>

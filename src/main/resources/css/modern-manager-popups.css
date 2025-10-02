@@ -37,6 +37,17 @@
     -fx-background-color: white;
 }
 
+/* NEW/IMPROVED: This makes the section headers bold */
+.section-title {
+    -fx-font-size: 1.2em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5D4037; /* Muted Brown */
+    -fx-padding: 0 0 8px 0;
+    -fx-border-color: transparent transparent #FFE0B2 transparent; /* Saffron underline */
+    -fx-border-width: 2px;
+}
+
+
 .popup-field-label {
     -fx-font-size: 1.05em;
     -fx-font-weight: 500;
@@ -58,6 +69,23 @@
     -fx-border-color: #FF9800; /* Saffron */
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(255, 152, 0, 0.3), 3, 0, 0, 0);
+}
+
+.popup-radio-button {
+    -fx-font-size: 1em;
+}
+
+.amount-display-label {
+    -fx-font-size: 1.2em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2E7D32; /* Green for amount */
+    -fx-padding: 8px 12px;
+    -fx-background-color: #E8F5E9;
+    -fx-background-radius: 6px;
+    -fx-border-color: #A5D6A7;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-alignment: center-left;
 }
 
 .popup-button-container {
