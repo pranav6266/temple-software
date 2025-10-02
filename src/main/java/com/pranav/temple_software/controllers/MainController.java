@@ -32,6 +32,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -43,6 +46,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MainController {
+	private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+
 	public Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
 	public ReceiptPrinter receiptPrinter = new ReceiptPrinter(this);
 	public Stage mainStage;
@@ -73,7 +78,6 @@ public class MainController {
 	@FXML private Button clearFormButton;
 	@FXML private Label statusLabel;
 
-
 	@FXML
 	public void initialize() {
 		sevaDatePicker.setValue(LocalDate.now());
@@ -81,13 +85,9 @@ public class MainController {
 		sevaDatePicker.setConverter(new StringConverter<>() {
 			@Override
 			public String toString(LocalDate date) {
-				if (date != null) {
-					return dateFormatter.format(date);
-				} else {
-					return "";
-				}
+				if (date != null) return dateFormatter.format(date);
+				else return "";
 			}
-
 			@Override
 			public LocalDate fromString(String string) {
 				if (string != null && !string.isEmpty()) {
@@ -96,9 +96,7 @@ public class MainController {
 					} catch (DateTimeParseException e) {
 						return null;
 					}
-				} else {
-					return null;
-				}
+				} else return null;
 			}
 		});
 		sevaNameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
@@ -148,7 +146,6 @@ public class MainController {
 		});
 	}
 
-
 	@FXML
 	public void handleDonationMenuItem() {
 		try {
@@ -166,8 +163,8 @@ public class MainController {
 			donationStage.setResizable(false);
 			donationStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load the Donation view: " + e.getMessage());
+			logger.error("Failed to load the Donation view", e);
+			showAlert("UI Load Error", "Failed to load the Donation view: " + e.getMessage());
 		}
 	}
 
@@ -195,34 +192,21 @@ public class MainController {
 			sevaTableView.refresh();
 		});
 	}
+
 	public void updatePrintStatusLabel() {
-		long pendingCount = selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
-				.count();
-		long successCount = selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
-				.count();
-		long failedCount = selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED)
-				.count();
+		long pendingCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING).count();
+		long successCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS).count();
+		long failedCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED).count();
+
 		Platform.runLater(() -> {
-			statusLabel.setText(String.format("ಬಾಕಿ: %d | ಯಶಸ್ವಿ: %d | ವಿಫಲ: %d",
-					pendingCount, successCount, failedCount));
-
+			statusLabel.setText(String.format("ಬಾಕಿ: %d | ಯಶಸ್ವಿ: %d | ವಿಫಲ: %d", pendingCount, successCount, failedCount));
 			if (successCount > 0 && pendingCount == 0 && failedCount == 0) {
-				long printingCount = selectedSevas.stream()
-						.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING)
-						.count();
-
+				long printingCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING).count();
 				if (printingCount == 0) {
 					smartActionButton.setText("ಎಲ್ಲಾ ಯಶಸ್ವಿ! ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗುತ್ತಿದೆ...");
 					smartActionButton.setDisable(true);
 					smartActionButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
-
-					Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
-						clearForm();
-					}));
-					timeline.play();
+					new Timeline(new KeyFrame(Duration.seconds(1.5), e -> clearForm())).play();
 				}
 			} else if (pendingCount > 0) {
 				smartActionButton.setText("ಮುದ್ರಿಸಿ (" + pendingCount + " ಐಟಂಗಳು)");
@@ -261,69 +245,44 @@ public class MainController {
 			shashwathaStage.setResizable(false);
 			shashwathaStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load the Shashwatha Pooja view: " + e.getMessage());
+			logger.error("Failed to load the Shashwatha Pooja view", e);
+			showAlert("UI Load Error", "Failed to load the Shashwatha Pooja view: " + e.getMessage());
 		}
 	}
 
 	@FXML
 	public void handleSmartAction() {
-		if (!validatePanRequirement()) {
-			return;
-		}
-
-		double totalAmount = selectedSevas.stream()
-				.mapToDouble(SevaEntry::getTotalAmount)
-				.sum();
+		if (!validatePanRequirement()) return;
+		double totalAmount = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 		if (cashRadio.isSelected() && totalAmount > 2000.0) {
-			showAlert("Invalid Payment Method",
-					"Cash payment is not allowed for transactions over ₹2000.\n" +
-							"Please select the 'Online' payment method to proceed.");
+			showAlert("Invalid Payment Method", "Cash payment is not allowed for transactions over ₹2000.\nPlease select the 'Online' payment method to proceed.");
 			onlineRadio.setSelected(true);
 			return;
 		}
-
-		long pendingCount = selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
-				.count();
-		long failedCount = selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED)
-				.count();
-		long successCount = selectedSevas.stream()
-				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
-				.count();
+		long pendingCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING).count();
+		long failedCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED).count();
+		long successCount = selectedSevas.stream().filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS).count();
 		if (pendingCount > 0 || failedCount > 0) {
-			if (failedCount > 0 && pendingCount == 0) {
-				receiptServices.handleRetryFailed();
-			} else {
-				receiptServices.handlePrintAllPending();
-			}
-		} else if (successCount > 0) {
-			receiptServices.handleClearSuccessful();
-		} else {
+			if (failedCount > 0 && pendingCount == 0) receiptServices.handleRetryFailed();
+			else receiptServices.handlePrintAllPending();
+		} else if (successCount > 0) receiptServices.handleClearSuccessful();
+		else {
 			Platform.runLater(() -> devoteeNameField.requestFocus());
 			showAlert("Add Items", "Please add seva items to the table to proceed.");
 		}
 	}
 
 	private boolean validatePanRequirement() {
-		double totalAmount = selectedSevas.stream()
-				.mapToDouble(SevaEntry::getTotalAmount)
-				.sum();
+		double totalAmount = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 		if (totalAmount > 2000.0) {
 			String panNumber = panNumberField.getText();
 			if (panNumber == null || panNumber.trim().isEmpty()) {
-				showAlert("PAN Required",
-						"PAN number is mandatory for transactions above ₹2000.\n" +
-								"Current total: ₹" + String.format("%.2f", totalAmount) + "\n" +
-								"Please enter PAN number to proceed.");
+				showAlert("PAN Required", "PAN number is mandatory for transactions above ₹2000.\nCurrent total: ₹" + String.format("%.2f", totalAmount) + "\nPlease enter PAN number to proceed.");
 				Platform.runLater(() -> panNumberField.requestFocus());
 				return false;
 			}
-
 			if (!isValidPanFormat(panNumber.trim())) {
-				showAlert("Invalid PAN",
-						"Please enter a valid PAN number format (e.g., AAAPL1234C)");
+				showAlert("Invalid PAN", "Please enter a valid PAN number format (e.g., AAAPL1234C)");
 				Platform.runLater(() -> panNumberField.requestFocus());
 				return false;
 			}
@@ -332,9 +291,7 @@ public class MainController {
 	}
 
 	private boolean isValidPanFormat(String pan) {
-		if (pan == null || pan.length() != 10) {
-			return false;
-		}
+		if (pan == null || pan.length() != 10) return false;
 		return pan.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 	}
 
@@ -346,7 +303,7 @@ public class MainController {
 		alert.setContentText("Are you sure you want to exit the application?");
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.isPresent() && result.get() == ButtonType.OK) {
-			System.out.println("Application is closing. Performing automatic backup...");
+			logger.info("Application is closing. Performing automatic backup...");
 			BackupService.createAutomaticBackup();
 			Platform.exit();
 			System.exit(0);
@@ -362,14 +319,13 @@ public class MainController {
 			historyStage.setScene(new Scene(loader.load()));
 			historyStage.initModality(Modality.WINDOW_MODAL);
 			historyStage.initOwner(mainStage);
-//			historyStage.setMaximized(true);
 			historyStage.setHeight(768);
 			historyStage.setWidth(1024);
 			historyStage.setResizable(true);
 			historyStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load history view");
+			logger.error("Failed to load history view", e);
+			showAlert("UI Load Error", "Failed to load history view: " + e.getMessage());
 		}
 	}
 
@@ -386,7 +342,7 @@ public class MainController {
 				if (donationManagerController != null) {
 					donationManagerController.setMainController(this);
 				} else {
-					System.err.println("Error: Could not get DonationManagerView instance.");
+					logger.error("Could not get DonationManagerView instance.");
 					return;
 				}
 				donationStage.initModality(Modality.WINDOW_MODAL);
@@ -394,8 +350,8 @@ public class MainController {
 				donationStage.setResizable(true);
 				donationStage.show();
 			} catch (Exception e) {
-				e.printStackTrace();
-				showAlert("Error", "Failed to load Donation Manager view: " + e.getMessage());
+				logger.error("Failed to load Donation Manager view", e);
+				showAlert("UI Load Error", "Failed to load Donation Manager view: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openDonationManager);
@@ -415,7 +371,7 @@ public class MainController {
 				if (sevaManagerController != null) {
 					sevaManagerController.setMainController(this);
 				} else {
-					System.err.println("Error: Could not get SevaManagerController instance.");
+					logger.error("Could not get SevaManagerController instance.");
 					return;
 				}
 
@@ -425,14 +381,12 @@ public class MainController {
 				sevaStage.setMaxWidth(800);
 				sevaStage.show();
 			} catch (Exception e) {
-				e.printStackTrace();
-				showAlert("Error", "Failed to load Seva Manager view: " + e.getMessage());
+				logger.error("Failed to load Seva Manager view", e);
+				showAlert("UI Load Error", "Failed to load Seva Manager view: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openSevaManager);
 	}
-
-
 
 	@FXML
 	public void handleVisheshaPoojeManagerButton() {
@@ -448,7 +402,7 @@ public class MainController {
 				if (controller != null) {
 					controller.setMainController(this);
 				} else {
-					System.err.println("Error: Could not get VisheshaPoojeManagerController instance.");
+					logger.error("Could not get VisheshaPoojeManagerController instance.");
 					return;
 				}
 				stage.initOwner(mainStage);
@@ -457,8 +411,8 @@ public class MainController {
 				stage.setMaxHeight(650);
 				stage.show();
 			} catch (IOException e) {
-				e.printStackTrace();
-				showAlert("Error", "Unable to load Vishesha Pooja Manager: " + e.getMessage());
+				logger.error("Unable to load Vishesha Pooja Manager", e);
+				showAlert("UI Load Error", "Unable to load Vishesha Pooja Manager: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openManager);
@@ -479,8 +433,8 @@ public class MainController {
 				stage.setResizable(false);
 				stage.show();
 			} catch (IOException e) {
-				e.printStackTrace();
-				showAlert("Error", "Unable to load Shashwatha Pooja Manager: " + e.getMessage());
+				logger.error("Unable to load Shashwatha Pooja Manager", e);
+				showAlert("UI Load Error", "Unable to load Shashwatha Pooja Manager: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openManager);
@@ -504,9 +458,7 @@ public class MainController {
 		dialog.getDialogPane().setContent(grid);
 		Platform.runLater(password::requestFocus);
 		dialog.setResultConverter(dialogButton -> {
-			if (dialogButton == loginButtonType) {
-				return password.getText();
-			}
+			if (dialogButton == loginButtonType) return password.getText();
 			return null;
 		});
 		Optional<String> result = dialog.showAndWait();
@@ -515,6 +467,7 @@ public class MainController {
 			Optional<String> storedHashOpt = credentialsRepo.getCredential("SPECIAL_PASSWORD");
 			if (storedHashOpt.isEmpty()) {
 				showAlert("Security Error", "Could not find special password in the database.");
+				logger.error("SPECIAL_PASSWORD not found in credentials table.");
 				return;
 			}
 			if (PasswordUtils.checkPassword(enteredPassword, storedHashOpt.get())) {
@@ -556,17 +509,14 @@ public class MainController {
 
 	public final Map<String, CheckBox> sevaCheckboxMap = new HashMap<>();
 	public ObservableList<SevaEntry> selectedSevas = FXCollections.observableArrayList();
-
-	public void setMainStage(Stage stage) {
-		this.mainStage = stage;
-	}
-
+	public void setMainStage(Stage stage) { this.mainStage = stage; }
 	public SevaReceiptRepository sevaReceiptRepository = new SevaReceiptRepository();
 	public SevaRepository sevaRepository = SevaRepository.getInstance();
 	ValidationServices validationServices = new ValidationServices(this);
 	public ReceiptServices receiptServices = new ReceiptServices(this);
 	Tables table = new Tables(this);
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
+
 	public void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
 		alert.setTitle(title);
@@ -578,19 +528,14 @@ public class MainController {
 	private void populateRashiComboBox() {
 		ObservableList<String> rashiOptions = FXCollections.observableArrayList();
 		rashiOptions.add("ಆಯ್ಕೆ");
-		rashiOptions.addAll(
-				"ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
-				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
-		);
+		rashiOptions.addAll("ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ");
 		raashiComboBox.setItems(rashiOptions);
 		raashiComboBox.getSelectionModel().selectFirst();
 	}
 
 	private void setupBlankAreaFocusHandler() {
 		mainPane.setOnMousePressed(event -> {
-			if (!(event.getTarget() instanceof TextInputControl) &&
-					!(event.getTarget() instanceof ComboBox) &&
-					!(event.getTarget() instanceof DatePicker)) {
+			if (!(event.getTarget() instanceof TextInputControl) && !(event.getTarget() instanceof ComboBox) && !(event.getTarget() instanceof DatePicker)) {
 				mainPane.requestFocus();
 			}
 		});
@@ -608,27 +553,24 @@ public class MainController {
 	}
 
 	public void refreshSevaCheckboxes() {
-		System.out.println("DEBUG: MainController refreshSevaCheckboxes() called.");
+		logger.debug("MainController refreshSevaCheckboxes() called.");
 		if (sevaListener != null && sevaCheckboxContainer != null) {
 			try {
 				sevaRepository.loadSevasFromDB();
 				sevaCheckboxContainer.getChildren().clear();
 				sevaCheckboxMap.clear();
 				sevaListener.setupSevaCheckboxes();
-				System.out.println("DEBUG: Seva checkboxes refreshed with " +
-						sevaRepository.getAllSevas().size() + " sevas.");
+				logger.debug("Seva checkboxes refreshed with {} sevas.", sevaRepository.getAllSevas().size());
 			} catch (Exception e) {
-				System.err.println("Error during refreshSevaCheckboxes: " + e.getMessage());
-				e.printStackTrace();
+				logger.error("Error during refreshSevaCheckboxes", e);
 				showAlert("Refresh Error", "Could not refresh Seva list in main view.");
 			}
 		} else {
-			System.err.println("Cannot refresh checkboxes: SevaListener or Container is null.");
-			if (sevaListener == null) System.err.println("sevaListener is null");
-			if (sevaCheckboxContainer == null) System.err.println("sevaCheckboxContainer is null");
+			logger.error("Cannot refresh checkboxes: SevaListener or Container is null.");
+			if (sevaListener == null) logger.error("sevaListener is null");
+			if (sevaCheckboxContainer == null) logger.error("sevaCheckboxContainer is null");
 		}
 	}
-
 
 	public void refreshVisheshaPoojeComboBox() {
 		VisheshaPoojeRepository.loadVisheshaPoojeFromDB();
@@ -640,18 +582,11 @@ public class MainController {
 		);
 		names.add(0, "ಆಯ್ಕೆ");
 		visheshaPoojeComboBox.setItems(names);
-		System.out.println("DEBUG: Vishesha Pooja ComboBox refreshed with " + entries.size() + " items.");
+		logger.debug("Vishesha Pooja ComboBox refreshed with {} items.", entries.size());
 	}
 
 	private void setupFocusTraversal() {
-		List<Control> formControls = List.of(
-				devoteeNameField,
-				contactField,
-				panNumberField,
-				raashiComboBox,
-				nakshatraComboBox,
-				sevaDatePicker
-		);
+		List<Control> formControls = List.of(devoteeNameField, contactField, panNumberField, raashiComboBox, nakshatraComboBox, sevaDatePicker);
 		for (int i = 0; i < formControls.size(); i++) {
 			Control current = formControls.get(i);
 			int nextIndex = i + 1;
@@ -676,8 +611,8 @@ public class MainController {
 			inKindStage.setResizable(false);
 			inKindStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load the In-Kind Donation view: " + e.getMessage());
+			logger.error("Failed to load the In-Kind Donation view", e);
+			showAlert("UI Load Error", "Failed to load the In-Kind Donation view: " + e.getMessage());
 		}
 	}
 
@@ -717,8 +652,8 @@ public class MainController {
 			stage.setResizable(false);
 			stage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Failed to load the Karyakrama view: " + e.getMessage());
+			logger.error("Failed to load the Karyakrama view", e);
+			showAlert("UI Load Error", "Failed to load the Karyakrama view: " + e.getMessage());
 		}
 	}
 
@@ -736,14 +671,13 @@ public class MainController {
 				stage.setHeight(500);
 				stage.show();
 			} catch (IOException e) {
-				e.printStackTrace();
-				showAlert("Error", "Unable to load Karyakrama Manager: " + e.getMessage());
+				logger.error("Unable to load Karyakrama Manager", e);
+				showAlert("UI Load Error", "Unable to load Karyakrama Manager: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openManager);
 	}
 
-	// --- NEW METHOD ---
 	@FXML
 	public void handleOthersManagerButton() {
 		Runnable openManager = () -> {
@@ -758,14 +692,13 @@ public class MainController {
 				stage.setHeight(600);
 				stage.show();
 			} catch (IOException e) {
-				e.printStackTrace();
-				showAlert("Error", "Unable to load Others Manager: " + e.getMessage());
+				logger.error("Unable to load Others Manager", e);
+				showAlert("UI Load Error", "Unable to load Others Manager: " + e.getMessage());
 			}
 		};
 		promptForSpecialPassword(openManager);
 	}
 
-	// Add this new method anywhere inside your MainController class
 	@FXML
 	public void handlePrinterSettings() {
 		try {
@@ -778,8 +711,8 @@ public class MainController {
 			settingsStage.setResizable(false);
 			settingsStage.showAndWait();
 		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert("Error", "Could not load printer settings view.");
+			logger.error("Could not load printer settings view", e);
+			showAlert("UI Load Error", "Could not load printer settings view.");
 		}
 	}
 }

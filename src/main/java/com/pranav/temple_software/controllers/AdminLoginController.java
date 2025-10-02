@@ -12,19 +12,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
 
 public class AdminLoginController {
+	private static final Logger logger = LoggerFactory.getLogger(AdminLoginController.class);
 
-	@FXML
-	private TextField usernameField;
-	@FXML
-	private PasswordField passwordField;
-	@FXML
-	private Label errorLabel;
+	@FXML private TextField usernameField;
+	@FXML private PasswordField passwordField;
+	@FXML private Label errorLabel;
 
 	private final CredentialsRepository credentialsRepository = new CredentialsRepository();
 
@@ -48,6 +47,7 @@ public class AdminLoginController {
 
 		if (storedUserOpt.isEmpty() || storedHashOpt.isEmpty()) {
 			errorLabel.setText("Error: Could not retrieve admin credentials.");
+			logger.error("Could not retrieve ADMIN_USERNAME or ADMIN_PASSWORD from the database.");
 			return;
 		}
 
@@ -55,10 +55,11 @@ public class AdminLoginController {
 		boolean passMatches = PasswordUtils.checkPassword(password, storedHashOpt.get());
 
 		if (userMatches && passMatches) {
-			System.out.println("✅ Admin login successful.");
+			logger.info("Admin login successful for user '{}'.", username);
 			closeCurrentStage();
 			launchAdminPanel();
 		} else {
+			logger.warn("Failed admin login attempt for user '{}'.", username);
 			errorLabel.setText("Invalid admin username or password.");
 		}
 	}
@@ -67,10 +68,9 @@ public class AdminLoginController {
 	void handleBackToUserLogin(ActionEvent event) {
 		closeCurrentStage();
 		try {
-			// Relaunch the application which starts at the user login
 			new Launcher().start(new Stage());
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Failed to relaunch the main application to go back to user login.", e);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class AdminLoginController {
 			adminStage.setMaximized(true);
 			adminStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Fatal Error: Could not load the Admin Panel FXML.", e);
 			errorLabel.setText("Fatal Error: Could not load the admin panel.");
 		}
 	}

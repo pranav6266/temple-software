@@ -11,18 +11,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
 
 public class LoginController {
+	private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
-	@FXML
-	private PasswordField passwordField;
-
-	@FXML
-	private Label errorLabel;
+	@FXML private PasswordField passwordField;
+	@FXML private Label errorLabel;
 
 	private final CredentialsRepository credentialsRepository = new CredentialsRepository();
 
@@ -43,14 +42,16 @@ public class LoginController {
 
 		if (storedHashOpt.isEmpty()) {
 			errorLabel.setText("Error: Could not retrieve password from database.");
+			logger.error("Could not retrieve NORMAL_PASSWORD from the database.");
 			return;
 		}
 
 		if (PasswordUtils.checkPassword(enteredPassword, storedHashOpt.get())) {
-			System.out.println("✅ Normal login successful.");
+			logger.info("Normal user login successful.");
 			closeCurrentStage();
 			launchMainApplication();
 		} else {
+			logger.warn("Failed normal user login attempt.");
 			errorLabel.setText("Incorrect password. Please try again.");
 			passwordField.clear();
 		}
@@ -58,7 +59,7 @@ public class LoginController {
 
 	@FXML
 	void handleAdminLoginLink(ActionEvent event) {
-		System.out.println("Redirecting to Admin Login screen.");
+		logger.debug("Redirecting to Admin Login screen.");
 		closeCurrentStage();
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("/fxml/AdminLoginView.fxml"));
@@ -69,7 +70,7 @@ public class LoginController {
 			adminLoginStage.setResizable(false);
 			adminLoginStage.show();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Error loading the Admin Login screen FXML.", e);
 			errorLabel.setText("Error: Could not load the admin login screen.");
 		}
 	}
@@ -88,12 +89,10 @@ public class LoginController {
 			mainStage.setWidth(1024);
 			mainStage.setHeight(768);
 			mainStage.setResizable(true);
-//			mainStage.setMaximized(true);
-//			mainStage.initStyle(StageStyle.UNDECORATED);
 			mainStage.show();
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Fatal Error: Could not load the main application FXML.", e);
 			errorLabel.setText("Fatal Error: Could not load the main application.");
 		}
 	}

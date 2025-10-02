@@ -13,6 +13,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +23,7 @@ import java.sql.*;
 import java.util.*;
 
 public class AdminPanelController {
+	private static final Logger logger = LoggerFactory.getLogger(AdminPanelController.class);
 
 	// Password Management Tab
 	@FXML private PasswordField normalPassField;
@@ -34,7 +37,6 @@ public class AdminPanelController {
 	// Log Viewer Tab
 	@FXML private ComboBox<File> logFilesComboBox;
 	@FXML private TextArea logContentArea;
-
 	// Database Editor Tab
 	@FXML private ComboBox<String> tablesComboBox;
 	@FXML private TableView<ObservableList<String>> databaseTableView;
@@ -42,7 +44,6 @@ public class AdminPanelController {
 	private final CredentialsRepository credentialsRepository = new CredentialsRepository();
 	private final String logDir = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Roaming" + File.separator + "TempleSoftware" + File.separator + "logs";
 	private final Set<String> allowedTableNames = new HashSet<>();
-
 
 	@FXML
 	public void initialize() {
@@ -64,7 +65,6 @@ public class AdminPanelController {
 	}
 
 	// --- Password Management Logic ---
-
 	@FXML
 	void handleChangeNormalPassword(ActionEvent event) {
 		String pass1 = normalPassField.getText();
@@ -122,7 +122,6 @@ public class AdminPanelController {
 	}
 
 	// --- Log Viewer Logic ---
-
 	@FXML
 	void handleRefreshLogs(ActionEvent event) {
 		logContentArea.clear();
@@ -141,12 +140,12 @@ public class AdminPanelController {
 			String content = Files.readString(logFile.toPath());
 			logContentArea.setText(content);
 		} catch (IOException e) {
+			logger.error("Error reading log file: {}", logFile.getAbsolutePath(), e);
 			logContentArea.setText("Error reading log file: " + e.getMessage());
 		}
 	}
 
 	// --- Database Editor Logic ---
-
 	private void loadTableNames() {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			DatabaseMetaData metaData = conn.getMetaData();
@@ -160,12 +159,11 @@ public class AdminPanelController {
 			}
 			tablesComboBox.setItems(tableNames);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Failed to load table names from database metadata", e);
 		}
 	}
 
 	private void loadTableData(String tableName) {
-		// SECURITY HARDENING: Validate table name against a whitelist
 		if (!allowedTableNames.contains(tableName)) {
 			showAlert("Security Warning", "Access to this table is not permitted.");
 			return;
@@ -181,7 +179,6 @@ public class AdminPanelController {
 			ResultSetMetaData metaData = rs.getMetaData();
 			int columnCount = metaData.getColumnCount();
 
-			// Create columns dynamically
 			for (int i = 1; i <= columnCount; i++) {
 				final int j = i - 1;
 				TableColumn<ObservableList<String>, String> column = new TableColumn<>(metaData.getColumnName(i));
@@ -194,7 +191,6 @@ public class AdminPanelController {
 				databaseTableView.getColumns().add(column);
 			}
 
-			// Populate data
 			ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
 			while (rs.next()) {
 				ObservableList<String> row = FXCollections.observableArrayList();
@@ -206,7 +202,7 @@ public class AdminPanelController {
 			databaseTableView.setItems(data);
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Failed to load data for table: {}", tableName, e);
 		}
 	}
 
@@ -214,7 +210,7 @@ public class AdminPanelController {
 	void handleSaveChanges(ActionEvent event) {
 		String selectedTable = tablesComboBox.getSelectionModel().getSelectedItem();
 		if (selectedTable == null) return;
-		if (!allowedTableNames.contains(selectedTable)) return; // Security check
+		if (!allowedTableNames.contains(selectedTable)) return;
 
 		TableColumn<ObservableList<String>, ?> primaryKeyColumn = databaseTableView.getColumns().get(0);
 		String pkColumnName = primaryKeyColumn.getText();
@@ -225,7 +221,7 @@ public class AdminPanelController {
 			for (int i = 1; i < databaseTableView.getColumns().size(); i++) {
 				updateSql.append(databaseTableView.getColumns().get(i).getText()).append(" = ?, ");
 			}
-			updateSql.setLength(updateSql.length() - 2); // remove last comma
+			updateSql.setLength(updateSql.length() - 2);
 			updateSql.append(" WHERE ").append(pkColumnName).append(" = ?");
 
 			try (PreparedStatement pstmt = conn.prepareStatement(updateSql.toString())) {
@@ -234,7 +230,7 @@ public class AdminPanelController {
 					for (int i = 1; i < row.size(); i++) {
 						pstmt.setString(paramIndex++, row.get(i));
 					}
-					pstmt.setString(paramIndex, row.get(0)); // PK value for WHERE clause
+					pstmt.setString(paramIndex, row.get(0));
 					pstmt.addBatch();
 				}
 				pstmt.executeBatch();
@@ -243,10 +239,10 @@ public class AdminPanelController {
 			} catch (SQLException e) {
 				conn.rollback();
 				showStatus("Error saving changes: " + e.getMessage(), true);
-				e.printStackTrace();
+				logger.error("Error saving changes to table {}", selectedTable, e);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Failed to get database connection for saving changes.", e);
 		}
 	}
 
@@ -258,7 +254,7 @@ public class AdminPanelController {
 			showStatus("Please select a row to delete.", true);
 			return;
 		}
-		if (!allowedTableNames.contains(selectedTable)) return; // Security check
+		if (!allowedTableNames.contains(selectedTable)) return;
 
 		String pkColumnName = databaseTableView.getColumns().get(0).getText();
 		String pkValue = selectedRow.get(0);
@@ -274,19 +270,18 @@ public class AdminPanelController {
 				int affectedRows = pstmt.executeUpdate();
 				if (affectedRows > 0) {
 					showStatus("Row deleted successfully.", false);
-					loadTableData(selectedTable); // Refresh table
+					loadTableData(selectedTable);
 				} else {
 					showStatus("Could not delete row.", true);
 				}
 			} catch (SQLException e) {
 				showStatus("Error deleting row: " + e.getMessage(), true);
-				e.printStackTrace();
+				logger.error("Error deleting row from table {} with PK {}", selectedTable, pkValue, e);
 			}
 		}
 	}
 
 	// --- Utility Methods ---
-
 	private void showStatus(String message, boolean isError) {
 		statusLabel.setText(message);
 		statusLabel.setTextFill(isError ? Color.RED : Color.GREEN);
@@ -305,18 +300,18 @@ public class AdminPanelController {
 
 	private void clearPasswordFields(String key) {
 		switch (key) {
-			case "NORMAL_PASSWORD":
+			case "NORMAL_PASSWORD" -> {
 				normalPassField.clear();
 				normalPassConfirmField.clear();
-				break;
-			case "SPECIAL_PASSWORD":
+			}
+			case "SPECIAL_PASSWORD" -> {
 				specialPassField.clear();
 				specialPassConfirmField.clear();
-				break;
-			case "ADMIN_PASSWORD":
+			}
+			case "ADMIN_PASSWORD" -> {
 				adminPassField.clear();
 				adminPassConfirmField.clear();
-				break;
+			}
 		}
 	}
 }
