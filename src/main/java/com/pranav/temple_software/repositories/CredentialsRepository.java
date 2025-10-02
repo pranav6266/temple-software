@@ -1,7 +1,8 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.utils.DatabaseManager;
-import com.pranav.temple_software.utils.PasswordUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 public class CredentialsRepository {
+	private static final Logger logger = LoggerFactory.getLogger(CredentialsRepository.class);
 
 	public Optional<String> getCredential(String key) {
 		String sql = "SELECT credential_value FROM Credentials WHERE credential_key = ?";
@@ -21,18 +23,11 @@ public class CredentialsRepository {
 				return Optional.of(rs.getString("credential_value"));
 			}
 		} catch (SQLException e) {
-			System.err.println("❌ Database error fetching credential for key '" + key + "': " + e.getMessage());
+			logger.error("❌ Database error fetching credential for key '{}'", key, e);
 		}
 		return Optional.empty();
 	}
 
-	/**
-	 * Updates an existing credential in the database.
-	 *
-	 * @param key   The key of the credential to update (e.g., "NORMAL_PASSWORD").
-	 * @param value The new value for the credential.
-	 * @return true if the update was successful, false otherwise.
-	 */
 	public boolean updateCredential(String key, String value) {
 		String sql = "UPDATE Credentials SET credential_value = ? WHERE credential_key = ?";
 		try (Connection conn = DatabaseManager.getConnection();
@@ -42,7 +37,7 @@ public class CredentialsRepository {
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
 		} catch (SQLException e) {
-			System.err.println("❌ Database error updating credential for key '" + key + "': " + e.getMessage());
+			logger.error("❌ Database error updating credential for key '{}'", key, e);
 			return false;
 		}
 	}

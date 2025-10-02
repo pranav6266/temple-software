@@ -2,20 +2,22 @@ package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.InKindDonation;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 
 public class InKindDonationRepository {
+	private static final Logger logger = LoggerFactory.getLogger(InKindDonationRepository.class);
 
 	private Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DatabaseManager.DB_URL, "sa", "");
+		return DatabaseManager.getConnection();
 	}
 
 	public boolean saveInKindDonation(InKindDonation donation) {
 		String sql = "INSERT INTO InKindDonations (devotee_name, phone_number, address, pan_number, rashi, nakshatra, donation_date, item_description) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -30,10 +32,8 @@ public class InKindDonationRepository {
 
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
-
 		} catch (SQLException e) {
-			System.err.println("Error saving in-kind donation to database: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("Error saving in-kind donation to database", e);
 			return false;
 		}
 	}
@@ -41,7 +41,6 @@ public class InKindDonationRepository {
 	public ArrayList<InKindDonation> getAllInKindDonations() {
 		ArrayList<InKindDonation> donations = new ArrayList<>();
 		String sql = "SELECT * FROM InKindDonations ORDER BY in_kind_receipt_id DESC";
-
 		try (Connection conn = getConnection();
 		     Statement stmt = conn.createStatement();
 		     ResultSet rs = stmt.executeQuery(sql)) {
@@ -60,8 +59,7 @@ public class InKindDonationRepository {
 				));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching in-kind donations: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("Error fetching in-kind donations", e);
 		}
 		return donations;
 	}

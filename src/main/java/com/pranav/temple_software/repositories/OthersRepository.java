@@ -1,8 +1,9 @@
-// FILE: src/main/java/com/pranav/temple_software/repositories/OthersRepository.java
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.Others;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class OthersRepository {
+	private static final Logger logger = LoggerFactory.getLogger(OthersRepository.class);
+
 	private static final OthersRepository instance = new OthersRepository();
 	private final List<Others> othersList = new ArrayList<>();
 	private boolean isDataLoaded = false;
@@ -39,7 +42,7 @@ public class OthersRepository {
 			}
 			isDataLoaded = true;
 		} catch (SQLException e) {
-			System.err.println("❌ Error loading Others from database: " + e.getMessage());
+			logger.error("❌ Error loading Others from database", e);
 		}
 	}
 
@@ -58,7 +61,7 @@ public class OthersRepository {
 			pstmt.setString(1, name);
 			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			System.err.println("Error adding Other to DB: " + e.getMessage());
+			logger.error("Error adding Other to DB", e);
 			return false;
 		}
 	}
@@ -70,7 +73,7 @@ public class OthersRepository {
 			pstmt.setInt(1, otherId);
 			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			System.err.println("Error deleting Other from DB (ID: " + otherId + "): " + e.getMessage());
+			logger.error("Error deleting Other from DB (ID: {})", otherId, e);
 			return false;
 		}
 	}
@@ -88,7 +91,7 @@ public class OthersRepository {
 			loadOthersFromDB();
 			return true;
 		} catch (SQLException e) {
-			System.err.println("Error updating display order for Others: " + e.getMessage());
+			logger.error("Error updating display order for Others", e);
 			return false;
 		}
 	}

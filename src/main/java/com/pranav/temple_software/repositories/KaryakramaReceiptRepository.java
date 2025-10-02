@@ -5,13 +5,16 @@ import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class KaryakramaReceiptRepository {
+	private static final Logger logger = LoggerFactory.getLogger(KaryakramaReceiptRepository.class);
+
 	private Connection getConnection() throws SQLException {
 		return DatabaseManager.getConnection();
 	}
@@ -42,7 +45,7 @@ public class KaryakramaReceiptRepository {
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Error saving Karyakrama receipt", e);
 		}
 		return -1;
 	}
@@ -62,7 +65,7 @@ public class KaryakramaReceiptRepository {
 			pstmt.executeBatch();
 			return true;
 		} catch (SQLException e) {
-			System.err.println("Error batch inserting Karyakrama receipt items: " + e.getMessage());
+			logger.error("Error batch inserting Karyakrama receipt items for receipt ID {}", receiptId, e);
 			return false;
 		}
 	}
@@ -93,7 +96,7 @@ public class KaryakramaReceiptRepository {
 				));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Error fetching all Karyakrama receipts", e);
 		}
 		return receipts;
 	}

@@ -2,6 +2,8 @@ package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.DashboardStats;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.sql.Date;
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DashboardRepository {
+	private static final Logger logger = LoggerFactory.getLogger(DashboardRepository.class);
 
 	private Connection getConnection() throws SQLException {
 		return DatabaseManager.getConnection();
@@ -23,7 +26,7 @@ public class DashboardRepository {
 		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
 		sql.append("SUM(ri.quantity * ri.price_at_sale) as total_amount ");
 		sql.append("FROM Receipts r JOIN Receipt_Items ri ON r.receipt_id = ri.receipt_id ");
-		sql.append("LEFT JOIN Sevas s ON ri.seva_name = s.seva_name "); // Join to get seva_id if needed
+		sql.append("LEFT JOIN Sevas s ON ri.seva_name = s.seva_name ");
 		sql.append("WHERE 1=1 ");
 
 		List<Object> parameters = new ArrayList<>();
@@ -40,7 +43,7 @@ public class DashboardRepository {
 			parameters.add(paymentMethod);
 		}
 		if (specificSevaId != null && !specificSevaId.isEmpty()) {
-			sql.append("AND s.seva_id = ? "); // Filter by ID
+			sql.append("AND s.seva_id = ? ");
 			parameters.add(specificSevaId);
 		}
 
@@ -57,7 +60,7 @@ public class DashboardRepository {
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				stats.add(new DashboardStats(
-						null, // ID is not directly available in this simplified query
+						null,
 						rs.getString("seva_name"),
 						"SEVA",
 						rs.getInt("total_count"),
@@ -67,7 +70,7 @@ public class DashboardRepository {
 				));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching seva statistics: " + e.getMessage());
+			logger.error("Error fetching seva statistics", e);
 		}
 		return stats;
 	}
@@ -123,7 +126,7 @@ public class DashboardRepository {
 				));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching donation statistics: " + e.getMessage());
+			logger.error("Error fetching donation statistics", e);
 		}
 		return stats;
 	}
@@ -179,7 +182,7 @@ public class DashboardRepository {
 				));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Karyakrama statistics: " + e.getMessage());
+			logger.error("Error fetching Karyakrama statistics", e);
 		}
 		return stats;
 	}
@@ -226,7 +229,7 @@ public class DashboardRepository {
 				}
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Shashwatha Pooja statistics: " + e.getMessage());
+			logger.error("Error fetching Shashwatha Pooja statistics", e);
 		}
 		return stats;
 	}
@@ -281,11 +284,10 @@ public class DashboardRepository {
 				));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Vishesha Pooja statistics: " + e.getMessage());
+			logger.error("Error fetching Vishesha Pooja statistics", e);
 		}
 		return stats;
 	}
-
 
 	public List<String> getAllSevaNames() {
 		List<String> sevaNames = new ArrayList<>();
@@ -295,7 +297,7 @@ public class DashboardRepository {
 				sevaNames.add(rs.getString("seva_id") + ":" + rs.getString("seva_name"));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching seva names: " + e.getMessage());
+			logger.error("Error fetching seva names", e);
 		}
 		return sevaNames;
 	}
@@ -308,7 +310,7 @@ public class DashboardRepository {
 				donationNames.add(rs.getString("donation_id") + ":" + rs.getString("donation_name"));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching donation names: " + e.getMessage());
+			logger.error("Error fetching donation names", e);
 		}
 		return donationNames;
 	}
@@ -321,7 +323,7 @@ public class DashboardRepository {
 				names.add(rs.getString("vishesha_pooje_id") + ":" + rs.getString("vishesha_pooje_name"));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Vishesha Pooja names: " + e.getMessage());
+			logger.error("Error fetching Vishesha Pooja names", e);
 		}
 		return names;
 	}
@@ -334,7 +336,7 @@ public class DashboardRepository {
 				names.add(rs.getString("name_entry"));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Shashwatha Pooja names: " + e.getMessage());
+			logger.error("Error fetching Shashwatha Pooja names", e);
 		}
 		return names;
 	}
@@ -347,7 +349,7 @@ public class DashboardRepository {
 				names.add(rs.getString("karyakrama_id") + ":" + rs.getString("karyakrama_name"));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Karyakrama names: " + e.getMessage());
+			logger.error("Error fetching Karyakrama names", e);
 		}
 		return names;
 	}

@@ -2,12 +2,16 @@ package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.Karyakrama;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class KaryakramaRepository {
+	private static final Logger logger = LoggerFactory.getLogger(KaryakramaRepository.class);
+
 	private Connection getConnection() throws SQLException {
 		return DatabaseManager.getConnection();
 	}
@@ -26,7 +30,7 @@ public class KaryakramaRepository {
 				));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Error fetching all Karyakrama entries", e);
 		}
 		return karyakramaList;
 	}
@@ -38,7 +42,7 @@ public class KaryakramaRepository {
 			pstmt.setString(1, name);
 			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Error adding Karyakrama with name: {}", name, e);
 			return false;
 		}
 	}
@@ -51,7 +55,7 @@ public class KaryakramaRepository {
 			pstmt.setInt(2, id);
 			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Error updating Karyakrama with ID: {}", id, e);
 			return false;
 		}
 	}
@@ -63,7 +67,7 @@ public class KaryakramaRepository {
 			pstmt.setInt(1, id);
 			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Error deleting Karyakrama with ID: {}", id, e);
 			return false;
 		}
 	}

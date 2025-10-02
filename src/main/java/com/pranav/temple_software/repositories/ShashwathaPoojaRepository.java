@@ -1,16 +1,19 @@
-// FILE: src/main/java/com/pranav/temple_software/repositories/ShashwathaPoojaRepository.java
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.ShashwathaPoojaReceipt;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 public class ShashwathaPoojaRepository {
+	private static final Logger logger = LoggerFactory.getLogger(ShashwathaPoojaRepository.class);
 
 	private Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DatabaseManager.DB_URL, "sa", "");
+		return DatabaseManager.getConnection();
 	}
 
 	public boolean saveShashwathaPooja(ShashwathaPoojaReceipt receipt) {
@@ -33,8 +36,7 @@ public class ShashwathaPoojaRepository {
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
 		} catch (SQLException e) {
-			System.err.println("Error saving Shashwatha Pooja to database: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("Error saving Shashwatha Pooja to database", e);
 			return false;
 		}
 	}
@@ -62,8 +64,7 @@ public class ShashwathaPoojaRepository {
 				));
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching Shashwatha Pooja receipts: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("Error fetching Shashwatha Pooja receipts", e);
 		}
 		return receipts;
 	}

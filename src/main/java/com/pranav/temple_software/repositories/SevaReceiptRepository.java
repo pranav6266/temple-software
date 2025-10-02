@@ -5,6 +5,8 @@ import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -12,12 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SevaReceiptRepository {
-	private static final String DB_URL = DatabaseManager.DB_URL;
-	private static final String USER = "sa";
-	private static final String PASS = "";
+	private static final Logger logger = LoggerFactory.getLogger(SevaReceiptRepository.class);
 
 	private static Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DB_URL, USER, PASS);
+		return DatabaseManager.getConnection();
 	}
 
 	public int saveReceipt(String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
@@ -50,7 +50,7 @@ public class SevaReceiptRepository {
 				}
 			}
 		} catch (SQLException e) {
-			System.err.println("Error inserting auto-increment receipt: " + e.getMessage());
+			logger.error("Error inserting auto-increment receipt", e);
 			return -1;
 		}
 		return generatedId;
@@ -72,11 +72,10 @@ public class SevaReceiptRepository {
 			pstmt.executeBatch();
 			return true;
 		} catch (SQLException e) {
-			System.err.println("Error batch inserting receipt items: " + e.getMessage());
+			logger.error("Error batch inserting receipt items for receipt ID {}", receiptId, e);
 			return false;
 		}
 	}
-
 
 	public List<SevaReceiptData> getAllReceipts() {
 		List<SevaReceiptData> receipts = new ArrayList<>();
@@ -99,8 +98,7 @@ public class SevaReceiptRepository {
 				ObservableList<SevaEntry> sevas = getSevasForReceipt(conn, receiptId);
 
 				boolean hasDonation = sevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
-				String donationStatus = hasDonation ?
-						"ಹೌದು" : "ಇಲ್ಲ";
+				String donationStatus = hasDonation ? "ಹೌದು" : "ಇಲ್ಲ";
 				String paymentMode = rs.getString("payment_mode");
 				SevaReceiptData receipt = new SevaReceiptData(
 						receiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
@@ -108,9 +106,9 @@ public class SevaReceiptRepository {
 				);
 				receipts.add(receipt);
 			}
-			System.out.println("✅ Loaded " + receipts.size() + " receipts from database.");
+			logger.info("✅ Loaded {} receipts from database.", receipts.size());
 		} catch (SQLException e) {
-			System.err.println("❌ SQL error while fetching receipts: " + e.getMessage());
+			logger.error("❌ SQL error while fetching receipts", e);
 		}
 		return receipts;
 	}

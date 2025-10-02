@@ -1,15 +1,16 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.Donations;
+import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.*;
 import java.util.*;
-import com.pranav.temple_software.utils.DatabaseManager;
-
 
 public class DonationRepository {
-	private static final String DB_URL = DatabaseManager.DB_URL;
-	private static final String USER = "sa";
-	private static final String PASS = "";
+	private static final Logger logger = LoggerFactory.getLogger(DonationRepository.class);
+
 	private static final DonationRepository instance = new DonationRepository();
 	private final List<Donations> donationList = new ArrayList<>();
 	private boolean isDataLoaded = false;
@@ -22,7 +23,7 @@ public class DonationRepository {
 	}
 
 	private Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DB_URL, USER, PASS);
+		return DatabaseManager.getConnection();
 	}
 
 	public synchronized void loadDonationsFromDB() {
@@ -41,13 +42,11 @@ public class DonationRepository {
 				donationList.add(new Donations(id, name, order));
 			}
 			isDataLoaded = true;
-			System.out.println("✅ Loaded " + donationList.size() + " donations from database.");
+			logger.info("✅ Loaded {} donations from database.", donationList.size());
 		} catch (SQLException e) {
-			System.err.println("❌ Error loading Donations from database: " + e.getMessage());
-			e.printStackTrace();
+			logger.error("❌ Error loading Donations from database", e);
 		}
 	}
-
 
 	public synchronized List<Donations> getAllDonations() {
 		if (!isDataLoaded) {
@@ -66,7 +65,7 @@ public class DonationRepository {
 				maxId = rs.getInt(1);
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching max Donation ID: " + e.getMessage());
+			logger.error("Error fetching max Donation ID", e);
 		}
 		return maxId;
 	}
@@ -81,7 +80,7 @@ public class DonationRepository {
 				return rs.getString("donation_id");
 			}
 		} catch (SQLException e) {
-			System.err.println("Error fetching donation ID for name: " + name + " - " + e.getMessage());
+			logger.error("Error fetching donation ID for name: {}", name, e);
 		}
 		return null;
 	}
@@ -100,7 +99,7 @@ public class DonationRepository {
 				return true;
 			}
 		} catch (SQLException e) {
-			System.err.println("Error adding Donation to DB (ID: " + donationId + "): " + e.getMessage());
+			logger.error("Error adding Donation to DB (ID: {})", donationId, e);
 		}
 		return false;
 	}
@@ -110,12 +109,9 @@ public class DonationRepository {
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, donationId);
-			int affectedRows = pstmt.executeUpdate();
-			if(affectedRows > 0){
-				return true;
-			}
+			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			System.err.println("Error deleting Donation from DB (ID: " + donationId + "): " + e.getMessage());
+			logger.error("Error deleting Donation from DB (ID: {})", donationId, e);
 		}
 		return false;
 	}
@@ -126,10 +122,9 @@ public class DonationRepository {
 		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, newOrder);
 			pstmt.setString(2, donationId);
-			int affectedRows = pstmt.executeUpdate();
-			return affectedRows > 0;
+			return pstmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			System.err.println("Error updating donation display order for " + donationId + ": " + e.getMessage());
+			logger.error("Error updating donation display order for {}", donationId, e);
 			return false;
 		}
 	}

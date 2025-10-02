@@ -2,6 +2,8 @@ package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.DonationReceiptData;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -9,12 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DonationReceiptRepository {
-	private static final String DB_URL = DatabaseManager.DB_URL;
-	private static final String USER = "sa";
-	private static final String PASS = "";
+	private static final Logger logger = LoggerFactory.getLogger(DonationReceiptRepository.class);
 
 	private static Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(DB_URL, USER, PASS);
+		return DatabaseManager.getConnection();
 	}
 
 	public List<DonationReceiptData> getAllDonationReceipts() {
@@ -43,14 +43,12 @@ public class DonationReceiptRepository {
 				);
 				donationReceipts.add(donationReceipt);
 			}
-
-			System.out.println("✅ Loaded " + donationReceipts.size() + " donation receipts from database.");
+			logger.info("✅ Loaded {} donation receipts from database.", donationReceipts.size());
 		} catch (SQLException e) {
-			System.err.println("❌ SQL error while fetching donation receipts: " + e.getMessage());
+			logger.error("❌ SQL error while fetching donation receipts", e);
 		} catch (Exception e) {
-			System.err.println("❌ Unexpected error while fetching donation receipts: " + e.getMessage());
+			logger.error("❌ Unexpected error while fetching donation receipts", e);
 		}
-
 		return donationReceipts;
 	}
 
@@ -83,7 +81,7 @@ public class DonationReceiptRepository {
 				}
 			}
 		} catch (SQLException e) {
-			System.err.println("Error inserting donation receipt: " + e.getMessage());
+			logger.error("Error inserting donation receipt", e);
 			return -1;
 		}
 		return generatedId;

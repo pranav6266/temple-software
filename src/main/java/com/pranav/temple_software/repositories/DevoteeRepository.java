@@ -2,6 +2,8 @@ package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.DevoteeDetails;
 import com.pranav.temple_software.utils.DatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,17 +12,9 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 public class DevoteeRepository {
+	private static final Logger logger = LoggerFactory.getLogger(DevoteeRepository.class);
 
-	/**
-	 * Finds the most recent details of a devotee from either the Receipts,
-	 * [cite_start]DonationReceipts, InKindDonations, or ShashwathaPoojaReceipts table based on their phone number. [cite: 938, 939]
-	 *
-	 * [cite_start]@param phoneNumber The 10-digit phone number to search for. [cite: 939]
-	 * [cite_start]@return An Optional containing DevoteeDetails if a record is found, otherwise an empty Optional. [cite: 940]
-	 */
 	public Optional<DevoteeDetails> findLatestDevoteeDetailsByPhone(String phoneNumber) {
-		// This SQL query combines results from all tables, orders them by the most recent timestamp,
-
 		String sql = "SELECT devotee_name, address, pan_number, rashi, nakshatra FROM (" +
 				"  SELECT devotee_name, address, pan_number, rashi, nakshatra, timestamp FROM Receipts WHERE phone_number = ? " +
 				"  UNION ALL " +
@@ -52,19 +46,12 @@ public class DevoteeRepository {
 			}
 
 		} catch (SQLException e) {
-			System.err.println("Database error while fetching devotee details by phone: " + e.getMessage());
+			logger.error("Database error while fetching devotee details by phone: {}", phoneNumber, e);
 		}
 
-		return Optional.empty(); // Return empty if no record is found or an error occurs [cite: 947]
+		return Optional.empty();
 	}
 
-	/**
-	 * Calculates the total cash amount transacted by a devotee on the current day.
-	 * This query sums up totals from both the main Receipts and DonationReceipts tables.
-	 *
-	 * @param phoneNumber The 10-digit phone number of the devotee.
-	 * @return The total cash amount for the current day. Returns 0.0 if no transactions are found.
-	 */
 	public double getTodaysCashTotalByPhone(String phoneNumber) {
 		String sql = "SELECT SUM(total) AS daily_total FROM (" +
 				"  SELECT total_amount AS total FROM Receipts " +
@@ -88,7 +75,7 @@ public class DevoteeRepository {
 			}
 
 		} catch (SQLException e) {
-			System.err.println("Database error while fetching today's cash total: " + e.getMessage());
+			logger.error("Database error while fetching today's cash total for phone: {}", phoneNumber, e);
 		}
 
 		return total;
