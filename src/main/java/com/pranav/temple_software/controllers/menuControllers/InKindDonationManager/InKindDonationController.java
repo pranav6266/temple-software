@@ -149,7 +149,8 @@ public class InKindDonationController {
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 			// We need to get the latest saved ID for the preview, so we'll pass the unsaved object
 			// and the printer service will generate a preview without an ID. The actual save happens after.
-			InKindDonation previewDonation = new InKindDonation(repository.getAllInKindDonations().size() + 1, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(), newDonation.getRashi(), newDonation.getNakshatra(), newDonation.getDonationDate(), newDonation.getItemDescription());
+			int provisionalId = repository.getNextReceiptId();
+			InKindDonation previewDonation = new InKindDonation(provisionalId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(), newDonation.getRashi(), newDonation.getNakshatra(), newDonation.getDonationDate(), newDonation.getItemDescription());
 			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
 
 		} catch (Exception e) {

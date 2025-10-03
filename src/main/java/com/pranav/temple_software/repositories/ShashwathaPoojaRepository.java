@@ -68,4 +68,18 @@ public class ShashwathaPoojaRepository {
 		}
 		return receipts;
 	}
+
+	public int getNextReceiptId() {
+		String sql = "SELECT MAX(receipt_id) FROM ShashwathaPoojaReceipts";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(sql)) {
+			if (rs.next()) {
+				return rs.getInt(1) + 1;
+			}
+		} catch (SQLException e) {
+			logger.error("Error fetching next Shashwatha Pooja receipt ID", e);
+		}
+		return 1; // Default to 1 if table is empty
+	}
 }

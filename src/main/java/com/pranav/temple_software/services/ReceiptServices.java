@@ -97,8 +97,10 @@ public class ReceiptServices {
 	                                                 List<SevaEntry> sevaEntries, String paymentMode) {
 
 		double sevaTotal = sevaEntries.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
+		// Get the next likely receipt ID for the preview
+		int provisionalReceiptId = controller.sevaReceiptRepository.getNextReceiptId();
 		SevaReceiptData sevaReceiptData = new SevaReceiptData(
-				0, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
+				provisionalReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode
 		);
 

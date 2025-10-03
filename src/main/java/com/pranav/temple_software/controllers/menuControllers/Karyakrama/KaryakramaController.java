@@ -178,7 +178,8 @@ public class KaryakramaController {
 
 		Runnable onDialogClosed = this::closeWindow;
 		Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-		KaryakramaReceiptData previewData = new KaryakramaReceiptData(receiptRepository.getAllReceipts().size()+1, receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode());
+		int provisionalId = receiptRepository.getNextReceiptId();
+		KaryakramaReceiptData previewData = new KaryakramaReceiptData(provisionalId, receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode());
 		receiptPrinter.showKaryakramaPrintPreview(previewData, ownerStage, afterActionCallback, onDialogClosed);
 	}
 

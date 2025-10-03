@@ -190,4 +190,18 @@ public class SevaReceiptRepository {
 		}
 		return sevas;
 	}
+
+	public int getNextReceiptId() {
+		String sql = "SELECT MAX(receipt_id) FROM Receipts";
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql);
+		     ResultSet rs = pstmt.executeQuery()) {
+			if (rs.next()) {
+				return rs.getInt(1) + 1; // Return the current max ID + 1
+			}
+		} catch (SQLException e) {
+			logger.error("Error fetching next receipt ID", e);
+		}
+		return 1; // Default to 1 if the table is empty or an error occurs
+	}
 }

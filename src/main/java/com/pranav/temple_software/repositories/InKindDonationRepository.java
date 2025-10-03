@@ -63,4 +63,18 @@ public class InKindDonationRepository {
 		}
 		return donations;
 	}
+
+	public int getNextReceiptId() {
+		String sql = "SELECT MAX(in_kind_receipt_id) FROM InKindDonations";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(sql)) {
+			if (rs.next()) {
+				return rs.getInt(1) + 1;
+			}
+		} catch (SQLException e) {
+			logger.error("Error fetching next in-kind donation ID", e);
+		}
+		return 1; // Default to 1 if table is empty
+	}
 }

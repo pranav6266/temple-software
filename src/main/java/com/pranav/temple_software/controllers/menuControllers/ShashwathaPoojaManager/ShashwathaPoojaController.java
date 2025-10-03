@@ -152,7 +152,8 @@ public class ShashwathaPoojaController {
 			try {
 				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 				// Pass the unsaved object for preview.
-				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(repository.getAllShashwathaPoojaReceipts().size()+1, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(), newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(), newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode());
+				int provisionalId = repository.getNextReceiptId();
+				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(provisionalId, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(), newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(), newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode());
 				receiptPrinter.showShashwathaPoojaPrintPreview(previewReceipt, ownerStage, afterActionCallback, onDialogClosed);
 			} catch (Exception e) {
 				logger.error("Failed to open print preview for Shashwatha Pooja", e);

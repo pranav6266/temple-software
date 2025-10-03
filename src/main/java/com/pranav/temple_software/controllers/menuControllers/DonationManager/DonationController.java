@@ -126,8 +126,9 @@ public class DonationController {
 		// Create the data object, but DON'T save it yet
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		double amount = Double.parseDouble(amountField.getText());
+		int provisionalReceiptId = donationReceiptRepository.getNextReceiptId();
 		DonationReceiptData newReceipt = new DonationReceiptData(
-				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
+				provisionalReceiptId, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
 				raashiComboBox.getValue(), nakshatraComboBox.getValue(), donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);

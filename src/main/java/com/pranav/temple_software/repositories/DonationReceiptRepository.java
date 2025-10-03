@@ -86,4 +86,18 @@ public class DonationReceiptRepository {
 		}
 		return generatedId;
 	}
+
+	public int getNextReceiptId() {
+		String sql = "SELECT MAX(donation_receipt_id) FROM DonationReceipts";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(sql)) {
+			if (rs.next()) {
+				return rs.getInt(1) + 1;
+			}
+		} catch (SQLException e) {
+			logger.error("Error fetching next donation receipt ID", e);
+		}
+		return 1; // Default to 1 if table is empty
+	}
 }
