@@ -23,7 +23,7 @@ public class EscPosPrinterService {
 	private static final int PADDING = 15; // Left and Right padding in pixels
 
 	private static final Font FONT_TITLE = new Font("Noto Sans Kannada", Font.BOLD, 30);
-	private static final Font FONT_SUBTITLE = new Font("Noto Sans Kannada", Font.PLAIN, 20);
+	private static final Font FONT_SUBTITLE = new Font("Noto Sans Kannada", Font.BOLD, 20);
 	private static final Font FONT_HEADER = new Font("Noto Sans Kannada", Font.BOLD, 24);
 	private static final Font FONT_REGULAR = new Font("Noto Sans Kannada", Font.PLAIN, 20);
 	private static final Font FONT_REGULAR_BOLD = new Font("Noto Sans Kannada", Font.BOLD, 20); // Font for detail labels
@@ -73,20 +73,20 @@ public class EscPosPrinterService {
 
 	public BufferedImage generateSevaReceiptImage(SevaReceiptData data) {
 		List<BufferedImage> lines = buildHeader("ಸೇವಾ ರಶೀದಿ");
-		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId())));
-		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
-		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber()));
-		if (isValid(data.getNakshatra())) lines.add(renderDetailLine("ಜನ್ಮ ನಕ್ಷತ್ರ:", data.getNakshatra()));
-		if (isValid(data.getRashi()) && !data.getRashi().equals("ಆಯ್ಕೆ")) lines.add(renderDetailLine("ಜನ್ಮ ರಾಶಿ:", data.getRashi()));
-		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedDate()));
-		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode()));
+		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId()), FONT_BOLD));
+		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName(), FONT_BOLD));
+		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber(),FONT_BOLD));
+		if (isValid(data.getNakshatra())) lines.add(renderDetailLine("ಜನ್ಮ ನಕ್ಷತ್ರ:", data.getNakshatra(), FONT_BOLD));
+		if (isValid(data.getRashi()) && !data.getRashi().equals("ಆಯ್ಕೆ")) lines.add(renderDetailLine("ಜನ್ಮ ರಾಶಿ:", data.getRashi(), FONT_BOLD));
+		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedDate(), FONT_BOLD));
+		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode(), FONT_BOLD));
 		lines.add(renderBlankLine(15)); // Added gap before the table
 
 		lines.add(renderSeparatorLine());
 		lines.add(renderTableRow("ಸೇವೆಯ ಹೆಸರು", "ಪ್ರಮಾಣ", "ಮೊತ್ತ", FONT_BOLD));
 		lines.add(renderSeparatorLine());
 		for (SevaEntry seva : data.getSevas()) {
-			lines.add(renderTableRow(seva.getName(), String.valueOf(seva.getQuantity()), String.format("₹%.2f", seva.getTotalAmount()), FONT_REGULAR));
+			lines.add(renderTableRow(seva.getName(), String.valueOf(seva.getQuantity()), String.format("₹%.2f", seva.getTotalAmount()), FONT_REGULAR_BOLD));
 		}
 		lines.add(renderSeparatorLine());
 		lines.add(renderBlankLine(10));
@@ -98,13 +98,13 @@ public class EscPosPrinterService {
 
 	public BufferedImage generateDonationReceiptImage(DonationReceiptData data) {
 		List<BufferedImage> lines = buildHeader("ದೇಣಿಗೆ ರಶೀದಿ");
-		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getDonationReceiptId())));
-		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
-		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber()));
-		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedDate()));
+		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getDonationReceiptId()), FONT_BOLD));
+		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName(), FONT_BOLD));
+		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber(), FONT_BOLD));
+		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedDate(), FONT_BOLD));
 		lines.add(renderBlankLine(15));
-		lines.add(renderDetailLine("ದೇಣಿಗೆ ವಿಧ:", data.getDonationName()));
-		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode()));
+		lines.add(renderDetailLine("ದೇಣಿಗೆ ವಿಧ:", data.getDonationName(), FONT_BOLD));
+		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode(), FONT_BOLD));
 		lines.add(renderBlankLine(10));
 		lines.add(renderTextToImage(String.format("ದೇಣಿಗೆ ಮೊತ್ತ: ₹%.2f", data.getDonationAmount()), FONT_TOTAL, EscPos.Justification.Center));
 		lines.addAll(buildFooter());
@@ -113,12 +113,12 @@ public class EscPosPrinterService {
 
 	public BufferedImage generateShashwathaPoojaReceiptImage(ShashwathaPoojaReceipt data) {
 		List<BufferedImage> lines = buildHeader("ಶಾಶ್ವತ ಪೂಜೆ ರಶೀದಿ");
-		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId())));
-		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
-		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber()));
-		lines.add(renderDetailLine("ರಶೀದಿ ದಿನಾಂಕ:", data.getFormattedReceiptDate()));
-		lines.add(renderDetailLine("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ:", data.getPoojaDate()));
-		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode()));
+		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId()), FONT_BOLD));
+		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName(), FONT_BOLD));
+		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber(), FONT_BOLD));
+		lines.add(renderDetailLine("ರಶೀದಿ ದಿನಾಂಕ:", data.getFormattedReceiptDate(), FONT_BOLD));
+		lines.add(renderDetailLine("ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ:", data.getPoojaDate(), FONT_BOLD));
+		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode(), FONT_BOLD));
 		lines.add(renderBlankLine(10));
 		lines.add(renderTextToImage(String.format("ಪೂಜಾ ಮೊತ್ತ: ₹%.2f", data.getAmount()), FONT_TOTAL, EscPos.Justification.Center));
 		lines.addAll(buildFooter());
@@ -127,10 +127,10 @@ public class EscPosPrinterService {
 
 	public BufferedImage generateInKindDonationReceiptImage(InKindDonation data) {
 		List<BufferedImage> lines = buildHeader("ವಸ್ತು ದೇಣಿಗೆ ರಶೀದಿ");
-		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getInKindReceiptId())));
-		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
-		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber()));
-		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedDate()));
+		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getInKindReceiptId()), FONT_BOLD));
+		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName(), FONT_BOLD));
+		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber(), FONT_BOLD));
+		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedDate(), FONT_BOLD));
 		lines.add(renderBlankLine(10));
 		lines.add(renderSeparatorLine());
 		lines.add(renderTextToImage("ವಸ್ತು ವಿವರಣೆ:", FONT_BOLD, EscPos.Justification.Left_Default));
@@ -142,18 +142,18 @@ public class EscPosPrinterService {
 
 	public BufferedImage generateKaryakramaReceiptImage(KaryakramaReceiptData data) {
 		List<BufferedImage> lines = buildHeader("ಕಾರ್ಯಕ್ರಮದ ರಶೀದಿ");
-		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId())));
-		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName()));
-		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber()));
-		lines.add(renderDetailLine("ಕಾರ್ಯಕ್ರಮ:", data.getKaryakramaName()));
-		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedReceiptDate()));
-		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode()));
+		lines.add(renderDetailLine("ರಶೀದಿ ಸಂಖ್ಯೆ:", String.valueOf(data.getReceiptId()), FONT_BOLD));
+		lines.add(renderDetailLine("ಭಕ್ತರ ಹೆಸರು:", data.getDevoteeName(), FONT_BOLD));
+		if (isValid(data.getPhoneNumber())) lines.add(renderDetailLine("ದೂರವಾಣಿ:", data.getPhoneNumber(), FONT_BOLD));
+		lines.add(renderDetailLine("ಕಾರ್ಯಕ್ರಮ:", data.getKaryakramaName(), FONT_BOLD));
+		lines.add(renderDetailLine("ದಿನಾಂಕ:", data.getFormattedReceiptDate(), FONT_BOLD));
+		lines.add(renderDetailLine("ಪಾವತಿ ವಿಧಾನ:", data.getPaymentMode(), FONT_BOLD));
 		lines.add(renderBlankLine(15));
 		lines.add(renderSeparatorLine());
 		lines.add(renderTableRow("ವಿವರ", "ಪ್ರಮಾಣ", "ಮೊತ್ತ", FONT_BOLD));
 		lines.add(renderSeparatorLine());
 		for (SevaEntry seva : data.getSevas()) {
-			lines.add(renderTableRow(seva.getName(), String.valueOf(seva.getQuantity()), String.format("₹%.2f", seva.getTotalAmount()), FONT_REGULAR));
+			lines.add(renderTableRow(seva.getName(), String.valueOf(seva.getQuantity()), String.format("₹%.2f", seva.getTotalAmount()), FONT_REGULAR_BOLD));
 		}
 		lines.add(renderSeparatorLine());
 		lines.add(renderBlankLine(10));
@@ -291,7 +291,7 @@ public class EscPosPrinterService {
 		return blankImage;
 	}
 
-	private BufferedImage renderDetailLine(String label, String value) {
+	private BufferedImage renderDetailLine(String label, String value, Font fontBold) {
 		int height = (int)(FONT_REGULAR.getSize() * 1.5);
 		BufferedImage lineImage = new BufferedImage(PRINTER_PIXEL_WIDTH, height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g2d = lineImage.createGraphics();

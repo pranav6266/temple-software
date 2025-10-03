@@ -12,22 +12,28 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane styleClass="root" stylesheets="@../../../css/modern-dashboard.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController">
+<BorderPane styleClass="root" stylesheets="@../../../css/modern-dashboard.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.DashboardController">
     <top>
-        <VBox styleClass="header-section">
+        <VBox alignment="CENTER_LEFT" styleClass="header-section" BorderPane.alignment="CENTER">
             <HBox alignment="CENTER_LEFT" spacing="20.0">
                 <Label styleClass="dashboard-title" text="ಸೇವಾ/ದೇಣಿಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Button onAction="#openFilterWindow" styleClass="secondary-button" text="🔍 ಫಿಲ್ಟರ್" />
                 <Button onAction="#handleExportToExcel" styleClass="secondary-button" text="📋 ಎಕ್ಸೆಲ್‌ಗೆ ರಫ್ತು ಮಾಡಿ" />
+            <VBox.margin>
+               <Insets left="20.0" right="20.0" top="15.0" />
+            </VBox.margin>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="30.0" styleClass="summary-container">
                 <VBox.margin>
-                    <Insets top="20.0" />
+                    <Insets left="10.0" right="10.0" top="10.0" />
                 </VBox.margin>
                 <Label fx:id="totalRecordsLabel" styleClass="summary-label" text="📋 ಒಟ್ಟು ದಾಖಲೆಗಳು: 0" />
                 <Label fx:id="totalAmountLabel" styleClass="summary-amount" text="💰 ಒಟ್ಟು ಮೊತ್ತ: ₹0.00" />
             </HBox>
+         <BorderPane.margin>
+            <Insets />
+         </BorderPane.margin>
         </VBox>
     </top>
     <center>
