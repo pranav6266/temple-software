@@ -68,6 +68,7 @@ public class DatabaseManager {
 			createKaryakramaReceiptItemsTableIfNotExists(conn);
 
 			runMigrations(conn);
+			createIndexesIfNotExists(conn);
 		} catch (SQLException e) {
 			logger.error("❌ Error creating tables or running migrations", e);
 		}
@@ -383,6 +384,30 @@ public class DatabaseManager {
 			} else {
 				logger.error("❌ Error during database shutdown", e);
 			}
+		}
+	}
+
+	private void createIndexesIfNotExists(Connection conn) {
+		try (Statement stmt = conn.createStatement()) {
+			// Indexes for Receipts table
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_receipts_phone ON Receipts(phone_number)");
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_receipts_timestamp ON Receipts(timestamp)");
+
+			// Indexes for DonationReceipts table
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_donations_phone ON DonationReceipts(phone_number)");
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_donations_timestamp ON DonationReceipts(timestamp)");
+
+			// Indexes for InKindDonations table
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_inkind_phone ON InKindDonations(phone_number)");
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_inkind_timestamp ON InKindDonations(timestamp)");
+
+			// Indexes for ShashwathaPoojaReceipts table
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_shashwatha_phone ON ShashwathaPoojaReceipts(phone_number)");
+			stmt.execute("CREATE INDEX IF NOT EXISTS idx_shashwatha_timestamp ON ShashwathaPoojaReceipts(timestamp)");
+
+			logger.info("✅ Database indexes checked/created successfully.");
+		} catch (SQLException e) {
+			logger.error("❌ Error creating database indexes", e);
 		}
 	}
 }

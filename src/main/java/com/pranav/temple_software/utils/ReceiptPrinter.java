@@ -242,6 +242,7 @@ public class ReceiptPrinter {
 			Optional<ButtonType> result = showSaveConfirmationDialog(ownerStage);
 			if (result.isPresent() && result.get() == ButtonType.OK) {
 				boolean success = onSavePreviewAction.run();
+				// CRITICAL FIX: Ensure the afterActionCallback is called on save as well
 				if (afterActionCallback != null) {
 					Platform.runLater(() -> afterActionCallback.accept(success));
 				}
@@ -251,11 +252,15 @@ public class ReceiptPrinter {
 
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(_ -> {
+			// When cancelling, we must indicate that the action failed (was not completed)
+			if (afterActionCallback != null) Platform.runLater(() -> afterActionCallback.accept(false));
 			if (onDialogClosed != null) onDialogClosed.run();
 			previewStage.close();
 		});
 
 		previewStage.setOnCloseRequest(_ -> {
+			// Also handle closing via the 'X' button as a cancellation
+			if (afterActionCallback != null) Platform.runLater(() -> afterActionCallback.accept(false));
 			if (onDialogClosed != null) onDialogClosed.run();
 		});
 
@@ -301,3 +306,4 @@ public class ReceiptPrinter {
 	@FunctionalInterface
 	interface FailableRunnable { boolean run(); }
 }
+

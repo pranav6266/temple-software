@@ -63,29 +63,6 @@ public class ShashwathaPoojaManagerController {
 			logger.warn("Invalid amount format entered: {}", newAmountStr);
 			showStatus("Invalid amount format.", true);
 		}
-
-
-		try {
-			double newAmount = Double.parseDouble(newAmountStr);
-			if (newAmount < 0) {
-				showStatus("Amount cannot be negative.", true);
-				return;
-			}
-
-			boolean success = credentialsRepository.updateCredential(PRICE_KEY, String.format("%.2f", newAmount));
-			if (success) {
-				showStatus("Price updated successfully!", false);
-				// Optionally close window after a short delay
-				PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
-				delay.setOnFinished(_ -> closeWindow());
-				delay.play();
-			} else {
-				showStatus("Failed to update price. Check logs.", true);
-			}
-
-		} catch (NumberFormatException e) {
-			showStatus("Invalid amount format.", true);
-		}
 	}
 
 	@FXML
