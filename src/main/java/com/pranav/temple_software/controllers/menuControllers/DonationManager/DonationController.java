@@ -72,6 +72,10 @@ public class DonationController {
 				amountField.setText(oldValue);
 			}
 		});
+		addressField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
 	}
 
 	// Replace the existing setupPhoneNumberListener method with this one

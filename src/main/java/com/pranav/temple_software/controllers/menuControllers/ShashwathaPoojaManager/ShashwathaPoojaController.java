@@ -66,6 +66,10 @@ public class ShashwathaPoojaController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
+		addressField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
 		loadAndDisplayAmount();
 	}
 

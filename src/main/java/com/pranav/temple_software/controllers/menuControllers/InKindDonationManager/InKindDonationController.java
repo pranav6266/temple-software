@@ -60,7 +60,10 @@ public class InKindDonationController {
 			change.setText(change.getText().toUpperCase());
 			return change;
 		}));
-		// Removed validatePanRequirement() call from initialize
+		addressField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
 	}
 
 	/**

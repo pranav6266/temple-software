@@ -52,6 +52,15 @@ public class KaryakramaController {
 		setupSelections();
 		setupTableView();
 		updateTotal();
+
+		devoteeNameField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
+		addressField.setTextFormatter(new TextFormatter<>(change -> {
+			change.setText(change.getText().toUpperCase());
+			return change;
+		}));
 	}
 
 	private void setupDevoteeFields() {
