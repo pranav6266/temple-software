@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -18,16 +19,22 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ReceiptPrinter {
 	private String getPrinterName() {
 		String printerName = ConfigManager.getInstance().getProperty("printer.name");
 		if (printerName == null || printerName.isEmpty()) {
-			// You can return a default or handle the error
 			System.err.println("WARNING: Printer name is not configured in settings.");
 			return "BOXP-BR 80"; // Fallback to a default if nothing is saved
 		}
@@ -57,10 +64,13 @@ public class ReceiptPrinter {
 						try {
 							String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 							String fileName = String.format("Seva-%d-%s.png", data.getReceiptId(), timestamp);
-							new EscPosPrinterService(null).saveSevaReceiptAsPng(data, fileName);
-							showAlert(ownerStage, "Preview Saved", fileName + " has been saved to your Desktop.");
+							Path savePath = createSavePath("Seva Receipts", fileName);
+							ImageIO.write(receiptBufferedImage, "png", savePath.toFile());
+							showAlert(ownerStage, "Preview Saved", "File saved successfully to:\n" + savePath.toString());
+							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "File Error", "Could not save PNG preview: " + e.getMessage());
+							return false;
 						}
 					}
 			);
@@ -89,10 +99,13 @@ public class ReceiptPrinter {
 						try {
 							String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 							String fileName = String.format("Donation-%d-%s.png", data.getDonationReceiptId(), timestamp);
-							new EscPosPrinterService(null).saveDonationReceiptAsPng(data, fileName);
-							showAlert(ownerStage, "Preview Saved", fileName + " has been saved to your Desktop.");
+							Path savePath = createSavePath("Donation Receipts", fileName);
+							ImageIO.write(receiptBufferedImage, "png", savePath.toFile());
+							showAlert(ownerStage, "Preview Saved", "File saved successfully to:\n" + savePath.toString());
+							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "File Error", "Could not save PNG preview: " + e.getMessage());
+							return false;
 						}
 					}
 			);
@@ -121,10 +134,13 @@ public class ReceiptPrinter {
 						try {
 							String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 							String fileName = String.format("Shashwatha-%d-%s.png", data.getReceiptId(), timestamp);
-							new EscPosPrinterService(null).saveShashwathaPoojaReceiptAsPng(data, fileName);
-							showAlert(ownerStage, "Preview Saved", fileName + " has been saved to your Desktop.");
+							Path savePath = createSavePath("Shashwatha Pooja Receipts", fileName);
+							ImageIO.write(receiptBufferedImage, "png", savePath.toFile());
+							showAlert(ownerStage, "Preview Saved", "File saved successfully to:\n" + savePath.toString());
+							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "File Error", "Could not save PNG preview: " + e.getMessage());
+							return false;
 						}
 					}
 			);
@@ -153,10 +169,13 @@ public class ReceiptPrinter {
 						try {
 							String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 							String fileName = String.format("InKind-%d-%s.png", data.getInKindReceiptId(), timestamp);
-							new EscPosPrinterService(null).saveInKindDonationReceiptAsPng(data, fileName);
-							showAlert(ownerStage, "Preview Saved", fileName + " has been saved to your Desktop.");
+							Path savePath = createSavePath("In-Kind Donation Receipts", fileName);
+							ImageIO.write(receiptBufferedImage, "png", savePath.toFile());
+							showAlert(ownerStage, "Preview Saved", "File saved successfully to:\n" + savePath.toString());
+							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "File Error", "Could not save PNG preview: " + e.getMessage());
+							return false;
 						}
 					}
 			);
@@ -185,10 +204,13 @@ public class ReceiptPrinter {
 						try {
 							String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 							String fileName = String.format("Karyakrama-%d-%s.png", data.getReceiptId(), timestamp);
-							new EscPosPrinterService(null).saveKaryakramaReceiptAsPng(data, fileName);
-							showAlert(ownerStage, "Preview Saved", fileName + " has been saved to your Desktop.");
+							Path savePath = createSavePath("Karyakrama Receipts", fileName);
+							ImageIO.write(receiptBufferedImage, "png", savePath.toFile());
+							showAlert(ownerStage, "Preview Saved", "File saved successfully to:\n" + savePath.toString());
+							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "File Error", "Could not save PNG preview: " + e.getMessage());
+							return false;
 						}
 					}
 			);
@@ -197,10 +219,7 @@ public class ReceiptPrinter {
 		}
 	}
 
-// FILE: src/main/java/com/pranav/temple_software/utils/ReceiptPrinter.java
-
-	// In ReceiptPrinter.java
-	private void showPreviewDialog(Node receiptNode, String title, Stage ownerStage, Consumer<Boolean> afterActionCallback, Runnable onDialogClosed, FailableRunnable onPrintAction, Runnable onSavePreviewAction) {
+	private void showPreviewDialog(Node receiptNode, String title, Stage ownerStage, Consumer<Boolean> afterActionCallback, Runnable onDialogClosed, FailableRunnable onPrintAction, FailableRunnable onSavePreviewAction) {
 		Stage previewStage = new Stage();
 		previewStage.initModality(Modality.WINDOW_MODAL);
 		previewStage.initOwner(ownerStage);
@@ -220,18 +239,21 @@ public class ReceiptPrinter {
 
 		Button savePreviewButton = new Button("Save PNG Preview");
 		savePreviewButton.setOnAction(_ -> {
-			onSavePreviewAction.run(); // First, run the action to save the PNG
-
-			// FIX: After saving, also trigger the success callback to save the data to the database.
-			// We pass 'true' to indicate the action was successful.
-			if (afterActionCallback != null) {
-				Platform.runLater(() -> afterActionCallback.accept(true));
+			Optional<ButtonType> result = showSaveConfirmationDialog(ownerStage);
+			if (result.isPresent() && result.get() == ButtonType.OK) {
+				boolean success = onSavePreviewAction.run();
+				if (afterActionCallback != null) {
+					Platform.runLater(() -> afterActionCallback.accept(success));
+				}
+				previewStage.close();
 			}
-			previewStage.close();
 		});
 
 		Button cancelButton = new Button("Cancel");
-		cancelButton.setOnAction(_ -> previewStage.close());
+		cancelButton.setOnAction(_ -> {
+			if (onDialogClosed != null) onDialogClosed.run();
+			previewStage.close();
+		});
 
 		previewStage.setOnCloseRequest(_ -> {
 			if (onDialogClosed != null) onDialogClosed.run();
@@ -246,6 +268,23 @@ public class ReceiptPrinter {
 		Scene scene = new Scene(layout, 620, 600);
 		previewStage.setScene(scene);
 		previewStage.show();
+	}
+
+	private Optional<ButtonType> showSaveConfirmationDialog(Stage owner) {
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.initOwner(owner);
+		alert.setTitle("Confirm Save");
+		alert.setHeaderText("Save PNG Preview");
+		alert.setContentText("Are you sure you want to save this receipt preview as a PNG file?");
+		return alert.showAndWait();
+	}
+
+	private Path createSavePath(String subfolder, String fileName) throws IOException {
+		String userDesktop = System.getProperty("user.home") + File.separator + "Desktop";
+		Path mainDirPath = Paths.get(userDesktop, "CHERKABE_RECEIPTS");
+		Path subDirPath = mainDirPath.resolve(subfolder);
+		Files.createDirectories(subDirPath); // Create main and sub folders if they don't exist
+		return subDirPath.resolve(fileName);
 	}
 
 	private void showAlert(Stage owner, String title, String message) {
