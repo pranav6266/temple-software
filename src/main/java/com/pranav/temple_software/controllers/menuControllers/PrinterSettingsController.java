@@ -40,6 +40,7 @@ public class PrinterSettingsController {
 		}
 	}
 
+	// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/PrinterSettingsController.java
 	@FXML
 	void handleSave() {
 		String selectedPrinter = printersComboBox.getValue();
@@ -49,11 +50,7 @@ public class PrinterSettingsController {
 		}
 
 		ConfigManager.getInstance().saveProperty("printer.name", selectedPrinter);
-		showStatus("Printer setting saved successfully!", false);
-
-		PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
-		delay.setOnFinished(_ -> handleCancel());
-		delay.play();
+		handleCancel();
 	}
 
 	@FXML

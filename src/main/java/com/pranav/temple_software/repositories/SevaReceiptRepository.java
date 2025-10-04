@@ -58,41 +58,6 @@ public class SevaReceiptRepository {
 	}
 	// MODIFICATION END
 
-	public int saveReceipt(String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
-	                       double total, String paymentMode) {
-
-		String sql = "INSERT INTO Receipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +
-				"seva_date, total_amount, payment_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		int generatedId = -1;
-
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-			pstmt.setString(1, name);
-			pstmt.setString(2, phone);
-			pstmt.setString(3, address);
-			pstmt.setString(4, panNumber);
-			pstmt.setString(5, rashi);
-			pstmt.setString(6, nakshatra);
-			pstmt.setDate(7, java.sql.Date.valueOf(date));
-			pstmt.setDouble(8, total);
-			pstmt.setString(9, paymentMode);
-
-			int affectedRows = pstmt.executeUpdate();
-			if (affectedRows > 0) {
-				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-					if (generatedKeys.next()) {
-						generatedId = generatedKeys.getInt(1);
-					}
-				}
-			}
-		} catch (SQLException e) {
-			logger.error("Error inserting auto-increment receipt", e);
-			return -1;
-		}
-		return generatedId;
-	}
-
 	// MODIFICATION START: New method for transactions
 	/**
 	 * Saves the list of receipt items using a provided database connection.
@@ -118,25 +83,6 @@ public class SevaReceiptRepository {
 	}
 	// MODIFICATION END
 
-	public boolean saveReceiptItems(int receiptId, List<SevaEntry> sevas) {
-		String sql = "INSERT INTO Receipt_Items (receipt_id, seva_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-			for (SevaEntry seva : sevas) {
-				pstmt.setInt(1, receiptId);
-				pstmt.setString(2, seva.getName());
-				pstmt.setInt(3, seva.getQuantity());
-				pstmt.setDouble(4, seva.getAmount());
-				pstmt.addBatch();
-			}
-			pstmt.executeBatch();
-			return true;
-		} catch (SQLException e) {
-			logger.error("Error batch inserting receipt items for receipt ID {}", receiptId, e);
-			return false;
-		}
-	}
 
 	public List<SevaReceiptData> getAllReceipts() {
 		List<SevaReceiptData> receipts = new ArrayList<>();

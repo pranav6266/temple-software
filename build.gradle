@@ -3,7 +3,6 @@ plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.1.0'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    // 'org.beryx.runtime' plugin has been removed
 }
 
 group = 'com.pranav'
@@ -48,4 +47,35 @@ shadowJar {
     archiveClassifier = 'all'
     archiveVersion = project.version
     mergeServiceFiles()
+}
+
+// Get the path to the jpackage executable from the current Java toolchain
+def jpackageTool = new File(System.getProperty("java.home"), "bin/jpackage")
+
+task createInstaller(type: Exec) {
+    dependsOn shadowJar
+    group = "distribution"
+    description = "Creates a native installer for the application using jpackage."
+
+    // This makes the task run only if the shadowJar output has changed
+    inputs.file(shadowJar.archiveFile)
+    outputs.dir("$buildDir/installer")
+
+    // Ensure the output directory exists
+    doFirst {
+        mkdir("$buildDir/installer")
+    }
+
+    commandLine jpackageTool.absolutePath,
+            '--type', 'msi',
+            '--dest', "$buildDir/installer",
+            '--input', "$buildDir/libs",
+            '--main-jar', shadowJar.archiveFileName.get(),
+            '--main-class', 'com.pranav.temple_software.Main',
+            '--name', 'Temple Software',
+            '--app-version', project.version,
+            '--vendor', 'Shri Kshethra Cherkabe',
+            '--win-shortcut',
+            '--win-menu'
+    // '--icon', 'path/to/your/icon.ico' // Optional: Uncomment and provide a path to your .ico file
 }

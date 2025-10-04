@@ -54,7 +54,7 @@
 
                     <Region HBox.hgrow="ALWAYS" />
 
-                    <Button fx:id="closeButton" onAction="#handleCloseApp" styleClass="close-button" text="✕" />
+
                 </HBox>
 
                 <VBox alignment="CENTER" styleClass="title-box">

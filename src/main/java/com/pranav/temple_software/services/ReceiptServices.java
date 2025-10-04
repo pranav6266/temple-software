@@ -169,7 +169,6 @@ public class ReceiptServices {
 		Platform.runLater(() -> {
 			items.forEach(entry -> entry.setPrintStatus(SevaEntry.PrintStatus.FAILED));
 			controller.updatePrintStatusLabel();
-			Platform.runLater(() -> controller.showAlert("Action Failed", reason));
 		});
 	}
 
