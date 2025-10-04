@@ -42,7 +42,7 @@ public class Launcher extends Application {
 				"/fxml/LoginView.fxml")); // <-- CHANGED
 		Scene scene = new Scene(fxmlLoader.load());
 
-		stage.setTitle("Temple Software - Login"); // <-- CHANGED
+		stage.setTitle("Cherkabe Temple Receipt Printer- Login"); // <-- CHANGED
 		stage.setScene(scene);
 		stage.setResizable(false);
 		// Login window should not be resizable

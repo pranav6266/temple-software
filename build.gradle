@@ -72,10 +72,11 @@ task createInstaller(type: Exec) {
             '--input', "$buildDir/libs",
             '--main-jar', shadowJar.archiveFileName.get(),
             '--main-class', 'com.pranav.temple_software.Main',
-            '--name', 'Temple Software',
+            '--name', 'Cherkabe Temple Receipt Printer',
             '--app-version', project.version,
-            '--vendor', 'Shri Kshethra Cherkabe',
+            '--vendor', 'Pranav',
+            '--icon', 'src/main/resources/images/cherkabe.ico', // Optional: Uncomment and provide a path to your .ico file
             '--win-shortcut',
             '--win-menu'
-    // '--icon', 'path/to/your/icon.ico' // Optional: Uncomment and provide a path to your .ico file
+
 }

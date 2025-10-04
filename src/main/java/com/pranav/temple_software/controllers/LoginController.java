@@ -12,9 +12,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +87,7 @@ public class LoginController {
 			MainController controller = fxmlLoader.getController();
 			controller.setMainStage(mainStage);
 
-			mainStage.setTitle("Temple Software");
+			mainStage.setTitle("Cherkabe Temple Receipt Printer");
 			mainStage.setScene(scene);
 			mainStage.setResizable(true);
 			mainStage.setWidth(1000);
