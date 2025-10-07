@@ -1,8 +1,10 @@
+// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/History/FilterPopupController.java
 package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.Donations;
 import com.pranav.temple_software.models.Seva;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.repositories.DashboardRepository;
 import com.pranav.temple_software.repositories.DonationRepository;
 import com.pranav.temple_software.repositories.SevaRepository;
 import com.pranav.temple_software.repositories.VisheshaPoojeRepository;
@@ -15,6 +17,7 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FilterPopupController {
 
@@ -27,6 +30,7 @@ public class FilterPopupController {
 	@FXML private ComboBox<String> paymentModeComboBox;
 
 	private FilterApplyHandler filterApplyHandler;
+	private final DashboardRepository dashboardRepository = new DashboardRepository();
 
 	// Interface for handling filter apply action
 	public interface FilterApplyHandler {
@@ -47,10 +51,9 @@ public class FilterPopupController {
 	private void setupComboBoxes() {
 		// Type ComboBox
 		typeComboBox.setItems(FXCollections.observableArrayList(
-				"ಎಲ್ಲಾ", "ಸೇವೆ", "ಇತರೆ ಸೇವೆ", "ದೇಣಿಗೆ", "ವಸ್ತು ದೇಣಿಗೆ", "ಶಾಶ್ವತ ಪೂಜೆ", "ವಿಶೇಷ ಪೂಜೆ"
+				"ಎಲ್ಲಾ", "ಸೇವೆ", "ಕಾರ್ಯಕ್ರಮ", "ದೇಣಿಗೆ", "ವಸ್ತು ದೇಣಿಗೆ", "ಶಾಶ್ವತ ಪೂಜೆ", "ವಿಶೇಷ ಪೂಜೆ"
 		));
 		typeComboBox.setValue("ಎಲ್ಲಾ");
-
 		// Item ComboBox (initially with default option)
 		itemComboBox.setItems(FXCollections.observableArrayList("ಎಲ್ಲಾ"));
 		itemComboBox.setValue("ಎಲ್ಲಾ");
@@ -60,14 +63,12 @@ public class FilterPopupController {
 				"All", "Cash", "Online"
 		));
 		paymentModeComboBox.setValue("All");
-
 		// Month ComboBox
 		monthComboBox.setItems(FXCollections.observableArrayList(
 				"All", "ಜನವರಿ", "ಫೆಬ್ರುವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್",
 				"ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"
 		));
 		monthComboBox.setValue("All");
-
 		// Year ComboBox
 		List<String> years = new ArrayList<>();
 		years.add("");
@@ -171,14 +172,12 @@ public class FilterPopupController {
 	@FXML
 	public void handleTypeSelectionChange() {
 		String selectedType = typeComboBox.getValue();
-
 		// Clear current item selection first
 		itemComboBox.setValue(null);
 		itemComboBox.getSelectionModel().clearSelection();
 
 		// Update the items based on selected type
 		updateItemComboBoxBasedOnType(selectedType);
-
 		// Set default selection to "All" after updating items
 		Platform.runLater(() -> {
 			if (!itemComboBox.getItems().isEmpty()) {
@@ -196,12 +195,16 @@ public class FilterPopupController {
 				List<Seva> sevaEntries = SevaRepository.getInstance().getAllSevas();
 				items.addAll(sevaEntries.stream().map(Seva::getName).toList());
 				break;
-
 			case "ದೇಣಿಗೆ":
 				List<Donations> donationEntries = DonationRepository.getInstance().getAllDonations();
 				items.addAll(donationEntries.stream().map(Donations::getName).toList());
 				break;
-
+			case "ಕಾರ್ಯಕ್ರಮ":
+				List<String> karyakramaNames = dashboardRepository.getAllKaryakramaNames().stream()
+						.map(item -> item.split(":")[1])
+						.collect(Collectors.toList());
+				items.addAll(karyakramaNames);
+				break;
 			case "ವಸ್ತು ದೇಣಿಗೆ":
 				items.add("ವಸ್ತು ದೇಣಿಗೆ");
 				break;
@@ -209,7 +212,6 @@ public class FilterPopupController {
 			case "ಶಾಶ್ವತ ಪೂಜೆ":
 				items.add("ಶಾಶ್ವತ ಪೂಜೆ");
 				break;
-
 			case "ವಿಶೇಷ ಪೂಜೆ":
 				List<SevaEntry> visheshaPoojaEntries = VisheshaPoojeRepository.getAllVisheshaPooje();
 				items.addAll(visheshaPoojaEntries.stream().map(SevaEntry::getName).toList());
@@ -229,7 +231,6 @@ public class FilterPopupController {
 	public boolean validateFilters() {
 		LocalDate fromDate = fromDatePicker.getValue();
 		LocalDate toDate = toDatePicker.getValue();
-
 		if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
 			showValidationAlert(
 			);

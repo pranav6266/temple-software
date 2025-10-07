@@ -1,4 +1,5 @@
-package com.pranav.temple_software.controllers.menuControllers.History;
+// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/History/DashboardController.java
+		package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.DashboardStats;
 import com.pranav.temple_software.repositories.DashboardRepository;
@@ -24,8 +25,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class DashboardController {
@@ -51,6 +55,12 @@ public class DashboardController {
 	private String paymentModeValue;
 
 	private final DashboardRepository dashboardRepository = new DashboardRepository();
+	private static final Map<String, Integer> KANNADA_MONTHS_MAP = Map.ofEntries(
+			Map.entry("ಜನವರಿ", 1), Map.entry("ಫೆಬ್ರುವರಿ", 2), Map.entry("ಮಾರ್ಚ್", 3),
+			Map.entry("ಏಪ್ರಿಲ್", 4), Map.entry("ಮೇ", 5), Map.entry("ಜೂನ್", 6),
+			Map.entry("ಜುಲೈ", 7), Map.entry("ಆಗಸ್ಟ್", 8), Map.entry("ಸೆಪ್ಟೆಂಬರ್", 9),
+			Map.entry("ಅಕ್ಟೋಬರ್", 10), Map.entry("ನವೆಂಬರ್", 11), Map.entry("ಡಿಸೆಂಬರ್", 12)
+	);
 
 	@FXML
 	public void initialize() {
@@ -95,7 +105,6 @@ public class DashboardController {
 			progressIndicator.setVisible(false);
 			dashboardTable.setDisable(false);
 		});
-
 		loadReportTask.setOnFailed(_ -> {
 			progressIndicator.setVisible(false);
 			dashboardTable.setDisable(false);
@@ -126,14 +135,37 @@ public class DashboardController {
 			filterController.setFilterApplyHandler(() -> {
 				this.typeValue = filterController.getTypeValue();
 				this.itemValue = filterController.getItemValue();
-				this.fromDateValue = filterController.getFromDateValue();
-				this.toDateValue = filterController.getToDateValue();
+				this.paymentModeValue = filterController.getPaymentModeValue();
 				this.monthValue = filterController.getMonthValue();
 				this.yearValue = filterController.getYearValue();
-				this.paymentModeValue = filterController.getPaymentModeValue();
+
+				// --- MODIFIED LOGIC START ---
+				// Prioritize month/year selection over the single date picker
+				this.fromDateValue = null;
+				this.toDateValue = null;
+
+				if (monthValue != null && !monthValue.equals("All")) {
+					int monthNum = KANNADA_MONTHS_MAP.getOrDefault(monthValue, -1);
+					if (monthNum != -1) {
+						int year = (yearValue != null && !yearValue.isEmpty()) ? Integer.parseInt(yearValue) : LocalDate.now().getYear();
+						this.fromDateValue = LocalDate.of(year, monthNum, 1);
+						this.toDateValue = this.fromDateValue.withDayOfMonth(this.fromDateValue.lengthOfMonth());
+					}
+				} else if (yearValue != null && !yearValue.isEmpty()) {
+					int year = Integer.parseInt(yearValue);
+					this.fromDateValue = LocalDate.of(year, Month.JANUARY, 1);
+					this.toDateValue = LocalDate.of(year, Month.DECEMBER, 31);
+				} else {
+					// Fallback to the single date picker if no month/year is selected
+					this.fromDateValue = filterController.getFromDateValue();
+					this.toDateValue = filterController.getFromDateValue(); // Filter for a single day
+				}
+				// --- MODIFIED LOGIC END ---
+
 				generateReport();
 				filterStage.close();
 			});
+
 
 			filterStage.showAndWait();
 		} catch (IOException e) {
@@ -265,3 +297,4 @@ public class DashboardController {
 		if (stage != null) stage.close();
 	}
 }
+
