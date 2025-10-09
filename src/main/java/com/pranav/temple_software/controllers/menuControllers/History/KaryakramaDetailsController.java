@@ -27,6 +27,7 @@ public class KaryakramaDetailsController {
 	@FXML private TableColumn<SevaEntry, Number> quantityColumn;
 	@FXML private TableColumn<SevaEntry, Number> totalColumn;
 	@FXML private Button reprintButton;
+	@FXML private Label paymentModeLabel;
 
 	private KaryakramaReceiptData currentReceiptData;
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
@@ -42,7 +43,7 @@ public class KaryakramaDetailsController {
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + data.getRashi());
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra());
 		addressText.setText(data.getAddress());
-
+		paymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " + (data.getPaymentMode() != null ? data.getPaymentMode() : "---"));
 		// Set Karyakrama Details
 		karyakramaNameLabel.setText("ಕಾರ್ಯಕ್ರಮ: " + data.getKaryakramaName());
 		receiptDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedReceiptDate());

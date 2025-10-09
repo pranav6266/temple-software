@@ -26,7 +26,8 @@
             <GridPane styleClass="info-grid">
                 <Label fx:id="karyakramaNameLabel" styleClass="info-label" text="ಕಾರ್ಯಕ್ರಮ:" GridPane.rowIndex="0" />
                 <Label fx:id="receiptDateLabel" styleClass="info-label" text="ದಿನಾಂಕ: " GridPane.rowIndex="1" />
-                <Label fx:id="totalAmountLabel" styleClass="amount-label" text="ಒಟ್ಟು ಮೊತ್ತ: " GridPane.rowIndex="2" />
+                <Label fx:id="paymentModeLabel" styleClass="info-label" text="ಪಾವತಿ ವಿಧಾನ:" GridPane.rowIndex="2" />
+                <Label fx:id="totalAmountLabel" styleClass="amount-label" text="ಒಟ್ಟು ಮೊತ್ತ: " GridPane.rowIndex="3" />
             </GridPane>
         </VBox>
 

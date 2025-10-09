@@ -18,10 +18,11 @@
                 <Label fx:id="devoteeNameLabel" styleClass="info-label" text="ಭಕ್ತರ ಹೆಸರು: " GridPane.rowIndex="0" />
                 <Label fx:id="phoneNumberLabel" styleClass="info-label" text="ದೂರವಾಣಿ: " GridPane.rowIndex="1" />
                 <Label fx:id="donationDateLabel" styleClass="info-label" text="ದಿನಾಂಕ: " GridPane.rowIndex="2" />
-                <Label fx:id="rashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="3" />
-                <Label fx:id="nakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="4" />
-                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ: " GridPane.rowIndex="5" />
-                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="6" />
+                <Label fx:id="paymentModeLabel" styleClass="info-label" text="ಪಾವತಿ ವಿಧಾನ: " GridPane.rowIndex="3" />
+                <Label fx:id="rashiLabel" styleClass="info-label" text="ಜನ್ಮ ರಾಶಿ: " GridPane.rowIndex="4" />
+                <Label fx:id="nakshatraLabel" styleClass="info-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ: " GridPane.rowIndex="5" />
+                <Label fx:id="panNumberLabel" styleClass="info-label" text="PAN ಸಂಖ್ಯೆ: " GridPane.rowIndex="6" />
+                <Text fx:id="addressText" styleClass="address-text" text="ವಿಳಾಸ: " wrappingWidth="400" GridPane.rowIndex="7" />
             </GridPane>
         </VBox>
 

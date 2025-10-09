@@ -21,7 +21,7 @@ public class SevaReceiptDetailsController {
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
-
+	@FXML private Label paymentModeLabel;
 	@FXML private Label sevaDateLabel;
 	@FXML private Label totalAmountLabel;
 
@@ -49,7 +49,7 @@ public class SevaReceiptDetailsController {
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().isEmpty() ? data.getRashi() : "---"));
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null && !data.getNakshatra().isEmpty() ? data.getNakshatra() : "---"));
 		addressText.setText("ವಿಳಾಸ: "+(!data.getAddress().isEmpty() ? data.getAddress() : "---"));
-
+		paymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " + (data.getPaymentMode() != null ? data.getPaymentMode() : "---"));
 		// Seva Details
 		sevaDateLabel.setText("ದಿನಾಂಕ: " + data.getFormattedDate());
 		totalAmountLabel.setText("ಒಟ್ಟು ಮೊತ್ತ: ₹" + String.format("%.2f", data.getTotalAmount()));

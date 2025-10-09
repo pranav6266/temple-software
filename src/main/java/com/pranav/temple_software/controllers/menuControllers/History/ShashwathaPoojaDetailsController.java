@@ -21,6 +21,7 @@ public class ShashwathaPoojaDetailsController {
 	@FXML private Label amountLabel; // Added
 	@FXML private Label receiptDateLabel;
 	@FXML private Text poojaDateText;
+	@FXML private Label paymentModeLabel;
 
 	@FXML private Button reprintButton;
 	private ShashwathaPoojaReceipt currentPoojaData;
@@ -36,7 +37,7 @@ public class ShashwathaPoojaDetailsController {
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (data.getRashi() != null && !data.getRashi().isEmpty() ? data.getRashi() : "---"));
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (data.getNakshatra() != null && !data.getNakshatra().isEmpty() ? data.getNakshatra() : "---"));
 		addressText.setText("ವಿಳಾಸ:"+(data.getAddress() != null && !data.getAddress().isEmpty() ? data.getAddress() : "---"));
-
+		paymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " + (data.getPaymentMode() != null ? data.getPaymentMode() : "---"));
 		// Pooja Details
 		receiptDateLabel.setText("ರಶೀದಿ ದಿನಾಂಕ: " + data.getFormattedReceiptDate());
 		poojaDateText.setText(data.getPoojaDate());

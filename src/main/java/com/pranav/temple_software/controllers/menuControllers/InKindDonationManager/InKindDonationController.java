@@ -37,6 +37,9 @@ public class InKindDonationController {
 	@FXML private TextArea itemDescriptionArea;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
+	@FXML private RadioButton cashRadio;
+	@FXML private RadioButton onlineRadio;
+	@FXML private ToggleGroup paymentGroup;
 
 	private final InKindDonationRepository repository = new InKindDonationRepository();
 	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
@@ -126,11 +129,12 @@ public class InKindDonationController {
 		if (!validateInput()) {
 			return;
 		}
+		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		// Create the data object, but DON'T save it yet
 		InKindDonation newDonation = new InKindDonation(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(),
-				donationDatePicker.getValue(), itemDescriptionArea.getText()
+				donationDatePicker.getValue(), itemDescriptionArea.getText(), paymentMode
 		);
 
 		try {
@@ -153,7 +157,9 @@ public class InKindDonationController {
 			// We need to get the latest saved ID for the preview, so we'll pass the unsaved object
 			// and the printer service will generate a preview without an ID. The actual save happens after.
 			int provisionalId = repository.getNextReceiptId();
-			InKindDonation previewDonation = new InKindDonation(provisionalId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(), newDonation.getRashi(), newDonation.getNakshatra(), newDonation.getDonationDate(), newDonation.getItemDescription());
+			InKindDonation previewDonation = new InKindDonation(provisionalId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(),
+					newDonation.getRashi(), newDonation.getNakshatra(),
+					newDonation.getDonationDate(), newDonation.getItemDescription(), newDonation.getPaymentMode());
 			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
 
 		} catch (Exception e) {
@@ -187,6 +193,11 @@ public class InKindDonationController {
 
 	private boolean isValidPanFormat(String pan) {
 		if (pan == null || pan.length() != 10) {
+			return false;
+		}
+
+		if (!cashRadio.isSelected() && !onlineRadio.isSelected()) {
+			showAlert(Alert.AlertType.WARNING, "Validation Error", "Please select a payment method.");
 			return false;
 		}
 		// PAN format: 5 letters, 4 digits, 1 letter [cite: 236]

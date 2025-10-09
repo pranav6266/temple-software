@@ -39,8 +39,9 @@
                     <ColumnConstraints hgrow="ALWAYS" />
                 </columnConstraints>
                 <Label fx:id="receiptDateLabel" styleClass="info-label" text="ರಶೀದಿ ದಿನಾಂಕ:" GridPane.rowIndex="0" />
-                <Label fx:id="amountLabel" styleClass="amount-label" text="ಪೂಜಾ ಮೊತ್ತ:" GridPane.rowIndex="2" />
-                <Text fx:id="poojaDateText" styleClass="address-text" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ..." wrappingWidth="400" GridPane.rowIndex="1" />
+                <Label fx:id="paymentModeLabel" styleClass="info-label" text="ಪಾವತಿ ವಿಧಾನ:" GridPane.rowIndex="1" />
+                <Label fx:id="amountLabel" styleClass="amount-label" text="ಪೂಜಾ ಮೊತ್ತ:" GridPane.rowIndex="3" />
+                <Text fx:id="poojaDateText" styleClass="address-text" text="ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ..." wrappingWidth="400" GridPane.rowIndex="2" />
             </GridPane>
         </VBox>
 

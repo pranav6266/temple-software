@@ -120,6 +120,16 @@ public class DatabaseManager {
 				}
 			}
 		}
+
+		try (ResultSet rs = meta.getColumns(null, null, "INKINDDONATIONS", "PAYMENT_MODE")) {
+			if (!rs.next()) {
+				logger.info("⏳ Running migration: Adding PAYMENT_MODE column to InKindDonations...");
+				try (Statement stmt = conn.createStatement()) {
+					stmt.executeUpdate("ALTER TABLE InKindDonations ADD COLUMN payment_mode VARCHAR(10) DEFAULT 'Cash'");
+					logger.info("✅ Migration successful for PAYMENT_MODE column in InKindDonations.");
+				}
+			}
+		}
 	}
 
 	private void createOthersTableIfNotExists(Connection conn) throws SQLException {

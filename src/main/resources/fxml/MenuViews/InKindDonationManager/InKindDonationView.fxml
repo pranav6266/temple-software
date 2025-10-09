@@ -13,6 +13,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.RadioButton?>
 <BorderPane prefWidth="800.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.InKindDonationManager.InKindDonationController">
     <top>
         <Label styleClass="popup-title" text="ವಸ್ತು ದೇಣಿಗೆಯನ್ನು ಸೇರಿಸಿ" BorderPane.alignment="CENTER" />
@@ -48,6 +50,17 @@
 
                     <Label styleClass="popup-field-label" text="ವಸ್ತುವಿನ ವಿವರಣೆ:" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.valignment="TOP" />
                     <TextArea fx:id="itemDescriptionArea" prefRowCount="3" promptText="ಉದಾ: 1 ಬೆಳ್ಳಿ ದೀಪ, 1 ಫ್ರಿಡ್ಜ್" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4" />
+
+                    <HBox alignment="CENTER_LEFT" spacing="20" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="5">
+                        <children>
+                            <RadioButton fx:id="cashRadio" styleClass="popup-radio-button" text="💵 ನಗದು">
+                                <toggleGroup>
+                                    <ToggleGroup fx:id="paymentGroup" />
+                                </toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="onlineRadio" styleClass="popup-radio-button" text="💳 ಆನ್ಲೈನ್" toggleGroup="$paymentGroup" />
+                        </children>
+                    </HBox>
 
                 </GridPane>
             </VBox>
