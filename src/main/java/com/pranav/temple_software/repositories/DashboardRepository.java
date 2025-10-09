@@ -21,9 +21,9 @@ public class DashboardRepository {
 	public List<DashboardStats> getSevaStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificSevaId) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT ri.seva_name, COUNT(DISTINCT r.receipt_id) as total_count, ");
-		sql.append("SUM(CASE WHEN r.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
-		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
+		sql.append("SELECT ri.seva_name, SUM(ri.quantity) as total_count, ");
+		sql.append("SUM(CASE WHEN r.payment_mode = 'Cash' THEN ri.quantity ELSE 0 END) as cash_count, ");
+		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN ri.quantity ELSE 0 END) as online_count, ");
 		sql.append("SUM(ri.quantity * ri.price_at_sale) as total_amount ");
 		sql.append("FROM Receipts r JOIN Receipt_Items ri ON r.receipt_id = ri.receipt_id ");
 		sql.append("LEFT JOIN Sevas s ON ri.seva_name = s.seva_name ");
@@ -139,9 +139,9 @@ public class DashboardRepository {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT k.karyakrama_id, kr.karyakrama_name, ");
-		sql.append("COUNT(DISTINCT kr.receipt_id) as total_count, ");
-		sql.append("SUM(CASE WHEN kr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
-		sql.append("SUM(CASE WHEN kr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
+		sql.append("SUM(kri.quantity) as total_count, ");
+		sql.append("SUM(CASE WHEN kr.payment_mode = 'Cash' THEN kri.quantity ELSE 0 END) as cash_count, ");
+		sql.append("SUM(CASE WHEN kr.payment_mode = 'Online' THEN kri.quantity ELSE 0 END) as online_count, ");
 		sql.append("SUM(kri.quantity * kri.price_at_sale) as total_amount ");
 		sql.append("FROM KaryakramaReceipts kr ");
 		sql.append("JOIN Karyakrama_Receipt_Items kri ON kr.receipt_id = kri.receipt_id ");
@@ -242,9 +242,9 @@ public class DashboardRepository {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT vp.vishesha_pooje_id, vp.vishesha_pooje_name, ");
-		sql.append("COUNT(DISTINCT r.receipt_id) as total_count, ");
-		sql.append("SUM(CASE WHEN r.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
-		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
+		sql.append("SUM(ri.quantity) as total_count, ");
+		sql.append("SUM(CASE WHEN r.payment_mode = 'Cash' THEN ri.quantity ELSE 0 END) as cash_count, ");
+		sql.append("SUM(CASE WHEN r.payment_mode = 'Online' THEN ri.quantity ELSE 0 END) as online_count, ");
 		sql.append("SUM(ri.quantity * ri.price_at_sale) as total_amount ");
 		sql.append("FROM Receipts r JOIN Receipt_Items ri ON r.receipt_id = ri.receipt_id ");
 		sql.append("JOIN VisheshaPooje vp ON ri.seva_name = vp.vishesha_pooje_name ");
