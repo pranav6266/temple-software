@@ -108,6 +108,10 @@ public class ValidationServices {
 		}
 	}
 
+	public double getDevoteeDailyCashTotal() {
+		return devoteeDailyCashTotal;
+	}
+	
 	public void setupPanValidation() {
 		controller.panNumberField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {

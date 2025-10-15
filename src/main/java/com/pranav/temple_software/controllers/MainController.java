@@ -268,11 +268,18 @@ public class MainController {
 	}
 
 	private boolean validatePanRequirement() {
-		double totalAmount = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-		if (totalAmount > 2000.0) {
+		// Get the total from the current items in the table
+		double currentCartTotal = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
+
+		// Get the past daily total calculated by ValidationServices
+		double pastDailyTotal = validationServices.getDevoteeDailyCashTotal(); // We need to create this getter
+
+		double grandTotal = currentCartTotal + pastDailyTotal;
+
+		if (grandTotal > 2000.0) {
 			String panNumber = panNumberField.getText();
 			if (panNumber == null || panNumber.trim().isEmpty()) {
-				showAlert("PAN Required", "PAN number is mandatory for transactions above ₹2000.\nCurrent total: ₹" + String.format("%.2f", totalAmount) + "\nPlease enter PAN number to proceed.");
+				showAlert("PAN Required", "The devotee's total transactions for today will exceed ₹2000. PAN number is mandatory.\n\nCurrent total: ₹" + String.format("%.2f", grandTotal));
 				Platform.runLater(() -> panNumberField.requestFocus());
 				return false;
 			}
@@ -284,6 +291,7 @@ public class MainController {
 		}
 		return true;
 	}
+
 
 	private boolean isValidPanFormat(String pan) {
 		if (pan == null || pan.length() != 10) return false;

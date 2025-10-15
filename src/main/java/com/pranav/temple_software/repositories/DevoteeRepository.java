@@ -53,11 +53,18 @@ public class DevoteeRepository {
 	}
 
 	public double getTodaysCashTotalByPhone(String phoneNumber) {
+		// UPDATED SQL query to include ALL receipt types
 		String sql = "SELECT SUM(total) AS daily_total FROM (" +
 				"  SELECT total_amount AS total FROM Receipts " +
 				"  WHERE phone_number = ? AND payment_mode = 'Cash' AND CAST(timestamp AS DATE) = CURRENT_DATE " +
 				"  UNION ALL " +
 				"  SELECT donation_amount AS total FROM DonationReceipts " +
+				"  WHERE phone_number = ? AND payment_mode = 'Cash' AND CAST(timestamp AS DATE) = CURRENT_DATE" +
+				"  UNION ALL " +
+				"  SELECT amount AS total FROM ShashwathaPoojaReceipts " +
+				"  WHERE phone_number = ? AND payment_mode = 'Cash' AND CAST(timestamp AS DATE) = CURRENT_DATE" +
+				"  UNION ALL " +
+				"  SELECT total_amount AS total FROM KaryakramaReceipts " +
 				"  WHERE phone_number = ? AND payment_mode = 'Cash' AND CAST(timestamp AS DATE) = CURRENT_DATE" +
 				")";
 		double total = 0.0;
@@ -67,6 +74,8 @@ public class DevoteeRepository {
 
 			pstmt.setString(1, phoneNumber);
 			pstmt.setString(2, phoneNumber);
+			pstmt.setString(3, phoneNumber); // Add parameter for ShashwathaPoojaReceipts
+			pstmt.setString(4, phoneNumber); // Add parameter for KaryakramaReceipts
 
 			ResultSet rs = pstmt.executeQuery();
 
