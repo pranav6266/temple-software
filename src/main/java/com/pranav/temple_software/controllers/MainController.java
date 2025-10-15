@@ -267,12 +267,14 @@ public class MainController {
 		}
 	}
 
+// In MainController.java
+
 	private boolean validatePanRequirement() {
 		// Get the total from the current items in the table
 		double currentCartTotal = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 
 		// Get the past daily total calculated by ValidationServices
-		double pastDailyTotal = validationServices.getDevoteeDailyCashTotal(); // We need to create this getter
+		double pastDailyTotal = validationServices.getDevoteeDailyCashTotal();
 
 		double grandTotal = currentCartTotal + pastDailyTotal;
 
@@ -291,7 +293,6 @@ public class MainController {
 		}
 		return true;
 	}
-
 
 	private boolean isValidPanFormat(String pan) {
 		if (pan == null || pan.length() != 10) return false;

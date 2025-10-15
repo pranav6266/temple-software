@@ -42,7 +42,7 @@ public class KaryakramaDetailsController {
 		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + data.getPanNumber());
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + data.getRashi());
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + data.getNakshatra());
-		addressText.setText(data.getAddress());
+		addressText.setText("ವಿಳಾಸ: " + (data.getAddress() != null && !data.getAddress().isEmpty() ? data.getAddress() : "---"));
 		paymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " + (data.getPaymentMode() != null ? data.getPaymentMode() : "---"));
 		// Set Karyakrama Details
 		karyakramaNameLabel.setText("ಕಾರ್ಯಕ್ರಮ: " + data.getKaryakramaName());

@@ -22,11 +22,14 @@ public class ValidationServices {
 		this.controller = controller;
 	}
 
+	public double getDevoteeDailyCashTotal() {
+		return devoteeDailyCashTotal;
+	}
+
 	public void checkAndEnforceCashLimit() {
 		double currentCartTotal = controller.selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
 				.sum();
-
 		double grandTotal = devoteeDailyCashTotal + currentCartTotal;
 		if (grandTotal > 2000.0) {
 			if (!controller.onlineRadio.isSelected()) {
@@ -66,36 +69,31 @@ public class ValidationServices {
 		alert.showAndWait();
 	}
 
-	// Replace the existing setupPhoneValidation method with this one
 	public void setupPhoneValidation() {
 		controller.contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
-				// First, ensure only up to 10 digits can be entered
-				if (!newValue.matches("\\d*")) {
-					newValue = newValue.replaceAll("\\D", "");
+				String digitsOnly = newValue.replaceAll("\\D", "");
+				if (digitsOnly.length() > 10) {
+					digitsOnly = digitsOnly.substring(0, 10);
 				}
-				if (newValue.length() > 10) {
-					newValue = newValue.substring(0, 10);
-				}
-				controller.contactField.setText(newValue);
 
-				// --- NEW LOGIC ---
-				// If the new value has exactly 10 digits, trigger the search
-				if (newValue.length() == 10) {
-					devoteeRepository.findLatestDevoteeDetailsByPhone(newValue)
+				if (!digitsOnly.equals(newValue)) {
+					controller.contactField.setText(digitsOnly);
+					return;
+				}
+
+				if (digitsOnly.length() == 10) {
+					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
 							.ifPresent(details -> Platform.runLater(() -> controller.populateDevoteeDetails(details)));
-					fetchPastTransactionsAndValidate(); // Also check cash limits
+					fetchPastTransactionsAndValidate();
 				} else {
-					// If less than 10 digits, reset the cash total check
 					this.devoteeDailyCashTotal = 0.0;
 					checkAndEnforceCashLimit();
 				}
 			}
 		});
-
-		// This listener is now only for validation if the user clicks away with an invalid number
 		controller.contactField.focusedProperty().addListener((_, _, newVal) -> {
-			if (!newVal) { // When focus is lost
+			if (!newVal) {
 				validatePhoneNumber();
 			}
 		});
@@ -108,10 +106,6 @@ public class ValidationServices {
 		}
 	}
 
-	public double getDevoteeDailyCashTotal() {
-		return devoteeDailyCashTotal;
-	}
-	
 	public void setupPanValidation() {
 		controller.panNumberField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
@@ -119,8 +113,9 @@ public class ValidationServices {
 				if (upperCase.length() > 10) {
 					upperCase = upperCase.substring(0, 10);
 				}
-				upperCase = upperCase.replaceAll("[^A-Z0-9]", "");
-				controller.panNumberField.setText(upperCase);
+				if (!upperCase.equals(newValue)) {
+					controller.panNumberField.setText(upperCase);
+				}
 			}
 		});
 		controller.panNumberField.focusedProperty().addListener((_, _, newVal) -> {

@@ -13,7 +13,6 @@ import java.util.Optional;
 
 public class DevoteeRepository {
 	private static final Logger logger = LoggerFactory.getLogger(DevoteeRepository.class);
-
 	public Optional<DevoteeDetails> findLatestDevoteeDetailsByPhone(String phoneNumber) {
 		String sql = "SELECT devotee_name, address, pan_number, rashi, nakshatra FROM (" +
 				"  SELECT devotee_name, address, pan_number, rashi, nakshatra, timestamp FROM Receipts WHERE phone_number = ? " +
@@ -53,7 +52,6 @@ public class DevoteeRepository {
 	}
 
 	public double getTodaysCashTotalByPhone(String phoneNumber) {
-		// UPDATED SQL query to include ALL receipt types
 		String sql = "SELECT SUM(total) AS daily_total FROM (" +
 				"  SELECT total_amount AS total FROM Receipts " +
 				"  WHERE phone_number = ? AND payment_mode = 'Cash' AND CAST(timestamp AS DATE) = CURRENT_DATE " +
@@ -74,8 +72,8 @@ public class DevoteeRepository {
 
 			pstmt.setString(1, phoneNumber);
 			pstmt.setString(2, phoneNumber);
-			pstmt.setString(3, phoneNumber); // Add parameter for ShashwathaPoojaReceipts
-			pstmt.setString(4, phoneNumber); // Add parameter for KaryakramaReceipts
+			pstmt.setString(3, phoneNumber);
+			pstmt.setString(4, phoneNumber);
 
 			ResultSet rs = pstmt.executeQuery();
 
