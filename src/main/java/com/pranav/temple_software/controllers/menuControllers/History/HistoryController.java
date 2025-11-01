@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/pranav/temple_software/controllers/menuControllers/History/HistoryController.java
 package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.*;
@@ -13,11 +12,19 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
@@ -397,7 +404,6 @@ public class HistoryController {
 
 	private void showAlert(String message) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
-		// FIX: Add owner to the Alert
 		alert.initOwner(historyTable.getScene().getWindow());
 		alert.setTitle("Error");
 		alert.setHeaderText(null);
@@ -430,7 +436,6 @@ public class HistoryController {
 			Stage dashboardStage = new Stage();
 			dashboardStage.setTitle("ಸೇವಾ/ದೇಣಿಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್");
 			dashboardStage.setScene(new Scene(loader.load()));
-			// FIX: Set modality to ensure it stays on top of the history window
 			dashboardStage.initModality(Modality.WINDOW_MODAL);
 			dashboardStage.initOwner(historyTable.getScene().getWindow());
 			dashboardStage.setMaximized(true);
@@ -438,6 +443,192 @@ public class HistoryController {
 		} catch (IOException e) {
 			logger.error("Failed to load dashboard view", e);
 			showAlert("Failed to load dashboard view: " + e.getMessage());
+		}
+	}
+
+	// --- NEW AND MODIFIED METHODS FOR EXCEL EXPORT ---
+
+	@FXML
+	private void handleExportToExcel() {
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Save History to Excel");
+		fileChooser.setInitialFileName("Temple_History_Export.xlsx");
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+		File file = fileChooser.showSaveDialog(historyTable.getScene().getWindow());
+
+		if (file != null) {
+			try (Workbook workbook = new XSSFWorkbook()) {
+				// **Create a cell style for text wrapping**
+				CellStyle wrapStyle = workbook.createCellStyle();
+				wrapStyle.setWrapText(true);
+
+				// Pass the style to the sheet creation methods
+				createSevaSheet(workbook, sevaReceiptRepository.getAllReceipts(), wrapStyle);
+				createDonationSheet(workbook, donationReceiptRepository.getAllDonationReceipts());
+				createInKindSheet(workbook, inKindDonationRepository.getAllInKindDonations());
+				createShashwathaSheet(workbook, shashwathaPoojaRepository.getAllShashwathaPoojaReceipts());
+				createKaryakramaSheet(workbook, karyakramaReceiptRepository.getAllReceipts(), wrapStyle);
+
+				try (FileOutputStream fileOut = new FileOutputStream(file)) {
+					workbook.write(fileOut);
+				}
+
+				Alert alert = new Alert(Alert.AlertType.INFORMATION, "History exported successfully to " + file.getName());
+				alert.initOwner(historyTable.getScene().getWindow());
+				alert.showAndWait();
+
+			} catch (IOException e) {
+				logger.error("Failed to write the Excel file", e);
+				showAlert("Failed to write the Excel file: " + e.getMessage());
+			}
+		}
+	}
+
+	private void createHeaderRow(Sheet sheet, String[] headers) {
+		Row headerRow = sheet.createRow(0);
+		for (int i = 0; i < headers.length; i++) {
+			headerRow.createCell(i).setCellValue(headers[i]);
+		}
+	}
+
+	private void createSevaSheet(Workbook workbook, List<SevaReceiptData> data, CellStyle wrapStyle) {
+		Sheet sheet = workbook.createSheet("Seva Receipts");
+		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ಸೇವಾ ದಿನಾಂಕ", "ಪಾವತಿ ವಿಧಾನ", "ಸೇವಾ ವಿವರಗಳು", "ರಶೀದಿ ಒಟ್ಟು ಮೊತ್ತ"};
+		createHeaderRow(sheet, headers);
+
+		int rowNum = 1;
+		for (SevaReceiptData receipt : data) {
+			Row row = sheet.createRow(rowNum++);
+			row.createCell(0).setCellValue(receipt.getReceiptId());
+			row.createCell(1).setCellValue(receipt.getDevoteeName());
+			row.createCell(2).setCellValue(receipt.getPhoneNumber());
+			row.createCell(3).setCellValue(receipt.getAddress());
+			row.createCell(4).setCellValue(receipt.getPanNumber());
+			row.createCell(5).setCellValue(receipt.getRashi());
+			row.createCell(6).setCellValue(receipt.getNakshatra());
+			row.createCell(7).setCellValue(receipt.getFormattedDate());
+			row.createCell(8).setCellValue(receipt.getPaymentMode());
+
+			StringBuilder sevasText = new StringBuilder();
+			int sevaIndex = 1;
+			for (SevaEntry seva : receipt.getSevas()) {
+				if (sevaIndex > 1) {
+					sevasText.append("\n"); // Use newline character
+				}
+				sevasText.append(String.format("%d. %s (%d x %.2f)",
+						sevaIndex++,
+						seva.getName(),
+						seva.getQuantity(),
+						seva.getAmount()));
+			}
+			// Create the cell, set its value, and apply the wrap style
+			org.apache.poi.ss.usermodel.Cell sevaCell = row.createCell(9);
+			sevaCell.setCellValue(sevasText.toString());
+			sevaCell.setCellStyle(wrapStyle);
+
+			row.createCell(10).setCellValue(receipt.getTotalAmount());
+		}
+	}
+
+	private void createDonationSheet(Workbook workbook, List<DonationReceiptData> data) {
+		Sheet sheet = workbook.createSheet("Donation Receipts");
+		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ದೇಣಿಗೆ ದಿನಾಂಕ", "ಪಾವತಿ ವಿಧಾನ", "ದೇಣಿಗೆ ವಿಧ", "ದೇಣಿಗೆ ಮೊತ್ತ"};
+		createHeaderRow(sheet, headers);
+
+		int rowNum = 1;
+		for (DonationReceiptData receipt : data) {
+			Row row = sheet.createRow(rowNum++);
+			row.createCell(0).setCellValue(receipt.getDonationReceiptId());
+			row.createCell(1).setCellValue(receipt.getDevoteeName());
+			row.createCell(2).setCellValue(receipt.getPhoneNumber());
+			row.createCell(3).setCellValue(receipt.getAddress());
+			row.createCell(4).setCellValue(receipt.getPanNumber());
+			row.createCell(5).setCellValue(receipt.getRashi());
+			row.createCell(6).setCellValue(receipt.getNakshatra());
+			row.createCell(7).setCellValue(receipt.getFormattedDate());
+			row.createCell(8).setCellValue(receipt.getPaymentMode());
+			row.createCell(9).setCellValue(receipt.getDonationName());
+			row.createCell(10).setCellValue(receipt.getDonationAmount());
+		}
+	}
+
+	private void createInKindSheet(Workbook workbook, List<InKindDonation> data) {
+		Sheet sheet = workbook.createSheet("In-Kind Donations");
+		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ದೇಣಿಗೆ ದಿನಾಂಕ", "ಪಾವತಿ ವಿಧಾನ", "ವಸ್ತುವಿನ ವಿವರ"};
+		createHeaderRow(sheet, headers);
+
+		int rowNum = 1;
+		for (InKindDonation receipt : data) {
+			Row row = sheet.createRow(rowNum++);
+			row.createCell(0).setCellValue(receipt.getInKindReceiptId());
+			row.createCell(1).setCellValue(receipt.getDevoteeName());
+			row.createCell(2).setCellValue(receipt.getPhoneNumber());
+			row.createCell(3).setCellValue(receipt.getAddress());
+			row.createCell(4).setCellValue(receipt.getPanNumber());
+			row.createCell(5).setCellValue(receipt.getRashi());
+			row.createCell(6).setCellValue(receipt.getNakshatra());
+			row.createCell(7).setCellValue(receipt.getFormattedDate());
+			row.createCell(8).setCellValue(receipt.getPaymentMode());
+			row.createCell(9).setCellValue(receipt.getItemDescription());
+		}
+	}
+
+	private void createShashwathaSheet(Workbook workbook, List<ShashwathaPoojaReceipt> data) {
+		Sheet sheet = workbook.createSheet("Shashwatha Pooja");
+		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ರಶೀದಿ ದಿನಾಂಕ", "ಪಾವತಿ ವಿಧಾನ", "ಪೂಜಾ ದಿನಾಂಕ/ವಿವರ", "ಪೂಜಾ ಮೊತ್ತ"};
+		createHeaderRow(sheet, headers);
+
+		int rowNum = 1;
+		for (ShashwathaPoojaReceipt receipt : data) {
+			Row row = sheet.createRow(rowNum++);
+			row.createCell(0).setCellValue(receipt.getReceiptId());
+			row.createCell(1).setCellValue(receipt.getDevoteeName());
+			row.createCell(2).setCellValue(receipt.getPhoneNumber());
+			row.createCell(3).setCellValue(receipt.getAddress());
+			row.createCell(4).setCellValue(receipt.getPanNumber());
+			row.createCell(5).setCellValue(receipt.getRashi());
+			row.createCell(6).setCellValue(receipt.getNakshatra());
+			row.createCell(7).setCellValue(receipt.getFormattedReceiptDate());
+			row.createCell(8).setCellValue(receipt.getPaymentMode());
+			row.createCell(9).setCellValue(receipt.getPoojaDate());
+			row.createCell(10).setCellValue(receipt.getAmount());
+		}
+	}
+
+	private void createKaryakramaSheet(Workbook workbook, List<KaryakramaReceiptData> data, CellStyle wrapStyle) {
+		Sheet sheet = workbook.createSheet("Karyakrama Receipts");
+		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಕಾರ್ಯಕ್ರಮ", "ರಶೀದಿ ದಿನಾಂಕ", "ಪಾವತಿ ವಿಧಾನ", "ಇತರೆ ವಿವರಗಳು", "ರಶೀದಿ ಒಟ್ಟು ಮೊತ್ತ"};
+		createHeaderRow(sheet, headers);
+
+		int rowNum = 1;
+		for (KaryakramaReceiptData receipt : data) {
+			Row row = sheet.createRow(rowNum++);
+			row.createCell(0).setCellValue(receipt.getReceiptId());
+			row.createCell(1).setCellValue(receipt.getDevoteeName());
+			row.createCell(2).setCellValue(receipt.getPhoneNumber());
+			row.createCell(3).setCellValue(receipt.getAddress());
+			row.createCell(4).setCellValue(receipt.getPanNumber());
+			row.createCell(5).setCellValue(receipt.getKaryakramaName());
+			row.createCell(6).setCellValue(receipt.getFormattedReceiptDate());
+			row.createCell(7).setCellValue(receipt.getPaymentMode());
+
+			StringBuilder itemsText = new StringBuilder();
+			int itemIndex = 1;
+			for (SevaEntry item : receipt.getSevas()) {
+				if (itemIndex > 1) {
+					itemsText.append("\n");
+				}
+				itemsText.append(String.format("%d. %s (%.2f)",
+						itemIndex++,
+						item.getName(),
+						item.getAmount()));
+			}
+
+			org.apache.poi.ss.usermodel.Cell itemsCell = row.createCell(8);
+			itemsCell.setCellValue(itemsText.toString());
+			itemsCell.setCellStyle(wrapStyle);
+
+			row.createCell(9).setCellValue(receipt.getTotalAmount());
 		}
 	}
 }

@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 public class ShashwathaPoojaController {
 
 	private static final Logger logger = LoggerFactory.getLogger(ShashwathaPoojaController.class);
-
 	@FXML private TextField devoteeNameField;
 	@FXML private TextField contactField;
 	@FXML private DatePicker receiptDatePicker;
@@ -85,23 +84,18 @@ public class ShashwathaPoojaController {
 		amountLabel.setText(String.format("₹%.2f", currentPoojaAmount));
 	}
 
-	// Replace the existing setupPhoneNumberListener method with this one
 	private void setupPhoneNumberListener() {
 		contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
-				// First, ensure only up to 10 digits can be entered
 				String digitsOnly = newValue.replaceAll("\\D", "");
 				if (digitsOnly.length() > 10) {
 					digitsOnly = digitsOnly.substring(0, 10);
 				}
 
-				// prevent listener recursion
 				if (!digitsOnly.equals(newValue)) {
 					contactField.setText(digitsOnly);
 				}
 
-				// --- NEW LOGIC ---
-				// If the new value has exactly 10 digits, trigger the search
 				if (digitsOnly.length() == 10) {
 					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
 							.ifPresent(this::populateDevoteeDetails);
@@ -134,16 +128,19 @@ public class ShashwathaPoojaController {
 		if (!validateInput()) {
 			return;
 		}
-		// Create the data object, but DON'T save it yet
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
+
+		// --- MODIFICATION START ---
+		String rashiValue = raashiComboBox.getValue();
+		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
+		// --- MODIFICATION END ---
+
 		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(), raashiComboBox.getValue(), nakshatraComboBox.getValue(),
+				panNumberField.getText(), finalRashi, nakshatraComboBox.getValue(),
 				receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode
 		);
-
 		if (receiptPrinter != null) {
-			// FIX: Database saving logic is now inside this callback
 			Consumer<Boolean> afterActionCallback = (success) -> {
 				if (success) {
 					repository.saveShashwathaPooja(newReceipt);
@@ -155,7 +152,6 @@ public class ShashwathaPoojaController {
 			Runnable onDialogClosed = this::closeWindow;
 			try {
 				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-				// Pass the unsaved object for preview.
 				int provisionalId = repository.getNextReceiptId();
 				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(provisionalId, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(), newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(), newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode());
 				receiptPrinter.showShashwathaPoojaPrintPreview(previewReceipt, ownerStage, afterActionCallback, onDialogClosed);

@@ -43,7 +43,6 @@ public class DonationController {
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
-
 	public void setReceiptPrinter(ReceiptPrinter printer) {
 		this.receiptPrinter = printer;
 	}
@@ -78,23 +77,18 @@ public class DonationController {
 		}));
 	}
 
-	// Replace the existing setupPhoneNumberListener method with this one
 	private void setupPhoneNumberListener() {
 		contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
-				// First, ensure only up to 10 digits can be entered
 				String digitsOnly = newValue.replaceAll("\\D", "");
 				if (digitsOnly.length() > 10) {
 					digitsOnly = digitsOnly.substring(0, 10);
 				}
 
-				// prevent listener recursion
 				if (!digitsOnly.equals(newValue)) {
 					contactField.setText(digitsOnly);
 				}
 
-				// --- NEW LOGIC ---
-				// If the new value has exactly 10 digits, trigger the search
 				if (digitsOnly.length() == 10) {
 					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
 							.ifPresent(this::populateDevoteeDetails);
@@ -127,18 +121,21 @@ public class DonationController {
 			return;
 		}
 
-		// Create the data object, but DON'T save it yet
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		double amount = Double.parseDouble(amountField.getText());
 		int provisionalReceiptId = donationReceiptRepository.getNextReceiptId();
+
+		// --- MODIFICATION START ---
+		String rashiValue = raashiComboBox.getValue();
+		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
+		// --- MODIFICATION END ---
+
 		DonationReceiptData newReceipt = new DonationReceiptData(
 				provisionalReceiptId, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
-				raashiComboBox.getValue(), nakshatraComboBox.getValue(), donationDatePicker.getValue(),
+				finalRashi, nakshatraComboBox.getValue(), donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);
-
 		if (receiptPrinter != null) {
-			// FIX: Database saving logic is now inside this callback
 			Consumer<Boolean> afterActionCallback = (success) -> {
 				if (success) {
 					donationReceiptRepository.saveDonationReceipt(
@@ -154,7 +151,6 @@ public class DonationController {
 			Runnable onDialogClosed = this::closeWindow;
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 			receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, afterActionCallback, onDialogClosed);
-
 		} else {
 			showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt saved successfully, but printer is not configured.");
 			closeWindow();
@@ -227,29 +223,17 @@ public class DonationController {
 	}
 
 	private void setupRashiNakshatraListener() {
-		// మేష (Aries)
 		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
-		// ವೃಷಭ (Taurus)
 		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
-		// ಮಿಥುನ (Gemini)
 		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರ", "ಪುನರ್ವಸು"));
-		// ಕರ್ಕ (Cancer)
 		rashiNakshatraMap.put("ಕರ್ಕಾಟಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
-		// ಸಿಂಹ (Leo)
 		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘ", "ಪೂರ್ವ", "ಉತ್ತರ"));
-		// ಕನ್ಯಾ (Virgo)
 		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ", "ಹಸ್ತ", "ಚಿತ್ರ"));
-		// ತುಲಾ (Libra)
 		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖ"));
-		// ವೃಶ್ಚಿಕ (Scorpio)
 		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ"));
-		// ಧನುಸ್ (Sagittarius)
 		rashiNakshatraMap.put("ಧನು", Arrays.asList("ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ"));
-		// ಮಕರ (Capricorn)
 		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರಾಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
-		// ಕುಂಭ (Aquarius)
 		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ"));
-		// ಮೀನ (Pisces)
 		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಾಭಾದ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
 
 		nakshatraComboBox.setDisable(true);

@@ -77,7 +77,12 @@ public class ReceiptServices {
 		final String address = controller.addressField.getText();
 		final String panNumber = controller.panNumberField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
-		final String raashi = controller.raashiComboBox.getValue();
+
+		// --- MODIFICATION START ---
+		String rashiValue = controller.raashiComboBox.getValue();
+		final String raashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
+		// --- MODIFICATION END ---
+
 		final String nakshatra = controller.nakshatraComboBox.getValue();
 		if (date == null || (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected())) {
 			controller.showAlert("Validation Error", "Please ensure date and payment method are selected.");
@@ -103,8 +108,6 @@ public class ReceiptServices {
 				provisionalReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode
 		);
-
-		// MODIFICATION START: The database logic is now wrapped in a transaction here.
 		Consumer<Boolean> afterActionCallback = (printSuccess) -> {
 			if (printSuccess) {
 				Connection conn = null;
@@ -116,7 +119,6 @@ public class ReceiptServices {
 							conn, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 							date, sevaTotal, paymentMode
 					);
-
 					if (actualSavedId != -1) {
 						boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(conn, actualSavedId, sevaEntries);
 						if (itemsSaved) {
@@ -153,7 +155,6 @@ public class ReceiptServices {
 			}
 			controller.updatePrintStatusLabel();
 		};
-		// MODIFICATION END
 
 		Runnable onDialogClosed = () -> {
 			boolean stillPrinting = sevaEntries.stream()

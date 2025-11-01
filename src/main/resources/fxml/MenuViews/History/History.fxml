@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-
-<BorderPane styleClass="history-root" stylesheets="@../../../css/modern-history.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane
+        styleClass="history-root" stylesheets="@../../../css/modern-history.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.History.HistoryController">
     <top>
         <VBox styleClass="header-section">
             <HBox alignment="CENTER_LEFT">
@@ -25,6 +15,7 @@
                 <HBox styleClass="actions-bar">
                     <ComboBox fx:id="viewSelectionComboBox" styleClass="view-selection-combo" />
                     <Button fx:id="dashboardButton" onAction="#handleDashboardButton" styleClass="dashboard-button" text="📊 ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" />
+                    <Button onAction="#handleExportToExcel" styleClass="dashboard-button" text="📋 ಎಕ್ಸೆಲ್‌ಗೆ ರಫ್ತು ಮಾಡಿ" />
                 </HBox>
             </HBox>
         </VBox>
