@@ -106,13 +106,18 @@ public class MainController {
 		sevaListener.initiateSevaListener();
 		validationServices.calenderChecker();
 		validationServices.radioCheck();
-		validationServices.threeNakshatraForARashi();
+
+		// *** THIS IS THE FIX ***
+		// Replace the old method call with the new one
+		// validationServices.threeNakshatraForARashi(); // <-- OLD LINE
+		validationServices.setupNakshatraToRashiListener(); // <-- NEW LINE
+
 		validationServices.setupNameValidation();
 		validationServices.setupPhoneValidation();
 		validationServices.setupPanValidation();
 		sevaListener.rashiNakshatraMap();
 		refreshSevaCheckboxes();
-		populateRashiComboBox();
+		populateRashiComboBox(); // This is still needed to populate MainController's map
 		refreshVisheshaPoojeComboBox();
 
 		Platform.runLater(() -> devoteeNameField.requestFocus());
@@ -267,17 +272,11 @@ public class MainController {
 		}
 	}
 
-// In MainController.java
-
 	private boolean validatePanRequirement() {
-		// Get the total from the current items in the table
 		double currentCartTotal = selectedSevas.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-
-		// Get the past daily total calculated by ValidationServices
 		double pastDailyTotal = validationServices.getDevoteeDailyCashTotal();
 
 		double grandTotal = currentCartTotal + pastDailyTotal;
-
 		if (grandTotal > 2000.0) {
 			String panNumber = panNumberField.getText();
 			if (panNumber == null || panNumber.trim().isEmpty()) {
@@ -302,7 +301,6 @@ public class MainController {
 	@FXML
 	private void handleCloseApp() {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-		// FIX: Add owner to the Alert
 		alert.initOwner(mainStage);
 		alert.setTitle("Exit Confirmation");
 		alert.setHeaderText(null);
@@ -488,7 +486,7 @@ public class MainController {
 		contactField.clear();
 		panNumberField.clear();
 		raashiComboBox.getSelectionModel().selectFirst();
-		nakshatraComboBox.getSelectionModel().clearSelection();
+		nakshatraComboBox.getSelectionModel().selectFirst(); // *** MODIFIED: Reset to first ("ಆಯ್ಕೆ")
 		sevaDatePicker.setValue(LocalDate.now());
 		selectedSevas.clear();
 		cashRadio.setSelected(false);
@@ -502,7 +500,6 @@ public class MainController {
 	@FXML
 	public void clearFormAfterChk() {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-		// FIX: Add owner to the Alert
 		alert.initOwner(mainStage);
 		alert.setTitle("Confirmation");
 		alert.setHeaderText(null);
@@ -524,7 +521,6 @@ public class MainController {
 	public SevaListener sevaListener = new SevaListener(this, this.sevaRepository);
 	public void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
-		// FIX: Add owner to the Alert
 		alert.initOwner(mainStage);
 		alert.setTitle(title);
 		alert.setHeaderText(null);
@@ -554,7 +550,7 @@ public class MainController {
 			if (!newVal) {
 				String phone = contactField.getText();
 				if (!phone.matches("\\d{10}")) {
-					showAlert("Invalid Input", "Enter a valid 10-digit mobile number.");
+					// showAlert("Invalid Input", "Enter a valid 10-digit mobile number."); // This is handled by setupPhoneValidation
 				}
 			}
 		});
@@ -629,18 +625,22 @@ public class MainController {
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
 		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
 		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : "");
+
+		// *** MODIFIED: Set Nakshatra first, then Rashi ***
+		if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
+			nakshatraComboBox.setValue(details.getNakshatra());
+		} else {
+			nakshatraComboBox.getSelectionModel().selectFirst();
+		}
+
 		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
 			raashiComboBox.setValue(details.getRashi());
 		} else {
-			raashiComboBox.getSelectionModel().selectFirst();
-		}
-		Platform.runLater(() -> {
-			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
-				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
-					nakshatraComboBox.setValue(details.getNakshatra());
-				}
+			// If Rashi is empty, let the Nakshatra listener auto-populate it
+			if (details.getNakshatra() == null || details.getNakshatra().isEmpty()) {
+				raashiComboBox.getSelectionModel().selectFirst();
 			}
-		});
+		}
 	}
 
 	@FXML
