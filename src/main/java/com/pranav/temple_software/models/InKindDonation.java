@@ -15,12 +15,11 @@ public class InKindDonation {
 	private final String nakshatra;
 	private final LocalDate donationDate;
 	private final String itemDescription;
-	private final String paymentMode;
 
 	public InKindDonation(int inKindReceiptId, String devoteeName,
 	                      String phoneNumber, String address, String panNumber,
 	                      String rashi, String nakshatra, LocalDate donationDate,
-	                      String itemDescription, String paymentMode) {
+	                      String itemDescription) {
 		this.inKindReceiptId = inKindReceiptId;
 		this.devoteeName = devoteeName;
 		this.phoneNumber = phoneNumber;
@@ -30,7 +29,6 @@ public class InKindDonation {
 		this.nakshatra = nakshatra;
 		this.donationDate = donationDate;
 		this.itemDescription = itemDescription;
-		this.paymentMode = paymentMode;
 	}
 
 	// Getters
@@ -68,10 +66,6 @@ public class InKindDonation {
 
 	public String getItemDescription() {
 		return itemDescription;
-	}
-
-	public String getPaymentMode() {
-		return paymentMode;
 	}
 
 	public String getFormattedDate() {

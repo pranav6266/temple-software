@@ -33,9 +33,6 @@ public class InKindDonationController {
 	@FXML private TextArea itemDescriptionArea;
 	@FXML private Button saveButton;
 	@FXML private Button cancelButton;
-	@FXML private RadioButton cashRadio;
-	@FXML private RadioButton onlineRadio;
-	@FXML private ToggleGroup paymentGroup;
 
 	private final InKindDonationRepository repository = new InKindDonationRepository();
 	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
@@ -112,8 +109,6 @@ public class InKindDonationController {
 		if (!validateInput()) {
 			return;
 		}
-		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
-
 		// --- MODIFICATION START ---
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
@@ -122,7 +117,7 @@ public class InKindDonationController {
 		InKindDonation newDonation = new InKindDonation(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, nakshatraComboBox.getValue(),
-				donationDatePicker.getValue(), itemDescriptionArea.getText(), paymentMode
+				donationDatePicker.getValue(), itemDescriptionArea.getText()
 		);
 		try {
 			ReceiptPrinter receiptPrinter = new ReceiptPrinter();
@@ -143,7 +138,7 @@ public class InKindDonationController {
 			int provisionalId = repository.getNextReceiptId();
 			InKindDonation previewDonation = new InKindDonation(provisionalId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(),
 					newDonation.getRashi(), newDonation.getNakshatra(),
-					newDonation.getDonationDate(), newDonation.getItemDescription(), newDonation.getPaymentMode());
+					newDonation.getDonationDate(), newDonation.getItemDescription());
 			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
 
 		} catch (Exception e) {
@@ -169,10 +164,6 @@ public class InKindDonationController {
 		String pan = panNumberField.getText();
 		if (pan != null && !pan.trim().isEmpty() && !isValidPanFormat(pan.trim())) {
 			showAlert(Alert.AlertType.WARNING, "Invalid PAN Format", "Please enter a valid PAN number format (e.g., AAAPL1234C)");
-			return false;
-		}
-		if (!cashRadio.isSelected() && !onlineRadio.isSelected()) {
-			showAlert(Alert.AlertType.WARNING, "Validation Error", "Please select a payment method.");
 			return false;
 		}
 		return true;

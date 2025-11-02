@@ -111,22 +111,24 @@ public class DatabaseManager {
 			}
 		}
 
+		try (ResultSet rs = meta.getColumns(null, null, "INKINDDONATIONS", "PAYMENT_MODE")) {
+			if (rs.next()) { // Check if the column EXISTS
+				logger.info("⏳ Running migration: Removing (dropping) PAYMENT_MODE column from InKindDonations...");
+				try (Statement stmt = conn.createStatement()) {
+					stmt.executeUpdate("ALTER TABLE InKindDonations DROP COLUMN payment_mode");
+					logger.info("✅ Migration successful: PAYMENT_MODE column dropped from InKindDonations.");
+				} catch (SQLException e) {
+					logger.error("❌ Failed to apply InKindDonations.PAYMENT_MODE drop column migration", e);
+				}
+			}
+		}
+
 		try (ResultSet rs = meta.getColumns(null, null, "KARYAKRAMARECEIPTS", "KARYAKRAMA_NAME")) {
 			if (!rs.next()) {
 				logger.info("⏳ Running migration: Adding KARYAKRAMA_NAME column to KaryakramaReceipts...");
 				try (Statement stmt = conn.createStatement()) {
 					stmt.executeUpdate("ALTER TABLE KaryakramaReceipts ADD COLUMN karyakrama_name VARCHAR(255)");
 					logger.info("✅ Migration successful for KARYAKRAMA_NAME column.");
-				}
-			}
-		}
-
-		try (ResultSet rs = meta.getColumns(null, null, "INKINDDONATIONS", "PAYMENT_MODE")) {
-			if (!rs.next()) {
-				logger.info("⏳ Running migration: Adding PAYMENT_MODE column to InKindDonations...");
-				try (Statement stmt = conn.createStatement()) {
-					stmt.executeUpdate("ALTER TABLE InKindDonations ADD COLUMN payment_mode VARCHAR(10) DEFAULT 'Cash'");
-					logger.info("✅ Migration successful for PAYMENT_MODE column in InKindDonations.");
 				}
 			}
 		}

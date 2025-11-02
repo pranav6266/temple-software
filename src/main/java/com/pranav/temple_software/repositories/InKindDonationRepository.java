@@ -17,7 +17,7 @@ public class InKindDonationRepository {
 
 	public boolean saveInKindDonation(InKindDonation donation) {
 		String sql = "INSERT INTO InKindDonations (devotee_name, phone_number, address, pan_number, rashi, nakshatra, donation_date, item_description) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -29,7 +29,6 @@ public class InKindDonationRepository {
 			pstmt.setString(6, donation.getNakshatra());
 			pstmt.setDate(7, Date.valueOf(donation.getDonationDate()));
 			pstmt.setString(8, donation.getItemDescription());
-			pstmt.setString(9, donation.getPaymentMode());
 
 			int affectedRows = pstmt.executeUpdate();
 			return affectedRows > 0;
@@ -56,8 +55,7 @@ public class InKindDonationRepository {
 						rs.getString("rashi"),
 						rs.getString("nakshatra"),
 						rs.getDate("donation_date").toLocalDate(),
-						rs.getString("item_description"),
-						rs.getString("payment_mode")
+						rs.getString("item_description")
 				));
 			}
 		} catch (SQLException e) {

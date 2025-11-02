@@ -554,7 +554,7 @@ public class HistoryController {
 
 	private void createInKindSheet(Workbook workbook, List<InKindDonation> data) {
 		Sheet sheet = workbook.createSheet("In-Kind Donations");
-		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ದೇಣಿಗೆ ದಿನಾಂಕ", "ಪಾವತಿ ವಿಧಾನ", "ವಸ್ತುವಿನ ವಿವರ"};
+		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ದೇಣಿಗೆ ದಿನಾಂಕ", "ವಸ್ತುವಿನ ವಿವರ"};
 		createHeaderRow(sheet, headers);
 
 		int rowNum = 1;
@@ -568,8 +568,7 @@ public class HistoryController {
 			row.createCell(5).setCellValue(receipt.getRashi());
 			row.createCell(6).setCellValue(receipt.getNakshatra());
 			row.createCell(7).setCellValue(receipt.getFormattedDate());
-			row.createCell(8).setCellValue(receipt.getPaymentMode());
-			row.createCell(9).setCellValue(receipt.getItemDescription());
+			row.createCell(8).setCellValue(receipt.getItemDescription());
 		}
 	}
 

@@ -191,10 +191,13 @@ public class DashboardRepository {
 		return stats;
 	}
 
+// COPY-PASTE THIS ENTIRE METHOD
+
 	public List<DashboardStats> getShashwathaPoojaStatistics(LocalDate fromDate, LocalDate toDate) {
 		List<DashboardStats> stats = new ArrayList<>();
+		// MODIFIED SQL: Group by 'pooja_date' (the detail text) instead of a static string
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT 'SHASHWATHA_POOJA' as item_id, 'ಶಾಶ್ವತ ಪೂಜೆ' as item_name, ");
+		sql.append("SELECT spr.pooja_date as item_name, "); // Use pooja_date as the item_name
 		sql.append("COUNT(spr.receipt_id) as total_count, ");
 		sql.append("SUM(CASE WHEN spr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
 		sql.append("SUM(CASE WHEN spr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
@@ -211,19 +214,22 @@ public class DashboardRepository {
 			sql.append("AND spr.receipt_date <= ? ");
 			parameters.add(Date.valueOf(toDate));
 		}
-		sql.append("GROUP BY item_name");
+		// MODIFIED: Group by the pooja_date field
+		sql.append("GROUP BY spr.pooja_date");
 
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 			for (int i = 0; i < parameters.size(); i++) {
 				pstmt.setObject(i + 1, parameters.get(i));
 			}
 			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
+
+			// MODIFIED: Loop through all results, not just one
+			while (rs.next()) {
 				int totalCount = rs.getInt("total_count");
 				if (totalCount > 0) {
 					stats.add(new DashboardStats(
-							rs.getString("item_id"),
-							rs.getString("item_name"),
+							null, // No specific ID, grouping by name
+							rs.getString("item_name"), // Get the name from the query
 							"SHASHWATHA_POOJA",
 							totalCount,
 							rs.getInt("cash_count"),
@@ -237,7 +243,6 @@ public class DashboardRepository {
 		}
 		return stats;
 	}
-
 	public List<DashboardStats> getVisheshaPoojaStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificVisheshaPoojaId) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();

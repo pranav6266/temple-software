@@ -17,7 +17,6 @@ public class InKindDonationDetailsController {
 	@FXML private Label rashiLabel;
 	@FXML private Label nakshatraLabel;
 	@FXML private Text addressText;
-	@FXML private Label paymentModeLabel;
 	@FXML private Label donationDateLabel;
 	@FXML private Text itemDescriptionText;
 
@@ -41,7 +40,7 @@ public class InKindDonationDetailsController {
 		panNumberLabel.setText("PAN ಸಂಖ್ಯೆ: " + (donationData.getPanNumber() != null && !donationData.getPanNumber().isEmpty() ? donationData.getPanNumber() : "---"));
 		rashiLabel.setText("ಜನ್ಮ ರಾಶಿ: " + (donationData.getRashi() != null && !donationData.getRashi().isEmpty() ? donationData.getRashi() : "---"));
 		nakshatraLabel.setText("ಜನ್ಮ ನಕ್ಷತ್ರ: " + (donationData.getNakshatra() != null && !donationData.getNakshatra().isEmpty() ? donationData.getNakshatra() : "---"));
-		addressText.setText("ವಿಳಾಸ: " + (donationData.getAddress() != null && !donationData.getAddress().isEmpty() ? donationData.getAddress() : "---"));		paymentModeLabel.setText("ಪಾವತಿ ವಿಧಾನ: " + (donationData.getPaymentMode() != null ? donationData.getPaymentMode() : "---"));
+		addressText.setText("ವಿಳಾಸ: " + (donationData.getAddress() != null && !donationData.getAddress().isEmpty() ? donationData.getAddress() : "---"));
 		// Donation Details
 		donationDateLabel.setText("ದಿನಾಂಕ: " + donationData.getFormattedDate());
 		itemDescriptionText.setText(donationData.getItemDescription());
