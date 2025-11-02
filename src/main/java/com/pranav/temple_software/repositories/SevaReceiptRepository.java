@@ -64,7 +64,6 @@ public class SevaReceiptRepository {
 		}
 	}
 
-	// REPLACED getAllReceipts with getFilteredReceipts
 	public List<SevaReceiptData> getFilteredReceipts(HistoryFilterCriteria criteria) {
 		List<SevaReceiptData> receipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
@@ -150,19 +149,5 @@ public class SevaReceiptRepository {
 			}
 		}
 		return sevas;
-	}
-
-	public int getNextReceiptId() {
-		String sql = "SELECT MAX(receipt_id) FROM Receipts";
-		try (Connection conn = getConnection();
-		     PreparedStatement pstmt = conn.prepareStatement(sql);
-		     ResultSet rs = pstmt.executeQuery()) {
-			if (rs.next()) {
-				return rs.getInt(1) + 1;
-			}
-		} catch (SQLException e) {
-			logger.error("Error fetching next receipt ID", e);
-		}
-		return 1;
 	}
 }

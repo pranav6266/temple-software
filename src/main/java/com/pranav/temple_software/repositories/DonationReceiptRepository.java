@@ -18,7 +18,6 @@ public class DonationReceiptRepository {
 		return DatabaseManager.getConnection();
 	}
 
-	// REPLACED getAllDonationReceipts with getFilteredDonationReceipts
 	public List<DonationReceiptData> getFilteredDonationReceipts(HistoryFilterCriteria criteria) {
 		List<DonationReceiptData> donationReceipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
@@ -119,19 +118,5 @@ public class DonationReceiptRepository {
 			return -1;
 		}
 		return generatedId;
-	}
-
-	public int getNextReceiptId() {
-		String sql = "SELECT MAX(donation_receipt_id) FROM DonationReceipts";
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
-			if (rs.next()) {
-				return rs.getInt(1) + 1;
-			}
-		} catch (SQLException e) {
-			logger.error("Error fetching next donation receipt ID", e);
-		}
-		return 1;
 	}
 }

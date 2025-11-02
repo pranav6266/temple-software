@@ -77,93 +77,89 @@ public class ReceiptServices {
 		final String address = controller.addressField.getText();
 		final String panNumber = controller.panNumberField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
-
-		// --- MODIFICATION START ---
 		String rashiValue = controller.raashiComboBox.getValue();
-		final String raashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
-		// --- MODIFICATION END ---
-
+		final String raashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ?
+				"" : rashiValue;
 		final String nakshatra = controller.nakshatraComboBox.getValue();
+
 		if (date == null || (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected())) {
 			controller.showAlert("Validation Error", "Please ensure date and payment method are selected.");
 			return;
 		}
 		String paymentMode = controller.cashRadio.isSelected() ? "Cash" : "Online";
+		double sevaTotal = itemsToProcess.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 
 		// Mark items as printing
 		itemsToProcess.forEach(item -> Platform.runLater(() -> item.setPrintStatus(SevaEntry.PrintStatus.PRINTING)));
 		controller.updatePrintStatusLabel();
-		handleSevaReceiptWithStatusTracking(devoteeName, phoneNumber, address, panNumber, raashi, nakshatra, date,
-				itemsToProcess, paymentMode);
-	}
 
-	private void handleSevaReceiptWithStatusTracking(String devoteeName, String phoneNumber, String address, String panNumber,
-	                                                 String rashi, String nakshatra, LocalDate date,
-	                                                 List<SevaEntry> sevaEntries, String paymentMode) {
+		// --- NEW LOGIC: SAVE TO DB FIRST ---
+		int actualSavedId = -1;
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false); // Start transaction
 
-		double sevaTotal = sevaEntries.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-		// Get the next likely receipt ID for the preview
-		int provisionalReceiptId = controller.sevaReceiptRepository.getNextReceiptId();
-		SevaReceiptData sevaReceiptData = new SevaReceiptData(
-				provisionalReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
-				date, FXCollections.observableArrayList(sevaEntries), sevaTotal, paymentMode
-		);
-		Consumer<Boolean> afterActionCallback = (printSuccess) -> {
-			if (printSuccess) {
-				Connection conn = null;
-				try {
-					conn = DatabaseManager.getConnection();
-					conn.setAutoCommit(false); // Start transaction
+			actualSavedId = controller.sevaReceiptRepository.saveReceipt(
+					conn, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+					date, sevaTotal, paymentMode
+			);
 
-					int actualSavedId = controller.sevaReceiptRepository.saveReceipt(
-							conn, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
-							date, sevaTotal, paymentMode
-					);
-					if (actualSavedId != -1) {
-						boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(conn, actualSavedId, sevaEntries);
-						if (itemsSaved) {
-							conn.commit(); // All good, commit the transaction
-							markItemsAsSuccess(sevaEntries);
-						} else {
-							conn.rollback(); // Something failed, rollback
-							markItemsAsFailed(sevaEntries, "Saved receipt, but failed to save receipt items.");
-						}
-					} else {
-						conn.rollback(); // Something failed, rollback
-						markItemsAsFailed(sevaEntries, "Failed to save receipt to database.");
-					}
-				} catch (SQLException e) {
-					if (conn != null) {
-						try {
-							conn.rollback(); // Rollback on any SQL error
-						} catch (SQLException ex) {
-							// Log rollback failure
-						}
-					}
-					markItemsAsFailed(sevaEntries, "A database error occurred: " + e.getMessage());
-				} finally {
-					if (conn != null) {
-						try {
-							conn.close(); // Return connection to the pool
-						} catch (SQLException e) {
-							// Log connection closing failure
-						}
-					}
+			if (actualSavedId != -1) {
+				boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(conn, actualSavedId, itemsToProcess);
+				if (itemsSaved) {
+					conn.commit(); // All good, commit the transaction
+				} else {
+					conn.rollback(); // Something failed, rollback
+					markItemsAsFailed(itemsToProcess, "Failed to save receipt items.");
+					return; // Stop here
 				}
 			} else {
-				markItemsAsFailed(sevaEntries, "Print job was cancelled or failed");
+				conn.rollback(); // Something failed, rollback
+				markItemsAsFailed(itemsToProcess, "Failed to save receipt to database.");
+				return; // Stop here
+			}
+		} catch (SQLException e) {
+			if (conn != null) {
+				try { conn.rollback(); } catch (SQLException ex) { /* Log rollback failure */ }
+			}
+			markItemsAsFailed(itemsToProcess, "A database error occurred: " + e.getMessage());
+			return; // Stop here
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { /* Log connection closing failure */ }
+			}
+		}
+		// --- END OF NEW DB LOGIC ---
+
+		// If we reach here, the DB save was successful and actualSavedId is valid
+		// Now, show the print preview with the *correct* ID
+
+		SevaReceiptData sevaReceiptData = new SevaReceiptData(
+				actualSavedId, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+				date, FXCollections.observableArrayList(itemsToProcess), sevaTotal, paymentMode
+		);
+
+		// This callback now *only* handles the result of the *print*
+		Consumer<Boolean> afterPrintCallback = (printSuccess) -> {
+			if (printSuccess) {
+				markItemsAsSuccess(itemsToProcess);
+			} else {
+				markItemsAsFailed(itemsToProcess, "Print job was cancelled or failed");
 			}
 			controller.updatePrintStatusLabel();
 		};
 
+		// This callback handles if the preview dialog is closed
 		Runnable onDialogClosed = () -> {
-			boolean stillPrinting = sevaEntries.stream()
+			boolean stillPrinting = itemsToProcess.stream()
 					.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
 			if (stillPrinting) {
-				markItemsAsFailed(sevaEntries, "Print preview was cancelled");
+				markItemsAsFailed(itemsToProcess, "Print preview was cancelled");
 			}
 		};
-		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, afterActionCallback, onDialogClosed);
+
+		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, afterPrintCallback, onDialogClosed);
 	}
 
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {

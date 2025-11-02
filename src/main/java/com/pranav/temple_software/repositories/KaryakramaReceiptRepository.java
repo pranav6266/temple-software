@@ -62,7 +62,6 @@ public class KaryakramaReceiptRepository {
 		}
 	}
 
-	// REPLACED getAllReceipts with getFilteredReceipts
 	public List<KaryakramaReceiptData> getFilteredReceipts(HistoryFilterCriteria criteria) {
 		List<KaryakramaReceiptData> receipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
@@ -145,19 +144,5 @@ public class KaryakramaReceiptRepository {
 			}
 		}
 		return items;
-	}
-
-	public int getNextReceiptId() {
-		String sql = "SELECT MAX(receipt_id) FROM KaryakramaReceipts";
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
-			if (rs.next()) {
-				return rs.getInt(1) + 1;
-			}
-		} catch (SQLException e) {
-			logger.error("Error fetching next Karyakrama receipt ID", e);
-		}
-		return 1;
 	}
 }

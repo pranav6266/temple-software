@@ -129,31 +129,38 @@ public class ShashwathaPoojaController {
 			return;
 		}
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
-
-		// --- MODIFICATION START ---
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
-		// --- MODIFICATION END ---
 
 		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, nakshatraComboBox.getValue(),
 				receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode
 		);
+
+		// --- MODIFIED LOGIC: SAVE FIRST ---
+		int actualSavedId = repository.saveShashwathaPooja(newReceipt);
+		if (actualSavedId == -1) {
+			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save Shashwatha Pooja receipt.");
+			return;
+		}
+		// --- END MODIFIED LOGIC ---
+
 		if (receiptPrinter != null) {
 			Consumer<Boolean> afterActionCallback = (success) -> {
-				if (success) {
-					repository.saveShashwathaPooja(newReceipt);
-					Platform.runLater(() -> showAlert(Alert.AlertType.INFORMATION, "Success", "Shashwatha Pooja receipt saved successfully!"));
-				}
+				// Save is already done, just close the window
 				Platform.runLater(this::closeWindow);
 			};
 
 			Runnable onDialogClosed = this::closeWindow;
 			try {
 				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-				int provisionalId = repository.getNextReceiptId();
-				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(provisionalId, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(), newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(), newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode());
+				// Create preview receipt with the *actual* ID
+				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(
+						actualSavedId, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(),
+						newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(),
+						newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode()
+				);
 				receiptPrinter.showShashwathaPoojaPrintPreview(previewReceipt, ownerStage, afterActionCallback, onDialogClosed);
 			} catch (Exception e) {
 				logger.error("Failed to open print preview for Shashwatha Pooja", e);

@@ -148,47 +148,57 @@ public class KaryakramaController {
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
-		// MODIFICATION START: The database logic is now wrapped in a transaction here.
-		Consumer<Boolean> afterActionCallback = (success) -> {
-			if (success) {
-				Connection conn = null;
-				try {
-					conn = DatabaseManager.getConnection();
-					conn.setAutoCommit(false); // Start transaction
+		// --- MODIFICATION START: DB logic is moved before the print preview ---
+		int actualSavedId = -1;
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false); // Start transaction
 
-					int savedId = receiptRepository.saveReceipt(conn, receiptData);
+			actualSavedId = receiptRepository.saveReceipt(conn, receiptData);
 
-					if (savedId != -1) {
-						boolean itemsSaved = receiptRepository.saveReceiptItems(conn, savedId, receiptData.getSevas());
-						if (itemsSaved) {
-							conn.commit(); // All good, commit transaction
-						} else {
-							conn.rollback();
-							Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items."));
-						}
-					} else {
-						conn.rollback();
-						Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt."));
-					}
-				} catch (SQLException e) {
-					if (conn != null) {
-						try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
-					}
-					Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Database Error", "A database error occurred: " + e.getMessage()));
-				} finally {
-					if (conn != null) {
-						try { conn.close(); } catch (SQLException e) { /* Log error */ }
-					}
+			if (actualSavedId != -1) {
+				boolean itemsSaved = receiptRepository.saveReceiptItems(conn, actualSavedId, receiptData.getSevas());
+				if (itemsSaved) {
+					conn.commit(); // All good, commit transaction
+				} else {
+					conn.rollback();
+					showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items.");
+					return; // Stop here
 				}
+			} else {
+				conn.rollback();
+				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt.");
+				return; // Stop here
 			}
+		} catch (SQLException e) {
+			if (conn != null) {
+				try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
+			}
+			showAlert(Alert.AlertType.ERROR, "Database Error", "A database error occurred: " + e.getMessage());
+			return; // Stop here
+		} finally {
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { /* Log error */ }
+			}
+		}
+		// --- MODIFICATION END ---
+
+		// This callback now only closes the window
+		Consumer<Boolean> afterActionCallback = (success) -> {
 			Platform.runLater(this::closeWindow);
 		};
-		// MODIFICATION END
 
 		Runnable onDialogClosed = this::closeWindow;
 		Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-		int provisionalId = receiptRepository.getNextReceiptId();
-		KaryakramaReceiptData previewData = new KaryakramaReceiptData(provisionalId, receiptData.getDevoteeName(), receiptData.getPhoneNumber(), receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(), receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(), receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode());
+
+		// Create preview data with the *actual* saved ID
+		KaryakramaReceiptData previewData = new KaryakramaReceiptData(
+				actualSavedId, receiptData.getDevoteeName(), receiptData.getPhoneNumber(),
+				receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(),
+				receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(),
+				receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode()
+		);
 		receiptPrinter.showKaryakramaPrintPreview(previewData, ownerStage, afterActionCallback, onDialogClosed);
 	}
 

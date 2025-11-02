@@ -18,8 +18,7 @@ public class InKindDonationRepository {
 		return DatabaseManager.getConnection();
 	}
 
-	public boolean saveInKindDonation(InKindDonation donation) {
-		// MODIFIED: Removed payment_mode
+	public int saveInKindDonation(InKindDonation donation) {
 		String sql = "INSERT INTO InKindDonations (devotee_name, phone_number, address, pan_number, rashi, nakshatra, donation_date, item_description) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 		try (Connection conn = getConnection();
@@ -35,14 +34,20 @@ public class InKindDonationRepository {
 			pstmt.setString(8, donation.getItemDescription());
 
 			int affectedRows = pstmt.executeUpdate();
-			return affectedRows > 0;
+			if (affectedRows > 0) {
+				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						return generatedKeys.getInt(1); // Return the generated ID
+					}
+				}
+			}
+			return -1; // Return -1 if save failed to get ID
 		} catch (SQLException e) {
 			logger.error("Error saving in-kind donation to database", e);
-			return false;
+			return -1; // Return -1 on error
 		}
 	}
 
-	// REPLACED getAllInKindDonations with getFilteredInKindDonations
 	public List<InKindDonation> getFilteredInKindDonations(HistoryFilterCriteria criteria) {
 		List<InKindDonation> donations = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
@@ -95,7 +100,6 @@ public class InKindDonationRepository {
 							rs.getString("nakshatra"),
 							rs.getDate("donation_date").toLocalDate(),
 							rs.getString("item_description")
-							// MODIFIED: Removed payment_mode
 					));
 				}
 			}
@@ -103,19 +107,5 @@ public class InKindDonationRepository {
 			logger.error("Error fetching filtered in-kind donations", e);
 		}
 		return donations;
-	}
-
-	public int getNextReceiptId() {
-		String sql = "SELECT MAX(in_kind_receipt_id) FROM InKindDonations";
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
-			if (rs.next()) {
-				return rs.getInt(1) + 1;
-			}
-		} catch (SQLException e) {
-			logger.error("Error fetching next in-kind donation ID", e);
-		}
-		return 1;
 	}
 }

@@ -18,9 +18,10 @@ public class ShashwathaPoojaRepository {
 		return DatabaseManager.getConnection();
 	}
 
-	public boolean saveShashwathaPooja(ShashwathaPoojaReceipt receipt) {
+	public int saveShashwathaPooja(ShashwathaPoojaReceipt receipt) {
 		String sql = "INSERT INTO ShashwathaPoojaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, receipt_date, pooja_date, amount, payment_mode) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int generatedId = -1;
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -36,14 +37,20 @@ public class ShashwathaPoojaRepository {
 			pstmt.setString(10, receipt.getPaymentMode());
 
 			int affectedRows = pstmt.executeUpdate();
-			return affectedRows > 0;
+			if (affectedRows > 0) {
+				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						generatedId = generatedKeys.getInt(1); // Get the generated ID
+					}
+				}
+			}
+			return generatedId; // Return the ID
 		} catch (SQLException e) {
 			logger.error("Error saving Shashwatha Pooja to database", e);
-			return false;
+			return -1; // Return -1 on error
 		}
 	}
 
-	// REPLACED getAllShashwathaPoojaReceipts with getFilteredShashwathaPoojaReceipts
 	public List<ShashwathaPoojaReceipt> getFilteredShashwathaPoojaReceipts(HistoryFilterCriteria criteria) {
 		List<ShashwathaPoojaReceipt> receipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
@@ -105,19 +112,5 @@ public class ShashwathaPoojaRepository {
 			logger.error("Error fetching filtered Shashwatha Pooja receipts", e);
 		}
 		return receipts;
-	}
-
-	public int getNextReceiptId() {
-		String sql = "SELECT MAX(receipt_id) FROM ShashwathaPoojaReceipts";
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
-			if (rs.next()) {
-				return rs.getInt(1) + 1;
-			}
-		} catch (SQLException e) {
-			logger.error("Error fetching next Shashwatha Pooja receipt ID", e);
-		}
-		return 1;
 	}
 }

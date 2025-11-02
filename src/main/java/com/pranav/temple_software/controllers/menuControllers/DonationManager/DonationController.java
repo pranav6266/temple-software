@@ -123,34 +123,37 @@ public class DonationController {
 
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		double amount = Double.parseDouble(amountField.getText());
-		int provisionalReceiptId = donationReceiptRepository.getNextReceiptId();
-
-		// --- MODIFICATION START ---
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
-		// --- MODIFICATION END ---
+
+		// --- MODIFIED LOGIC: SAVE FIRST ---
+		int actualSavedId = donationReceiptRepository.saveDonationReceipt(
+				devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				panNumberField.getText(), finalRashi, nakshatraComboBox.getValue(),
+				donationDatePicker.getValue(), donationComboBox.getValue(), amount, paymentMode
+		);
+
+		if (actualSavedId == -1) {
+			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save donation receipt to database.");
+			return;
+		}
+		// --- END MODIFIED LOGIC ---
 
 		DonationReceiptData newReceipt = new DonationReceiptData(
-				provisionalReceiptId, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
+				actualSavedId, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
 				finalRashi, nakshatraComboBox.getValue(), donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);
+
 		if (receiptPrinter != null) {
+			// This callback now ONLY closes the window, as the save is already done.
 			Consumer<Boolean> afterActionCallback = (success) -> {
-				if (success) {
-					donationReceiptRepository.saveDonationReceipt(
-							newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(),
-							newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(),
-							donationDatePicker.getValue(), newReceipt.getDonationName(), newReceipt.getDonationAmount(),
-							newReceipt.getPaymentMode()
-					);
-				}
 				Platform.runLater(this::closeWindow);
 			};
 
-			Runnable onDialogClosed = this::closeWindow;
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-			receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, afterActionCallback, onDialogClosed);
+			// Pass null for onDialogClosed as the afterActionCallback handles both success and cancel
+			receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, afterActionCallback, null);
 		} else {
 			showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt saved successfully, but printer is not configured.");
 			closeWindow();

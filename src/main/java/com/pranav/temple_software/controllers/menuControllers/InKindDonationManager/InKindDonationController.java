@@ -109,10 +109,8 @@ public class InKindDonationController {
 		if (!validateInput()) {
 			return;
 		}
-		// --- MODIFICATION START ---
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
-		// --- MODIFICATION END ---
 
 		InKindDonation newDonation = new InKindDonation(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
@@ -120,27 +118,31 @@ public class InKindDonationController {
 				donationDatePicker.getValue(), itemDescriptionArea.getText()
 		);
 		try {
+			// --- MODIFIED LOGIC: SAVE FIRST ---
+			int actualSavedId = repository.saveInKindDonation(newDonation);
+
+			if (actualSavedId == -1) {
+				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save in-kind donation.");
+				return;
+			}
+			// --- END MODIFIED LOGIC ---
+
 			ReceiptPrinter receiptPrinter = new ReceiptPrinter();
 			Consumer<Boolean> afterActionCallback = (success) -> {
-				if (success) {
-					boolean saved = repository.saveInKindDonation(newDonation);
-					if (saved) {
-						Platform.runLater(() -> showAlert(Alert.AlertType.INFORMATION, "Success", "In-kind donation saved."));
-					} else {
-						Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Error", "Failed to save donation to database."));
-					}
-				}
+				// The save is already done, so we just close the window
 				Platform.runLater(this::closeWindow);
 			};
 
 			Runnable onDialogClosed = this::closeWindow;
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-			int provisionalId = repository.getNextReceiptId();
-			InKindDonation previewDonation = new InKindDonation(provisionalId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(),
-					newDonation.getRashi(), newDonation.getNakshatra(),
-					newDonation.getDonationDate(), newDonation.getItemDescription());
-			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
 
+			// Create the object for the preview using the *actual* ID
+			InKindDonation previewDonation = new InKindDonation(
+					actualSavedId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(),
+					newDonation.getRashi(), newDonation.getNakshatra(),
+					newDonation.getDonationDate(), newDonation.getItemDescription()
+			);
+			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
 		} catch (Exception e) {
 			logger.error("Failed to open print preview", e);
 			showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
