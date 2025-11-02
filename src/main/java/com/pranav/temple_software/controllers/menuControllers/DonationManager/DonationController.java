@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +43,31 @@ public class DonationController {
 	private final DonationRepository donationRepository = DonationRepository.getInstance();
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
-	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
+
+	// --- NEW FIELDS for 2-way Rashi/Nakshatra binding ---
+	private final Map<String, List<String>> rashiToNakshatraMap = new HashMap<>();
+	private final Map<String, String> nakshatraToRashiMap = new HashMap<>();
+	private final ObservableList<String> allRashis;
+	private final ObservableList<String> allNakshatras;
+	private boolean isUpdatingNakshatra = false; // Flag to prevent infinite loops
+
+	public DonationController() {
+		// --- NEW: Initialize master lists ---
+		allRashis = FXCollections.observableArrayList(
+				"ಆಯ್ಕೆ", "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
+				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
+		);
+		allNakshatras = FXCollections.observableArrayList(
+				"ಆಯ್ಕೆ", "ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ", "ಆರ್ದ್ರ",
+				"ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ", "ಮಘ", "ಪೂರ್ವ", "ಉತ್ತರ", "ಹಸ್ತ", "ಚಿತ್ರ",
+				"ಸ್ವಾತಿ", "ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ", "ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ",
+				"ಶ್ರವಣ", "ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"
+		);
+
+		// Initialize both maps
+		initializeRashiMaps();
+	}
+
 	public void setReceiptPrinter(ReceiptPrinter printer) {
 		this.receiptPrinter = printer;
 	}
@@ -51,8 +76,10 @@ public class DonationController {
 	public void initialize() {
 		donationDatePicker.setValue(LocalDate.now());
 		populateDonationComboBox();
-		populateRashiComboBox();
-		setupRashiNakshatraListener();
+
+		// --- MODIFIED: Call new listener setup ---
+		setupNakshatraToRashiListener();
+
 		setupPhoneNumberListener();
 		setupFieldFormatters();
 	}
@@ -90,29 +117,43 @@ public class DonationController {
 				}
 
 				if (digitsOnly.length() == 10) {
+					// --- MODIFIED: Wrap populateDevoteeDetails in the flag ---
+					isUpdatingNakshatra = true;
 					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
-							.ifPresent(this::populateDevoteeDetails);
+							.ifPresent(details -> Platform.runLater(() -> {
+								populateDevoteeDetails(details);
+								isUpdatingNakshatra = false;
+							}));
+					if (!devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly).isPresent()) {
+						isUpdatingNakshatra = false; // Ensure flag is reset if no devotee is found
+					}
+					// --- END MODIFICATION ---
 				}
 			}
 		});
 	}
+
 	private void populateDevoteeDetails(DevoteeDetails details) {
 		if (details == null) return;
 		devoteeNameField.setText(details.getName() != null ? details.getName() : "");
 		addressField.setText(details.getAddress() != null ? details.getAddress() : "");
 		panNumberField.setText(details.getPanNumber() != null ? details.getPanNumber() : "");
+
+		// --- MODIFIED: Set Nakshatra first, then Rashi ---
+		if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
+			nakshatraComboBox.setValue(details.getNakshatra());
+		} else {
+			nakshatraComboBox.getSelectionModel().selectFirst();
+		}
+
 		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
 			raashiComboBox.setValue(details.getRashi());
 		} else {
-			raashiComboBox.getSelectionModel().selectFirst();
-		}
-		Platform.runLater(() -> {
-			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
-				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
-					nakshatraComboBox.setValue(details.getNakshatra());
-				}
+			// If Rashi is empty, let the Nakshatra listener auto-populate it
+			if (details.getNakshatra() == null || details.getNakshatra().isEmpty()) {
+				raashiComboBox.getSelectionModel().selectFirst();
 			}
-		});
+		}
 	}
 
 	@FXML
@@ -125,11 +166,12 @@ public class DonationController {
 		double amount = Double.parseDouble(amountField.getText());
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
+		String nakshatra = nakshatraComboBox.getValue();
+		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		// --- MODIFIED LOGIC: SAVE FIRST ---
 		int actualSavedId = donationReceiptRepository.saveDonationReceipt(
 				devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(), finalRashi, nakshatraComboBox.getValue(),
+				panNumberField.getText(), finalRashi, finalNakshatra,
 				donationDatePicker.getValue(), donationComboBox.getValue(), amount, paymentMode
 		);
 
@@ -137,22 +179,19 @@ public class DonationController {
 			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save donation receipt to database.");
 			return;
 		}
-		// --- END MODIFIED LOGIC ---
 
 		DonationReceiptData newReceipt = new DonationReceiptData(
 				actualSavedId, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
-				finalRashi, nakshatraComboBox.getValue(), donationDatePicker.getValue(),
+				finalRashi, finalNakshatra, donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);
 
 		if (receiptPrinter != null) {
-			// This callback now ONLY closes the window, as the save is already done.
 			Consumer<Boolean> afterActionCallback = (success) -> {
 				Platform.runLater(this::closeWindow);
 			};
 
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-			// Pass null for onDialogClosed as the afterActionCallback handles both success and cancel
 			receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, afterActionCallback, null);
 		} else {
 			showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt saved successfully, but printer is not configured.");
@@ -217,43 +256,126 @@ public class DonationController {
 		donationComboBox.setItems(FXCollections.observableArrayList(donationNames));
 	}
 
+	// --- THIS METHOD IS NOW OBSOLETE ---
 	private void populateRashiComboBox() {
-		ObservableList<String> rashiOptions = FXCollections.observableArrayList();
-		rashiOptions.add("ಆಯ್ಕೆ");
-		rashiOptions.addAll("ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ");
-		raashiComboBox.setItems(rashiOptions);
-		raashiComboBox.getSelectionModel().selectFirst();
+		// This is now handled by setupNakshatraToRashiListener
 	}
 
+	// --- THIS METHOD IS REPLACED ---
 	private void setupRashiNakshatraListener() {
-		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
-		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
-		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರ", "ಪುನರ್ವಸು"));
-		rashiNakshatraMap.put("ಕರ್ಕಾಟಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
-		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘ", "ಪೂರ್ವ", "ಉತ್ತರ"));
-		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ", "ಹಸ್ತ", "ಚಿತ್ರ"));
-		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖ"));
-		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ"));
-		rashiNakshatraMap.put("ಧನು", Arrays.asList("ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ"));
-		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರಾಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
-		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ"));
-		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಾಭಾದ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
-
-		nakshatraComboBox.setDisable(true);
-		raashiComboBox.getSelectionModel().selectedItemProperty().addListener((
-				_, _, newVal) -> {
-			if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
-				nakshatraComboBox.setDisable(true);
-				nakshatraComboBox.getItems().clear();
-			} else {
-				List<String> nakshatras = rashiNakshatraMap.get(newVal);
-				if (nakshatras != null) {
-					nakshatraComboBox.setItems(FXCollections.observableArrayList(nakshatras));
-					nakshatraComboBox.setDisable(false);
-				}
-			}
-		});
+		// This method is now obsolete and replaced by setupNakshatraToRashiListener
 	}
+
+	// --- *** NEW, REVERSIBLE LISTENER LOGIC *** ---
+	private void initializeRashiMaps() {
+		// Forward Map (Rashi -> Nakshatras)
+		rashiToNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
+		rashiToNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
+		rashiToNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರ", "ಪುನರ್ವಸು"));
+		rashiToNakshatraMap.put("ಕರ್ಕಾಟಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
+		rashiToNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘ", "ಪೂರ್ವ", "ಉತ್ತರ"));
+		rashiToNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ", "ಹಸ್ತ", "ಚಿತ್ರ"));
+		rashiToNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖ"));
+		rashiToNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ"));
+		rashiToNakshatraMap.put("ಧನು", Arrays.asList("ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ"));
+		rashiToNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರಾಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
+		rashiToNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ"));
+		rashiToNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಾಭಾದ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
+
+		// Reverse Map (Nakshatra -> Rashi)
+		nakshatraToRashiMap.put("ಅಶ್ವಿನಿ", "ಮೇಷ");
+		nakshatraToRashiMap.put("ಭರಣಿ", "ಮೇಷ");
+		nakshatraToRashiMap.put("ಕೃತ್ತಿಕ", "ಮೇಷ");
+		nakshatraToRashiMap.put("ರೋಹಿಣಿ", "ವೃಷಭ");
+		nakshatraToRashiMap.put("ಮೃಗಶಿರ", "ವೃಷಭ");
+		nakshatraToRashiMap.put("ಆರ್ದ್ರ", "ಮಿಥುನ");
+		nakshatraToRashiMap.put("ಪುನರ್ವಸು", "ಮಿಥುನ");
+		nakshatraToRashiMap.put("ಪುಷ್ಯ", "ಕರ್ಕಾಟಕ");
+		nakshatraToRashiMap.put("ಆಶ್ಲೇಷ", "ಕರ್ಕಾಟಕ");
+		nakshatraToRashiMap.put("ಮಘ", "ಸಿಂಹ");
+		nakshatraToRashiMap.put("ಪೂರ್ವ", "ಸಿಂಹ");
+		nakshatraToRashiMap.put("ಉತ್ತರ", "ಸಿಂಹ");
+		nakshatraToRashiMap.put("ಹಸ್ತ", "ಕನ್ಯಾ");
+		nakshatraToRashiMap.put("ಚಿತ್ರ", "ಕನ್ಯಾ");
+		nakshatraToRashiMap.put("ಸ್ವಾತಿ", "ತುಲಾ");
+		nakshatraToRashiMap.put("ವಿಶಾಖ", "ತುಲಾ");
+		nakshatraToRashiMap.put("ಅನುರಾಧ", "ವೃಶ್ಚಿಕ");
+		nakshatraToRashiMap.put("ಜೇಷ್ಠ", "ವೃಶ್ಚಿಕ");
+		nakshatraToRashiMap.put("ಮೂಲ", "ಧನು");
+		nakshatraToRashiMap.put("ಪೂರ್ವಾಷಾಢ", "ಧನು");
+		nakshatraToRashiMap.put("ಉತ್ತರಾಷಾಢ", "ಧನು");
+		nakshatraToRashiMap.put("ಶ್ರವಣ", "ಮಕರ");
+		nakshatraToRashiMap.put("ಧನಿಷ್ಠ", "ಮಕರ");
+		nakshatraToRashiMap.put("ಶತಭಿಷ", "ಕುಂಭ");
+		nakshatraToRashiMap.put("ಪೂರ್ವಾಭಾದ್ರ", "ಕುಂಭ");
+		nakshatraToRashiMap.put("ಉತ್ತರಾಭಾದ್ರ", "ಮೀನ");
+		nakshatraToRashiMap.put("ರೇವತಿ", "ಮೀನ");
+	}
+
+	private void setupNakshatraToRashiListener() {
+		// 1. Populate both boxes with all items
+		raashiComboBox.setItems(allRashis);
+		nakshatraComboBox.setItems(allNakshatras);
+		raashiComboBox.getSelectionModel().selectFirst();
+		nakshatraComboBox.getSelectionModel().selectFirst();
+
+		// 2. Add listener to Rashi ComboBox (Rashi -> filters Nakshatra)
+		raashiComboBox.getSelectionModel().selectedItemProperty().addListener(
+				(_, _, selectedRashi) -> {
+					if (isUpdatingNakshatra) return;
+					isUpdatingNakshatra = true;
+
+					if (selectedRashi == null || selectedRashi.equals("ಆಯ್ಕೆ")) {
+						nakshatraComboBox.setItems(allNakshatras);
+						nakshatraComboBox.getSelectionModel().selectFirst();
+					} else {
+						List<String> nakshatrasForRashi = rashiToNakshatraMap.get(selectedRashi);
+						if (nakshatrasForRashi != null) {
+							ObservableList<String> nakshatraItems = FXCollections.observableArrayList(nakshatrasForRashi);
+							nakshatraItems.addFirst("ಆಯ್ಕೆ");
+							nakshatraComboBox.setItems(nakshatraItems);
+							String currentNakshatra = nakshatraComboBox.getValue();
+							if (!nakshatraItems.contains(currentNakshatra)) {
+								nakshatraComboBox.getSelectionModel().selectFirst();
+							}
+						}
+					}
+					isUpdatingNakshatra = false;
+				});
+
+		// 3. Add listener to Nakshatra ComboBox (Nakshatra -> selects Rashi)
+		nakshatraComboBox.getSelectionModel().selectedItemProperty().addListener(
+				(_, _, selectedNakshatra) -> {
+					if (isUpdatingNakshatra) return;
+					isUpdatingNakshatra = true;
+
+					if (selectedNakshatra == null || selectedNakshatra.equals("ಆಯ್ಕೆ")) {
+						raashiComboBox.setItems(allRashis);
+						raashiComboBox.getSelectionModel().selectFirst();
+					} else {
+						String rashi = nakshatraToRashiMap.get(selectedNakshatra);
+						if (rashi != null) {
+							List<String> mappedRashis = new ArrayList<>();
+							for (Map.Entry<String, List<String>> entry : rashiToNakshatraMap.entrySet()) {
+								if (entry.getValue().contains(selectedNakshatra)) {
+									mappedRashis.add(entry.getKey());
+								}
+							}
+
+							if (mappedRashis.size() > 1) {
+								mappedRashis.addFirst("ಆಯ್ಕೆ");
+								raashiComboBox.setItems(FXCollections.observableArrayList(mappedRashis));
+								raashiComboBox.setValue(rashi);
+							} else if (mappedRashis.size() == 1) {
+								raashiComboBox.setItems(allRashis);
+								raashiComboBox.setValue(rashi);
+							}
+						}
+					}
+					isUpdatingNakshatra = false;
+				});
+	}
+	// --- *** END OF NEW LOGIC *** ---
 
 	private void showAlert(Alert.AlertType alertType, String title, String message) {
 		Alert alert = new Alert(alertType);
