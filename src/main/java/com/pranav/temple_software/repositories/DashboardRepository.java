@@ -13,7 +13,6 @@ import java.util.List;
 
 public class DashboardRepository {
 	private static final Logger logger = LoggerFactory.getLogger(DashboardRepository.class);
-
 	private Connection getConnection() throws SQLException {
 		return DatabaseManager.getConnection();
 	}
@@ -31,7 +30,6 @@ public class DashboardRepository {
 
 		// Exclude items that are listed as Vishesha Poojas
 		sql.append("AND ri.seva_name NOT IN (SELECT vishesha_pooje_name FROM VisheshaPooje) ");
-
 		List<Object> parameters = new ArrayList<>();
 		if (fromDate != null) {
 			sql.append("AND r.seva_date >= ? ");
@@ -52,7 +50,6 @@ public class DashboardRepository {
 
 		sql.append("GROUP BY ri.seva_name ");
 		sql.append("ORDER BY total_count DESC");
-
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
@@ -167,7 +164,6 @@ public class DashboardRepository {
 		}
 
 		sql.append("GROUP BY k.karyakrama_id, kr.karyakrama_name ORDER BY total_count DESC");
-
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 			for (int i = 0; i < parameters.size(); i++) {
@@ -191,13 +187,12 @@ public class DashboardRepository {
 		return stats;
 	}
 
-// COPY-PASTE THIS ENTIRE METHOD
-
+	// COPY-PASTE THIS ENTIRE METHOD
 	public List<DashboardStats> getShashwathaPoojaStatistics(LocalDate fromDate, LocalDate toDate) {
 		List<DashboardStats> stats = new ArrayList<>();
-		// MODIFIED SQL: Group by 'pooja_date' (the detail text) instead of a static string
+		// *** MODIFIED SQL: Select and group by devotee_name ***
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT spr.pooja_date as item_name, "); // Use pooja_date as the item_name
+		sql.append("SELECT spr.devotee_name as item_name, "); // <-- **** THIS LINE WAS CHANGED ****
 		sql.append("COUNT(spr.receipt_id) as total_count, ");
 		sql.append("SUM(CASE WHEN spr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, ");
 		sql.append("SUM(CASE WHEN spr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, ");
@@ -214,8 +209,8 @@ public class DashboardRepository {
 			sql.append("AND spr.receipt_date <= ? ");
 			parameters.add(Date.valueOf(toDate));
 		}
-		// MODIFIED: Group by the pooja_date field
-		sql.append("GROUP BY spr.pooja_date");
+		// *** MODIFIED: Group by the devotee_name field ***
+		sql.append("GROUP BY spr.devotee_name"); // <-- **** THIS LINE WAS CHANGED ****
 
 		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 			for (int i = 0; i < parameters.size(); i++) {
@@ -223,7 +218,6 @@ public class DashboardRepository {
 			}
 			ResultSet rs = pstmt.executeQuery();
 
-			// MODIFIED: Loop through all results, not just one
 			while (rs.next()) {
 				int totalCount = rs.getInt("total_count");
 				if (totalCount > 0) {
@@ -243,6 +237,7 @@ public class DashboardRepository {
 		}
 		return stats;
 	}
+
 	public List<DashboardStats> getVisheshaPoojaStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificVisheshaPoojaId) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();

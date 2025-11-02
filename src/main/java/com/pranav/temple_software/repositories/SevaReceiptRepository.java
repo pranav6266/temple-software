@@ -33,7 +33,7 @@ public class SevaReceiptRepository {
 			pstmt.setString(4, panNumber);
 			pstmt.setString(5, rashi);
 			pstmt.setString(6, nakshatra);
-			pstmt.setDate(java.sql.Date.valueOf(date));
+			pstmt.setDate(7,Date.valueOf(date));
 			pstmt.setDouble(8, total);
 			pstmt.setString(9, paymentMode);
 
