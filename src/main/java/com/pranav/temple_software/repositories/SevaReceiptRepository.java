@@ -1,5 +1,6 @@
 package com.pranav.temple_software.repositories;
 
+import com.pranav.temple_software.models.HistoryFilterCriteria;
 import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
 import com.pranav.temple_software.utils.DatabaseManager;
@@ -19,14 +20,6 @@ public class SevaReceiptRepository {
 		return DatabaseManager.getConnection();
 	}
 
-	// MODIFICATION START: New method for transactions
-	/**
-	 * Saves the main receipt details using a provided database connection.
-	 * This method is intended to be used within a transaction.
-	 * @param conn The active database connection (with auto-commit set to false).
-	 * @return The generated ID of the new receipt, or -1 on failure.
-	 * @throws SQLException if a database access error occurs.
-	 */
 	public int saveReceipt(Connection conn, String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
 	                       double total, String paymentMode) throws SQLException {
 		String sql = "INSERT INTO Receipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +
@@ -40,7 +33,7 @@ public class SevaReceiptRepository {
 			pstmt.setString(4, panNumber);
 			pstmt.setString(5, rashi);
 			pstmt.setString(6, nakshatra);
-			pstmt.setDate(7, java.sql.Date.valueOf(date));
+			pstmt.setDate(java.sql.Date.valueOf(date));
 			pstmt.setDouble(8, total);
 			pstmt.setString(9, paymentMode);
 
@@ -53,19 +46,9 @@ public class SevaReceiptRepository {
 				}
 			}
 		}
-		// We don't catch SQLException here, we let it propagate up to the transaction manager
 		return generatedId;
 	}
-	// MODIFICATION END
 
-	// MODIFICATION START: New method for transactions
-	/**
-	 * Saves the list of receipt items using a provided database connection.
-	 * This method is intended to be used within a transaction.
-	 * @param conn The active database connection (with auto-commit set to false).
-	 * @return true if the batch execution was successful.
-	 * @throws SQLException if a database access error occurs.
-	 */
 	public boolean saveReceiptItems(Connection conn, int receiptId, List<SevaEntry> sevas) throws SQLException {
 		String sql = "INSERT INTO Receipt_Items (receipt_id, seva_name, quantity, price_at_sale) VALUES (?, ?, ?, ?)";
 		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -79,42 +62,74 @@ public class SevaReceiptRepository {
 			pstmt.executeBatch();
 			return true;
 		}
-		// We don't catch SQLException here, we let it propagate up to the transaction manager
 	}
-	// MODIFICATION END
 
-
-	public List<SevaReceiptData> getAllReceipts() {
+	// REPLACED getAllReceipts with getFilteredReceipts
+	public List<SevaReceiptData> getFilteredReceipts(HistoryFilterCriteria criteria) {
 		List<SevaReceiptData> receipts = new ArrayList<>();
-		String query = "SELECT * FROM receipts ORDER BY receipt_id DESC";
-		try (Connection conn = getConnection();
-		     PreparedStatement stmt = conn.prepareStatement(query);
-		     ResultSet rs = stmt.executeQuery()) {
+		List<Object> parameters = new ArrayList<>();
 
-			while (rs.next()) {
-				int receiptId = rs.getInt("receipt_id");
-				String devoteeName = rs.getString("devotee_name");
-				String phoneNumber = rs.getString("phone_number");
-				String address = rs.getString("address");
-				String panNumber = rs.getString("pan_number");
-				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
-				double totalAmount = rs.getDouble("total_amount");
-				String rashi = rs.getString("rashi");
-				String nakshatra = rs.getString("nakshatra");
+		StringBuilder sql = new StringBuilder("SELECT * FROM receipts WHERE 1=1 ");
 
-				ObservableList<SevaEntry> sevas = getSevasForReceipt(conn, receiptId);
-				boolean hasDonation = sevas.stream().anyMatch(seva -> seva.getName().startsWith("ದೇಣಿಗೆ"));
-				String donationStatus = hasDonation ? "ಹೌದು" : "ಇಲ್ಲ";
-				String paymentMode = rs.getString("payment_mode");
-				SevaReceiptData receipt = new SevaReceiptData(
-						receiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
-						sevaDate, sevas, totalAmount, paymentMode
-				);
-				receipts.add(receipt);
+		if (criteria.getDevoteeName() != null) {
+			sql.append("AND devotee_name LIKE ? ");
+			parameters.add("%" + criteria.getDevoteeName() + "%");
+		}
+		if (criteria.getPhoneNumber() != null) {
+			sql.append("AND phone_number LIKE ? ");
+			parameters.add("%" + criteria.getPhoneNumber() + "%");
+		}
+		if (criteria.getReceiptId() != null) {
+			sql.append("AND receipt_id = ? ");
+			try {
+				parameters.add(Integer.parseInt(criteria.getReceiptId()));
+			} catch (NumberFormatException e) {
+				parameters.add(0); // Will find no matches
 			}
-			logger.info("✅ Loaded {} receipts from database.", receipts.size());
+		}
+		if (criteria.getFromDate() != null) {
+			sql.append("AND seva_date >= ? ");
+			parameters.add(java.sql.Date.valueOf(criteria.getFromDate()));
+		}
+		if (criteria.getToDate() != null) {
+			sql.append("AND seva_date <= ? ");
+			parameters.add(java.sql.Date.valueOf(criteria.getToDate()));
+		}
+
+		sql.append("ORDER BY receipt_id DESC");
+
+		try (Connection conn = getConnection();
+		     PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+			for (int i = 0; i < parameters.size(); i++) {
+				stmt.setObject(i + 1, parameters.get(i));
+			}
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					int receiptId = rs.getInt("receipt_id");
+					String devoteeName = rs.getString("devotee_name");
+					String phoneNumber = rs.getString("phone_number");
+					String address = rs.getString("address");
+					String panNumber = rs.getString("pan_number");
+					LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
+					double totalAmount = rs.getDouble("total_amount");
+					String rashi = rs.getString("rashi");
+					String nakshatra = rs.getString("nakshatra");
+
+					ObservableList<SevaEntry> sevas = getSevasForReceipt(conn, receiptId);
+					String paymentMode = rs.getString("payment_mode");
+
+					SevaReceiptData receipt = new SevaReceiptData(
+							receiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
+							sevaDate, sevas, totalAmount, paymentMode
+					);
+					receipts.add(receipt);
+				}
+			}
+			logger.info("✅ Loaded {} filtered receipts from database.", receipts.size());
 		} catch (SQLException e) {
-			logger.error("❌ SQL error while fetching receipts", e);
+			logger.error("❌ SQL error while fetching filtered receipts", e);
 		}
 		return receipts;
 	}
@@ -143,11 +158,11 @@ public class SevaReceiptRepository {
 		     PreparedStatement pstmt = conn.prepareStatement(sql);
 		     ResultSet rs = pstmt.executeQuery()) {
 			if (rs.next()) {
-				return rs.getInt(1) + 1; // Return the current max ID + 1
+				return rs.getInt(1) + 1;
 			}
 		} catch (SQLException e) {
 			logger.error("Error fetching next receipt ID", e);
 		}
-		return 1; // Default to 1 if the table is empty or an error occurs
+		return 1;
 	}
 }

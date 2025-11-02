@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -48,6 +49,9 @@ public class HistoryController {
 	}
 
 	private HistoryView currentView = HistoryView.SEVA;
+	// NEW: Filter criteria object
+	private HistoryFilterCriteria currentFilterCriteria = new HistoryFilterCriteria();
+
 	// Repositories
 	private final SevaReceiptRepository sevaReceiptRepository = new SevaReceiptRepository();
 	private final DonationReceiptRepository donationReceiptRepository = new DonationReceiptRepository();
@@ -109,7 +113,8 @@ public class HistoryController {
 		setupShashwathaPoojaTableColumns();
 		setupKaryakramaTableColumns();
 		setupViewSelectionComboBox();
-		switchToView(HistoryView.SEVA);
+		// MODIFIED: Load data using the new filter method
+		applyFiltersAndRefreshView();
 	}
 
 	private <T> void loadDataInBackground(Supplier<List<T>> dataSupplier, Consumer<List<T>> successConsumer) {
@@ -140,32 +145,33 @@ public class HistoryController {
 	private void setupViewSelectionComboBox() {
 		viewSelectionComboBox.setItems(FXCollections.observableArrayList(HistoryView.values()));
 		viewSelectionComboBox.setValue(HistoryView.SEVA);
+		// MODIFIED: This now calls the central refresh method
 		viewSelectionComboBox.setOnAction(_ -> {
 			HistoryView selectedView = viewSelectionComboBox.getValue();
 			if (selectedView != null && selectedView != currentView) {
-				switchToView(selectedView);
+				currentView = selectedView; // Update the current view
+				applyFiltersAndRefreshView(); // Refresh data
 			}
 		});
 	}
 
-	private void switchToView(HistoryView view) {
-		currentView = view;
-		switch (view) {
+	// RENAMED and MODIFIED
+	private void applyFiltersAndRefreshView() {
+		currentView = viewSelectionComboBox.getValue();
+		switch (currentView) {
 			case SEVA -> switchToSevaView();
 			case DONATION -> switchToDonationView();
 			case IN_KIND -> switchToInKindDonationView();
 			case SHASHWATHA_POOJA -> switchToShashwathaPoojaView();
 			case KARYAKRAMA -> switchToKaryakramaView();
 		}
-		currentViewLabel.setText(view.displayName);
-		if (viewSelectionComboBox.getValue() != view) {
-			viewSelectionComboBox.setValue(view);
-		}
+		currentViewLabel.setText(currentView.displayName);
 	}
 
 	private void switchToSevaView() {
 		loadDataInBackground(
-				sevaReceiptRepository::getAllReceipts,
+				// MODIFIED: Call the new filtered method
+				() -> sevaReceiptRepository.getFilteredReceipts(currentFilterCriteria),
 				receipts -> {
 					setTableVisibility(true, false, false, false, false);
 					historyTable.setItems(FXCollections.observableArrayList(receipts));
@@ -176,7 +182,8 @@ public class HistoryController {
 
 	private void switchToDonationView() {
 		loadDataInBackground(
-				donationReceiptRepository::getAllDonationReceipts,
+				// MODIFIED: Call the new filtered method
+				() -> donationReceiptRepository.getFilteredDonationReceipts(currentFilterCriteria),
 				receipts -> {
 					setTableVisibility(false, true, false, false, false);
 					donationHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -187,7 +194,8 @@ public class HistoryController {
 
 	private void switchToInKindDonationView() {
 		loadDataInBackground(
-				inKindDonationRepository::getAllInKindDonations,
+				// MODIFIED: Call the new filtered method
+				() -> inKindDonationRepository.getFilteredInKindDonations(currentFilterCriteria),
 				receipts -> {
 					setTableVisibility(false, false, true, false, false);
 					inKindDonationHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -198,7 +206,8 @@ public class HistoryController {
 
 	private void switchToShashwathaPoojaView() {
 		loadDataInBackground(
-				shashwathaPoojaRepository::getAllShashwathaPoojaReceipts,
+				// MODIFIED: Call the new filtered method
+				() -> shashwathaPoojaRepository.getFilteredShashwathaPoojaReceipts(currentFilterCriteria),
 				receipts -> {
 					setTableVisibility(false, false, false, true, false);
 					shashwathaPoojaHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -209,7 +218,8 @@ public class HistoryController {
 
 	private void switchToKaryakramaView() {
 		loadDataInBackground(
-				karyakramaReceiptRepository::getAllReceipts,
+				// MODIFIED: Call the new filtered method
+				() -> karyakramaReceiptRepository.getFilteredReceipts(currentFilterCriteria),
 				receipts -> {
 					setTableVisibility(false, false, false, false, true);
 					karyakramaHistoryTable.setItems(FXCollections.observableArrayList(receipts));
@@ -217,6 +227,38 @@ public class HistoryController {
 				}
 		);
 	}
+
+	// NEW METHOD: To open the filter window
+	@FXML
+	private void openFilterWindow() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MenuViews/History/HistoryFilterView.fxml"));
+			Stage filterStage = new Stage();
+			filterStage.setTitle("ಇತಿಹಾಸ ಫಿಲ್ಟರ್");
+			filterStage.initModality(Modality.WINDOW_MODAL);
+			filterStage.initOwner(historyTable.getScene().getWindow());
+
+			Scene scene = new Scene(loader.load());
+			// Use the same dashboard CSS for a consistent filter look
+			scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/modern-dashboard.css")).toExternalForm());
+			filterStage.setScene(scene);
+
+			HistoryFilterController controller = loader.getController();
+			// Pass the current criteria and a callback function to run on "Apply"
+			controller.initialize(this.currentFilterCriteria, (criteria) -> {
+				this.currentFilterCriteria = criteria; // Update criteria
+				applyFiltersAndRefreshView(); // Re-load data
+			});
+
+			filterStage.showAndWait();
+		} catch (IOException e) {
+			logger.error("Failed to open history filter window", e);
+			showAlert("Failed to open filter window: " + e.getMessage());
+		}
+	}
+
+	// --- All other methods (table setups, button actions, etc.) remain unchanged ---
+	// ... (keep all other methods from setTableVisibility down to createKaryakramaSheet) ...
 
 	private void setTableVisibility(boolean seva, boolean donation, boolean inKind, boolean shashwatha, boolean karyakrama) {
 		historyTable.setVisible(seva);
@@ -446,8 +488,6 @@ public class HistoryController {
 		}
 	}
 
-	// --- NEW AND MODIFIED METHODS FOR EXCEL EXPORT ---
-
 	@FXML
 	private void handleExportToExcel() {
 		FileChooser fileChooser = new FileChooser();
@@ -455,19 +495,17 @@ public class HistoryController {
 		fileChooser.setInitialFileName("Temple_History_Export.xlsx");
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
 		File file = fileChooser.showSaveDialog(historyTable.getScene().getWindow());
-
 		if (file != null) {
 			try (Workbook workbook = new XSSFWorkbook()) {
-				// **Create a cell style for text wrapping**
 				CellStyle wrapStyle = workbook.createCellStyle();
 				wrapStyle.setWrapText(true);
 
-				// Pass the style to the sheet creation methods
-				createSevaSheet(workbook, sevaReceiptRepository.getAllReceipts(), wrapStyle);
-				createDonationSheet(workbook, donationReceiptRepository.getAllDonationReceipts());
-				createInKindSheet(workbook, inKindDonationRepository.getAllInKindDonations());
-				createShashwathaSheet(workbook, shashwathaPoojaRepository.getAllShashwathaPoojaReceipts());
-				createKaryakramaSheet(workbook, karyakramaReceiptRepository.getAllReceipts(), wrapStyle);
+				// MODIFIED: Pass the filtered lists to the export methods
+				createSevaSheet(workbook, sevaReceiptRepository.getFilteredReceipts(currentFilterCriteria), wrapStyle);
+				createDonationSheet(workbook, donationReceiptRepository.getFilteredDonationReceipts(currentFilterCriteria));
+				createInKindSheet(workbook, inKindDonationRepository.getFilteredInKindDonations(currentFilterCriteria));
+				createShashwathaSheet(workbook, shashwathaPoojaRepository.getFilteredShashwathaPoojaReceipts(currentFilterCriteria));
+				createKaryakramaSheet(workbook, karyakramaReceiptRepository.getFilteredReceipts(currentFilterCriteria), wrapStyle);
 
 				try (FileOutputStream fileOut = new FileOutputStream(file)) {
 					workbook.write(fileOut);
@@ -476,7 +514,6 @@ public class HistoryController {
 				Alert alert = new Alert(Alert.AlertType.INFORMATION, "History exported successfully to " + file.getName());
 				alert.initOwner(historyTable.getScene().getWindow());
 				alert.showAndWait();
-
 			} catch (IOException e) {
 				logger.error("Failed to write the Excel file", e);
 				showAlert("Failed to write the Excel file: " + e.getMessage());
@@ -521,7 +558,6 @@ public class HistoryController {
 						seva.getQuantity(),
 						seva.getAmount()));
 			}
-			// Create the cell, set its value, and apply the wrap style
 			org.apache.poi.ss.usermodel.Cell sevaCell = row.createCell(9);
 			sevaCell.setCellValue(sevasText.toString());
 			sevaCell.setCellStyle(wrapStyle);
@@ -554,6 +590,7 @@ public class HistoryController {
 
 	private void createInKindSheet(Workbook workbook, List<InKindDonation> data) {
 		Sheet sheet = workbook.createSheet("In-Kind Donations");
+		// MODIFIED: Removed "ಪಾವತಿ ವಿಧಾನ"
 		String[] headers = {"ರಶೀದಿ ಸಂಖ್ಯೆ", "ಭಕ್ತರ ಹೆಸರು", "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ", "ವಿಳಾಸ", "PAN", "ಜನ್ಮ ರಾಶಿ", "ಜನ್ಮ ನಕ್ಷತ್ರ", "ದೇಣಿಗೆ ದಿನಾಂಕ", "ವಸ್ತುವಿನ ವಿವರ"};
 		createHeaderRow(sheet, headers);
 
@@ -568,6 +605,7 @@ public class HistoryController {
 			row.createCell(5).setCellValue(receipt.getRashi());
 			row.createCell(6).setCellValue(receipt.getNakshatra());
 			row.createCell(7).setCellValue(receipt.getFormattedDate());
+			// MODIFIED: Shifted cell index
 			row.createCell(8).setCellValue(receipt.getItemDescription());
 		}
 	}

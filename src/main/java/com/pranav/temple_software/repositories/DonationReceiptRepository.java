@@ -1,6 +1,7 @@
 package com.pranav.temple_software.repositories;
 
 import com.pranav.temple_software.models.DonationReceiptData;
+import com.pranav.temple_software.models.HistoryFilterCriteria;
 import com.pranav.temple_software.utils.DatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,37 +18,70 @@ public class DonationReceiptRepository {
 		return DatabaseManager.getConnection();
 	}
 
-	public List<DonationReceiptData> getAllDonationReceipts() {
+	// REPLACED getAllDonationReceipts with getFilteredDonationReceipts
+	public List<DonationReceiptData> getFilteredDonationReceipts(HistoryFilterCriteria criteria) {
 		List<DonationReceiptData> donationReceipts = new ArrayList<>();
-		String sql = "SELECT * FROM DonationReceipts ORDER BY donation_receipt_id DESC";
-		try (Connection conn = getConnection();
-		     Statement stmt = conn.createStatement();
-		     ResultSet rs = stmt.executeQuery(sql)) {
+		List<Object> parameters = new ArrayList<>();
 
-			while (rs.next()) {
-				int donationReceiptId = rs.getInt("donation_receipt_id");
-				String devoteeName = rs.getString("devotee_name");
-				String phoneNumber = rs.getString("phone_number");
-				String address = rs.getString("address");
-				String panNumber = rs.getString("pan_number");
-				String rashi = rs.getString("rashi");
-				String nakshatra = rs.getString("nakshatra");
-				LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
-				String donationName = rs.getString("donation_name");
-				double donationAmount = rs.getDouble("donation_amount");
-				String paymentMode = rs.getString("payment_mode");
+		StringBuilder sql = new StringBuilder("SELECT * FROM DonationReceipts WHERE 1=1 ");
 
-				DonationReceiptData donationReceipt = new DonationReceiptData(
-						donationReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
-						sevaDate, donationName, donationAmount, paymentMode
-				);
-				donationReceipts.add(donationReceipt);
+		if (criteria.getDevoteeName() != null) {
+			sql.append("AND devotee_name LIKE ? ");
+			parameters.add("%" + criteria.getDevoteeName() + "%");
+		}
+		if (criteria.getPhoneNumber() != null) {
+			sql.append("AND phone_number LIKE ? ");
+			parameters.add("%" + criteria.getPhoneNumber() + "%");
+		}
+		if (criteria.getReceiptId() != null) {
+			sql.append("AND donation_receipt_id = ? ");
+			try {
+				parameters.add(Integer.parseInt(criteria.getReceiptId()));
+			} catch (NumberFormatException e) {
+				parameters.add(0);
 			}
-			logger.info("✅ Loaded {} donation receipts from database.", donationReceipts.size());
+		}
+		if (criteria.getFromDate() != null) {
+			sql.append("AND seva_date >= ? ");
+			parameters.add(java.sql.Date.valueOf(criteria.getFromDate()));
+		}
+		if (criteria.getToDate() != null) {
+			sql.append("AND seva_date <= ? ");
+			parameters.add(java.sql.Date.valueOf(criteria.getToDate()));
+		}
+
+		sql.append("ORDER BY donation_receipt_id DESC");
+
+		try (Connection conn = getConnection();
+		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+			for (int i = 0; i < parameters.size(); i++) {
+				pstmt.setObject(i + 1, parameters.get(i));
+			}
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					int donationReceiptId = rs.getInt("donation_receipt_id");
+					String devoteeName = rs.getString("devotee_name");
+					String phoneNumber = rs.getString("phone_number");
+					String address = rs.getString("address");
+					String panNumber = rs.getString("pan_number");
+					String rashi = rs.getString("rashi");
+					String nakshatra = rs.getString("nakshatra");
+					LocalDate sevaDate = rs.getDate("seva_date").toLocalDate();
+					String donationName = rs.getString("donation_name");
+					double donationAmount = rs.getDouble("donation_amount");
+					String paymentMode = rs.getString("payment_mode");
+					DonationReceiptData donationReceipt = new DonationReceiptData(
+							donationReceiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
+							sevaDate, donationName, donationAmount, paymentMode
+					);
+					donationReceipts.add(donationReceipt);
+				}
+			}
+			logger.info("✅ Loaded {} filtered donation receipts from database.", donationReceipts.size());
 		} catch (SQLException e) {
-			logger.error("❌ SQL error while fetching donation receipts", e);
-		} catch (Exception e) {
-			logger.error("❌ Unexpected error while fetching donation receipts", e);
+			logger.error("❌ SQL error while fetching filtered donation receipts", e);
 		}
 		return donationReceipts;
 	}
@@ -98,6 +132,6 @@ public class DonationReceiptRepository {
 		} catch (SQLException e) {
 			logger.error("Error fetching next donation receipt ID", e);
 		}
-		return 1; // Default to 1 if table is empty
+		return 1;
 	}
 }
