@@ -18,6 +18,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class KaryakramaController {
@@ -38,12 +42,18 @@ public class KaryakramaController {
 	@FXML private RadioButton onlineRadio;
 	@FXML private Button saveButton;
 
+	// --- NEW FIELDS ---
+	@FXML private ComboBox<String> raashiComboBox;
+	@FXML private ComboBox<String> nakshatraComboBox;
+
 	private final KaryakramaRepository karyakramaRepository = new KaryakramaRepository();
 	private final OthersRepository othersRepository = OthersRepository.getInstance();
 	private final KaryakramaReceiptRepository receiptRepository = new KaryakramaReceiptRepository();
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 	private final ObservableList<SevaEntry> selectedOthers = FXCollections.observableArrayList();
 	private final ReceiptPrinter receiptPrinter = new ReceiptPrinter();
+	// --- NEW MAP ---
+	private final Map<String, List<String>> rashiNakshatraMap = new HashMap<>();
 
 	@FXML
 	public void initialize() {
@@ -52,6 +62,10 @@ public class KaryakramaController {
 		setupSelections();
 		setupTableView();
 		updateTotal();
+
+		// --- NEW METHOD CALLS ---
+		populateRashiComboBox();
+		setupRashiNakshatraListener();
 
 		devoteeNameField.setTextFormatter(new TextFormatter<>(change -> {
 			change.setText(change.getText().toUpperCase());
@@ -82,10 +96,25 @@ public class KaryakramaController {
 			}
 		});
 	}
+
 	private void populateDevoteeDetails(DevoteeDetails details) {
 		devoteeNameField.setText(details.getName());
 		addressField.setText(details.getAddress());
 		panNumberField.setText(details.getPanNumber());
+
+		// --- NEW LOGIC for Raashi/Nakshatra ---
+		if (details.getRashi() != null && !details.getRashi().isEmpty()) {
+			raashiComboBox.setValue(details.getRashi());
+		} else {
+			raashiComboBox.getSelectionModel().selectFirst();
+		}
+		Platform.runLater(() -> {
+			if (details.getNakshatra() != null && !details.getNakshatra().isEmpty()) {
+				if (nakshatraComboBox.getItems().contains(details.getNakshatra())) {
+					nakshatraComboBox.setValue(details.getNakshatra());
+				}
+			}
+		});
 	}
 
 	private void setupSelections() {
@@ -141,50 +170,56 @@ public class KaryakramaController {
 			return;
 		}
 
+		// --- MODIFIED: Get Raashi and Nakshatra values ---
+		String rashiValue = raashiComboBox.getValue();
+		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
+		String nakshatra = nakshatraComboBox.getValue();
+
 		KaryakramaReceiptData receiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(), "", "", selectedKaryakrama.getName(), receiptDatePicker.getValue(),
+				panNumberField.getText(),
+				finalRashi, // <-- Pass Rashi
+				nakshatra, // <-- Pass Nakshatra
+				selectedKaryakrama.getName(), receiptDatePicker.getValue(),
 				new ArrayList<>(selectedOthers),
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
-		// --- MODIFICATION START: DB logic is moved before the print preview ---
+		// DB logic
 		int actualSavedId = -1;
 		Connection conn = null;
 		try {
 			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false); // Start transaction
+			conn.setAutoCommit(false);
 
 			actualSavedId = receiptRepository.saveReceipt(conn, receiptData);
 
 			if (actualSavedId != -1) {
 				boolean itemsSaved = receiptRepository.saveReceiptItems(conn, actualSavedId, receiptData.getSevas());
 				if (itemsSaved) {
-					conn.commit(); // All good, commit transaction
+					conn.commit();
 				} else {
 					conn.rollback();
 					showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items.");
-					return; // Stop here
+					return;
 				}
 			} else {
 				conn.rollback();
 				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt.");
-				return; // Stop here
+				return;
 			}
 		} catch (SQLException e) {
 			if (conn != null) {
 				try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
 			}
 			showAlert(Alert.AlertType.ERROR, "Database Error", "A database error occurred: " + e.getMessage());
-			return; // Stop here
+			return;
 		} finally {
 			if (conn != null) {
 				try { conn.close(); } catch (SQLException e) { /* Log error */ }
 			}
 		}
-		// --- MODIFICATION END ---
 
-		// This callback now only closes the window
 		Consumer<Boolean> afterActionCallback = (success) -> {
 			Platform.runLater(this::closeWindow);
 		};
@@ -242,5 +277,45 @@ public class KaryakramaController {
 	private void closeWindow() {
 		Stage stage = (Stage) saveButton.getScene().getWindow();
 		stage.close();
+	}
+
+	// --- NEW HELPER METHODS ---
+
+	private void populateRashiComboBox() {
+		ObservableList<String> rashiOptions = FXCollections.observableArrayList();
+		rashiOptions.add("ಆಯ್ಕೆ");
+		rashiOptions.addAll("ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ");
+		raashiComboBox.setItems(rashiOptions);
+		raashiComboBox.getSelectionModel().selectFirst();
+	}
+
+	private void setupRashiNakshatraListener() {
+		rashiNakshatraMap.put("ಮೇಷ", Arrays.asList("ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ"));
+		rashiNakshatraMap.put("ವೃಷಭ", Arrays.asList("ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ"));
+		rashiNakshatraMap.put("ಮಿಥುನ", Arrays.asList("ಮೃಗಶಿರ", "ಆರ್ದ್ರ", "ಪುನರ್ವಸು"));
+		rashiNakshatraMap.put("ಕರ್ಕಾಟಕ", Arrays.asList("ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ"));
+		rashiNakshatraMap.put("ಸಿಂಹ", Arrays.asList("ಮಘ", "ಪೂರ್ವ", "ಉತ್ತರ"));
+		rashiNakshatraMap.put("ಕನ್ಯಾ", Arrays.asList("ಉತ್ತರ", "ಹಸ್ತ", "ಚಿತ್ರ"));
+		rashiNakshatraMap.put("ತುಲಾ", Arrays.asList("ಚಿತ್ರ", "ಸ್ವಾತಿ", "ವಿಶಾಖ"));
+		rashiNakshatraMap.put("ವೃಶ್ಚಿಕ", Arrays.asList("ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ"));
+		rashiNakshatraMap.put("ಧನು", Arrays.asList("ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ"));
+		rashiNakshatraMap.put("ಮಕರ", Arrays.asList("ಉತ್ತರಾಷಾಢ", "ಶ್ರವಣ", "ಧನಿಷ್ಠ"));
+		rashiNakshatraMap.put("ಕುಂಭ", Arrays.asList("ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ"));
+		rashiNakshatraMap.put("ಮೀನ", Arrays.asList("ಪೂರ್ವಾಭಾದ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"));
+
+		nakshatraComboBox.setDisable(true);
+		raashiComboBox.getSelectionModel().selectedItemProperty().addListener((
+				_, _, newVal) -> {
+			if (newVal == null || newVal.equals("ಆಯ್ಕೆ")) {
+				nakshatraComboBox.setDisable(true);
+				nakshatraComboBox.getItems().clear();
+			} else {
+				List<String> nakshatras = rashiNakshatraMap.get(newVal);
+				if (nakshatras != null) {
+					nakshatraComboBox.setItems(FXCollections.observableArrayList(nakshatras));
+					nakshatraComboBox.setDisable(false);
+				}
+			}
+		});
 	}
 }

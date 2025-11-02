@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxWidth="900.0" prefHeight="650.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.Karyakrama.KaryakramaController">
+<BorderPane maxWidth="900.0" prefHeight="700.0" styleClass="manager-root" stylesheets="@../../../css/modern-manager-popups.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pranav.temple_software.controllers.menuControllers.Karyakrama.KaryakramaController">
     <top>
         <Label styleClass="popup-title" text="ಕಾರ್ಯಕ್ರಮದ ಇತರೆ ರಶೀದಿ" BorderPane.alignment="CENTER" />
     </top>
@@ -40,8 +40,14 @@
                     <TextArea fx:id="addressField" prefRowCount="2" promptText="ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                     <Label styleClass="popup-field-label" text="PAN ಸಂಖ್ಯೆ:" GridPane.rowIndex="3" />
                     <TextField fx:id="panNumberField" promptText="PAN ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                    <Label styleClass="popup-field-label" text="ರಶೀದಿ ದಿನಾಂಕ:" GridPane.rowIndex="4" />
-                    <DatePicker fx:id="receiptDatePicker" maxWidth="Infinity" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                    <Label styleClass="popup-field-label" text="ಜನ್ಮ ರಾಶಿ:" GridPane.rowIndex="4" />
+                    <ComboBox fx:id="raashiComboBox" promptText="ರಾಶಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                    <Label styleClass="popup-field-label" text="ಜನ್ಮ ನಕ್ಷತ್ರ:" GridPane.rowIndex="5" />
+                    <ComboBox fx:id="nakshatraComboBox" promptText="ನಕ್ಷತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+
+                    <Label styleClass="popup-field-label" text="ರಶೀದಿ ದಿನಾಂಕ:" GridPane.rowIndex="6" />
+                    <DatePicker fx:id="receiptDatePicker" maxWidth="Infinity" styleClass="popup-text-field" GridPane.columnIndex="1" GridPane.rowIndex="6" />
                 </GridPane>
 
                 <Separator />
