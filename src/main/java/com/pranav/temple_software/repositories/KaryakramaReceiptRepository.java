@@ -65,7 +65,6 @@ public class KaryakramaReceiptRepository {
 	public List<KaryakramaReceiptData> getFilteredReceipts(HistoryFilterCriteria criteria) {
 		List<KaryakramaReceiptData> receipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder("SELECT * FROM KaryakramaReceipts WHERE 1=1 ");
 
 		if (criteria.getDevoteeName() != null) {
@@ -91,6 +90,10 @@ public class KaryakramaReceiptRepository {
 		if (criteria.getToDate() != null) {
 			sql.append("AND receipt_date <= ? ");
 			parameters.add(java.sql.Date.valueOf(criteria.getToDate()));
+		}
+		if (criteria.getPaymentMode() != null && !criteria.getPaymentMode().equals("All")) {
+			sql.append("AND payment_mode = ? ");
+			parameters.add(criteria.getPaymentMode());
 		}
 
 		sql.append("ORDER BY receipt_id DESC");

@@ -8,7 +8,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -67,7 +66,6 @@ public class SevaReceiptRepository {
 	public List<SevaReceiptData> getFilteredReceipts(HistoryFilterCriteria criteria) {
 		List<SevaReceiptData> receipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder("SELECT * FROM receipts WHERE 1=1 ");
 
 		if (criteria.getDevoteeName() != null) {
@@ -83,7 +81,7 @@ public class SevaReceiptRepository {
 			try {
 				parameters.add(Integer.parseInt(criteria.getReceiptId()));
 			} catch (NumberFormatException e) {
-				parameters.add(0); // Will find no matches
+				parameters.add(0);
 			}
 		}
 		if (criteria.getFromDate() != null) {
@@ -94,9 +92,12 @@ public class SevaReceiptRepository {
 			sql.append("AND seva_date <= ? ");
 			parameters.add(java.sql.Date.valueOf(criteria.getToDate()));
 		}
+		if (criteria.getPaymentMode() != null && !criteria.getPaymentMode().equals("All")) {
+			sql.append("AND payment_mode = ? ");
+			parameters.add(criteria.getPaymentMode());
+		}
 
 		sql.append("ORDER BY receipt_id DESC");
-
 		try (Connection conn = getConnection();
 		     PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
@@ -118,7 +119,6 @@ public class SevaReceiptRepository {
 
 					ObservableList<SevaEntry> sevas = getSevasForReceipt(conn, receiptId);
 					String paymentMode = rs.getString("payment_mode");
-
 					SevaReceiptData receipt = new SevaReceiptData(
 							receiptId, devoteeName, phoneNumber, address, panNumber, rashi, nakshatra,
 							sevaDate, sevas, totalAmount, paymentMode

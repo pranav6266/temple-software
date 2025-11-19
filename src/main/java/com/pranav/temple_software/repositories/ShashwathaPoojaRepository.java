@@ -13,7 +13,6 @@ import java.util.List;
 
 public class ShashwathaPoojaRepository {
 	private static final Logger logger = LoggerFactory.getLogger(ShashwathaPoojaRepository.class);
-
 	private Connection getConnection() throws SQLException {
 		return DatabaseManager.getConnection();
 	}
@@ -35,26 +34,24 @@ public class ShashwathaPoojaRepository {
 			pstmt.setString(8, receipt.getPoojaDate());
 			pstmt.setDouble(9, receipt.getAmount());
 			pstmt.setString(10, receipt.getPaymentMode());
-
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
 				try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
 					if (generatedKeys.next()) {
-						generatedId = generatedKeys.getInt(1); // Get the generated ID
+						generatedId = generatedKeys.getInt(1);
 					}
 				}
 			}
-			return generatedId; // Return the ID
+			return generatedId;
 		} catch (SQLException e) {
 			logger.error("Error saving Shashwatha Pooja to database", e);
-			return -1; // Return -1 on error
+			return -1;
 		}
 	}
 
 	public List<ShashwathaPoojaReceipt> getFilteredShashwathaPoojaReceipts(HistoryFilterCriteria criteria) {
 		List<ShashwathaPoojaReceipt> receipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder("SELECT * FROM ShashwathaPoojaReceipts WHERE 1=1 ");
 
 		if (criteria.getDevoteeName() != null) {
@@ -80,6 +77,10 @@ public class ShashwathaPoojaRepository {
 		if (criteria.getToDate() != null) {
 			sql.append("AND receipt_date <= ? ");
 			parameters.add(java.sql.Date.valueOf(criteria.getToDate()));
+		}
+		if (criteria.getPaymentMode() != null && !criteria.getPaymentMode().equals("All")) {
+			sql.append("AND payment_mode = ? ");
+			parameters.add(criteria.getPaymentMode());
 		}
 
 		sql.append("ORDER BY receipt_id DESC");

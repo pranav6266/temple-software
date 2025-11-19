@@ -21,7 +21,6 @@ public class DonationReceiptRepository {
 	public List<DonationReceiptData> getFilteredDonationReceipts(HistoryFilterCriteria criteria) {
 		List<DonationReceiptData> donationReceipts = new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
-
 		StringBuilder sql = new StringBuilder("SELECT * FROM DonationReceipts WHERE 1=1 ");
 
 		if (criteria.getDevoteeName() != null) {
@@ -47,6 +46,10 @@ public class DonationReceiptRepository {
 		if (criteria.getToDate() != null) {
 			sql.append("AND seva_date <= ? ");
 			parameters.add(java.sql.Date.valueOf(criteria.getToDate()));
+		}
+		if (criteria.getPaymentMode() != null && !criteria.getPaymentMode().equals("All")) {
+			sql.append("AND payment_mode = ? ");
+			parameters.add(criteria.getPaymentMode());
 		}
 
 		sql.append("ORDER BY donation_receipt_id DESC");

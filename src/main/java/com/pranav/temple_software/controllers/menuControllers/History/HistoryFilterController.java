@@ -1,7 +1,9 @@
 package com.pranav.temple_software.controllers.menuControllers.History;
 
 import com.pranav.temple_software.models.HistoryFilterCriteria;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -15,6 +17,7 @@ public class HistoryFilterController {
 	@FXML private TextField receiptIdField;
 	@FXML private DatePicker fromDatePicker;
 	@FXML private DatePicker toDatePicker;
+	@FXML private ComboBox<String> paymentModeComboBox;
 
 	private Consumer<HistoryFilterCriteria> onApplyFilter;
 	private HistoryFilterCriteria currentCriteria;
@@ -28,6 +31,14 @@ public class HistoryFilterController {
 		receiptIdField.setText(criteria.getReceiptId());
 		fromDatePicker.setValue(criteria.getFromDate());
 		toDatePicker.setValue(criteria.getToDate());
+
+		// Initialize Payment Mode Combo
+		paymentModeComboBox.setItems(FXCollections.observableArrayList("All", "Cash", "Online"));
+		if (criteria.getPaymentMode() != null) {
+			paymentModeComboBox.setValue(criteria.getPaymentMode());
+		} else {
+			paymentModeComboBox.getSelectionModel().selectFirst(); // Default to "All"
+		}
 	}
 
 	@FXML
@@ -37,6 +48,7 @@ public class HistoryFilterController {
 		currentCriteria.setReceiptId(getTextFieldValue(receiptIdField));
 		currentCriteria.setFromDate(fromDatePicker.getValue());
 		currentCriteria.setToDate(toDatePicker.getValue());
+		currentCriteria.setPaymentMode(paymentModeComboBox.getValue());
 
 		if (onApplyFilter != null) {
 			onApplyFilter.accept(currentCriteria);
@@ -51,6 +63,7 @@ public class HistoryFilterController {
 		receiptIdField.clear();
 		fromDatePicker.setValue(null);
 		toDatePicker.setValue(null);
+		paymentModeComboBox.getSelectionModel().selectFirst();
 
 		// Apply the cleared filters
 		applyFilters();
