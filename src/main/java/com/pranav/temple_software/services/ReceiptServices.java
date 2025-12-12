@@ -1,7 +1,8 @@
 package com.pranav.temple_software.services;
+
 import com.pranav.temple_software.controllers.MainController;
-import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.models.SevaEntry;
+import com.pranav.temple_software.models.SevaReceiptData;
 import com.pranav.temple_software.utils.DatabaseManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -12,10 +13,12 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ReceiptServices {
 	private final MainController controller;
+
 	public ReceiptServices(MainController controller) {
 		this.controller = controller;
 	}
@@ -24,6 +27,7 @@ public class ReceiptServices {
 		List<SevaEntry> pendingItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PENDING)
 				.collect(Collectors.toList());
+
 		if (pendingItems.isEmpty()) {
 			controller.showAlert("No Pending Items", "All items have been processed.");
 			return;
@@ -35,6 +39,7 @@ public class ReceiptServices {
 		List<SevaEntry> failedItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.FAILED)
 				.collect(Collectors.toList());
+
 		if (failedItems.isEmpty()) {
 			controller.showAlert("No Failed Items", "No failed items to retry.");
 			return;
@@ -51,6 +56,7 @@ public class ReceiptServices {
 		List<SevaEntry> successfulItems = controller.selectedSevas.stream()
 				.filter(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.SUCCESS)
 				.toList();
+
 		if (successfulItems.isEmpty()) {
 			controller.showAlert("No Successful Items", "No successful items to clear.");
 			return;
@@ -78,8 +84,7 @@ public class ReceiptServices {
 		final String panNumber = controller.panNumberField.getText();
 		final LocalDate date = controller.sevaDatePicker.getValue();
 		String rashiValue = controller.raashiComboBox.getValue();
-		final String raashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ?
-				"" : rashiValue;
+		final String raashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
 		final String nakshatra = controller.nakshatraComboBox.getValue();
 
 		if (date == null || (!controller.cashRadio.isSelected() && !controller.onlineRadio.isSelected())) {
@@ -89,58 +94,60 @@ public class ReceiptServices {
 		String paymentMode = controller.cashRadio.isSelected() ? "Cash" : "Online";
 		double sevaTotal = itemsToProcess.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 
-		// Mark items as printing
+		// Mark items as printing UI status
 		itemsToProcess.forEach(item -> Platform.runLater(() -> item.setPrintStatus(SevaEntry.PrintStatus.PRINTING)));
 		controller.updatePrintStatusLabel();
 
-		// --- NEW LOGIC: SAVE TO DB FIRST ---
-		int actualSavedId = -1;
-		Connection conn = null;
-		try {
-			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false); // Start transaction
+		// 1. Define Lazy Save Action
+		Supplier<Integer> lazySaveAction = () -> {
+			int actualSavedId = -1;
+			Connection conn = null;
+			try {
+				conn = DatabaseManager.getConnection();
+				conn.setAutoCommit(false); // Start transaction
 
-			actualSavedId = controller.sevaReceiptRepository.saveReceipt(
-					conn, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
-					date, sevaTotal, paymentMode
-			);
+				actualSavedId = controller.sevaReceiptRepository.saveReceipt(
+						conn, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+						date, sevaTotal, paymentMode
+				);
 
-			if (actualSavedId != -1) {
-				boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(conn, actualSavedId, itemsToProcess);
-				if (itemsSaved) {
-					conn.commit(); // All good, commit the transaction
+				if (actualSavedId != -1) {
+					boolean itemsSaved = controller.sevaReceiptRepository.saveReceiptItems(conn, actualSavedId, itemsToProcess);
+					if (itemsSaved) {
+						conn.commit();
+						return actualSavedId; // SUCCESS
+					} else {
+						conn.rollback();
+						return -1; // Item save failed
+					}
 				} else {
-					conn.rollback(); // Something failed, rollback
-					markItemsAsFailed(itemsToProcess, "Failed to save receipt items.");
-					return; // Stop here
+					conn.rollback();
+					return -1; // Receipt save failed
 				}
-			} else {
-				conn.rollback(); // Something failed, rollback
-				markItemsAsFailed(itemsToProcess, "Failed to save receipt to database.");
-				return; // Stop here
+			} catch (SQLException e) {
+				if (conn != null) {
+					try {
+						conn.rollback();
+					} catch (SQLException ex) { /* Log rollback failure */ }
+				}
+				e.printStackTrace(); // Log the error
+				return -1;
+			} finally {
+				if (conn != null) {
+					try {
+						conn.close();
+					} catch (SQLException e) { /* Log connection closing failure */ }
+				}
 			}
-		} catch (SQLException e) {
-			if (conn != null) {
-				try { conn.rollback(); } catch (SQLException ex) { /* Log rollback failure */ }
-			}
-			markItemsAsFailed(itemsToProcess, "A database error occurred: " + e.getMessage());
-			return; // Stop here
-		} finally {
-			if (conn != null) {
-				try { conn.close(); } catch (SQLException e) { /* Log connection closing failure */ }
-			}
-		}
-		// --- END OF NEW DB LOGIC ---
+		};
 
-		// If we reach here, the DB save was successful and actualSavedId is valid
-		// Now, show the print preview with the *correct* ID
-
-		SevaReceiptData sevaReceiptData = new SevaReceiptData(
-				actualSavedId, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+		// 2. Create Temp Data Object (ID = 0)
+		SevaReceiptData tempData = new SevaReceiptData(
+				0, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
 				date, FXCollections.observableArrayList(itemsToProcess), sevaTotal, paymentMode
 		);
 
-		// This callback now *only* handles the result of the *print*
+		// 3. Callback for Print Success/Failure (Update UI)
 		Consumer<Boolean> afterPrintCallback = (printSuccess) -> {
 			if (printSuccess) {
 				markItemsAsSuccess(itemsToProcess);
@@ -150,7 +157,7 @@ public class ReceiptServices {
 			controller.updatePrintStatusLabel();
 		};
 
-		// This callback handles if the preview dialog is closed
+		// 4. Callback for Dialog Close (Cancel)
 		Runnable onDialogClosed = () -> {
 			boolean stillPrinting = itemsToProcess.stream()
 					.anyMatch(entry -> entry.getPrintStatus() == SevaEntry.PrintStatus.PRINTING);
@@ -159,7 +166,8 @@ public class ReceiptServices {
 			}
 		};
 
-		controller.receiptPrinter.showPrintPreview(sevaReceiptData, controller.mainStage, afterPrintCallback, onDialogClosed);
+		// 5. Open Preview with Lazy Save Action
+		controller.receiptPrinter.showPrintPreview(tempData, controller.mainStage, afterPrintCallback, onDialogClosed, lazySaveAction);
 	}
 
 	private void markItemsAsFailed(List<SevaEntry> items, String reason) {

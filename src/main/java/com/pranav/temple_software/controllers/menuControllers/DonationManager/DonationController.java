@@ -169,32 +169,41 @@ public class DonationController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		int actualSavedId = donationReceiptRepository.saveDonationReceipt(
-				devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(), finalRashi, finalNakshatra,
-				donationDatePicker.getValue(), donationComboBox.getValue(), amount, paymentMode
-		);
+		// 1. Define Lazy Save Action
+		java.util.function.Supplier<Integer> lazySaveAction = () -> {
+			return donationReceiptRepository.saveDonationReceipt(
+					devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+					panNumberField.getText(), finalRashi, finalNakshatra,
+					donationDatePicker.getValue(), donationComboBox.getValue(), amount, paymentMode
+			);
+		};
 
-		if (actualSavedId == -1) {
-			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save donation receipt to database.");
-			return;
-		}
-
-		DonationReceiptData newReceipt = new DonationReceiptData(
-				actualSavedId, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
+		// 2. Create Temp Data Object (ID = 0)
+		DonationReceiptData tempReceipt = new DonationReceiptData(
+				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
 				finalRashi, finalNakshatra, donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);
 
+		// 3. Setup Callbacks
 		if (receiptPrinter != null) {
-			Consumer<Boolean> afterActionCallback = (success) -> {
-				Platform.runLater(this::closeWindow);
+			java.util.function.Consumer<Boolean> afterActionCallback = (success) -> {
+				if (success) {
+					Platform.runLater(this::closeWindow);
+				}
+			};
+
+			Runnable onDialogClosed = () -> {
+				// Optional: Action on cancel
 			};
 
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-			receiptPrinter.showDonationPrintPreview(newReceipt, ownerStage, afterActionCallback, null);
+
+			// 4. Open Preview with Lazy Save Action
+			receiptPrinter.showDonationPrintPreview(tempReceipt, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
+
 		} else {
-			showAlert(Alert.AlertType.INFORMATION, "Success", "Receipt saved successfully, but printer is not configured.");
+			showAlert(Alert.AlertType.INFORMATION, "Success", "Printer is not configured.");
 			closeWindow();
 		}
 	}

@@ -192,6 +192,7 @@ public class KaryakramaController {
 	@FXML
 	private void handleSaveAndPrint() {
 		if (!validateInput()) return;
+
 		Karyakrama selectedKaryakrama = karyakramaComboBox.getValue();
 		double totalAmount = selectedOthers.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
 		if (totalAmount > 2000 && (panNumberField.getText() == null || panNumberField.getText().trim().isEmpty())) {
@@ -204,64 +205,63 @@ public class KaryakramaController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		KaryakramaReceiptData receiptData = new KaryakramaReceiptData(
+		// 1. Create Temp Data Object (ID = 0)
+		KaryakramaReceiptData tempReceiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
-				panNumberField.getText(),
-				finalRashi,
-				finalNakshatra,
+				panNumberField.getText(), finalRashi, finalNakshatra,
 				selectedKaryakrama.getName(), receiptDatePicker.getValue(),
 				new ArrayList<>(selectedOthers),
 				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
 		);
 
-		int actualSavedId = -1;
-		Connection conn = null;
-		try {
-			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false);
+		// 2. Define Lazy Save Action (Transaction Logic Moved Here)
+		java.util.function.Supplier<Integer> lazySaveAction = () -> {
+			int actualSavedId = -1;
+			Connection conn = null;
+			try {
+				conn = DatabaseManager.getConnection();
+				conn.setAutoCommit(false); // Start Transaction
 
-			actualSavedId = receiptRepository.saveReceipt(conn, receiptData);
+				actualSavedId = receiptRepository.saveReceipt(conn, tempReceiptData);
 
-			if (actualSavedId != -1) {
-				boolean itemsSaved = receiptRepository.saveReceiptItems(conn, actualSavedId, receiptData.getSevas());
-				if (itemsSaved) {
-					conn.commit();
+				if (actualSavedId != -1) {
+					boolean itemsSaved = receiptRepository.saveReceiptItems(conn, actualSavedId, tempReceiptData.getSevas());
+					if (itemsSaved) {
+						conn.commit(); // Commit Transaction
+						return actualSavedId; // Success
+					} else {
+						conn.rollback();
+						return -1; // Item save failed
+					}
 				} else {
 					conn.rollback();
-					showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save receipt items.");
-					return;
+					return -1; // Receipt save failed
 				}
-			} else {
-				conn.rollback();
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the receipt.");
-				return;
+			} catch (SQLException e) {
+				if (conn != null) {
+					try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
+				}
+				e.printStackTrace(); // Log error
+				return -1;
+			} finally {
+				if (conn != null) {
+					try { conn.close(); } catch (SQLException e) { /* Log error */ }
+				}
 			}
-		} catch (SQLException e) {
-			if (conn != null) {
-				try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
-			}
-			showAlert(Alert.AlertType.ERROR, "Database Error", "A database error occurred: " + e.getMessage());
-			return;
-		} finally {
-			if (conn != null) {
-				try { conn.close(); } catch (SQLException e) { /* Log error */ }
-			}
-		}
+		};
 
-		Consumer<Boolean> afterActionCallback = (success) -> {
-			Platform.runLater(this::closeWindow);
+		// 3. Setup Callbacks
+		java.util.function.Consumer<Boolean> afterActionCallback = (success) -> {
+			if(success) {
+				Platform.runLater(this::closeWindow);
+			}
 		};
 
 		Runnable onDialogClosed = this::closeWindow;
 		Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 
-		KaryakramaReceiptData previewData = new KaryakramaReceiptData(
-				actualSavedId, receiptData.getDevoteeName(), receiptData.getPhoneNumber(),
-				receiptData.getAddress(), receiptData.getPanNumber(), receiptData.getRashi(),
-				receiptData.getNakshatra(), receiptData.getKaryakramaName(), receiptData.getReceiptDate(),
-				receiptData.getSevas(), receiptData.getTotalAmount(), receiptData.getPaymentMode()
-		);
-		receiptPrinter.showKaryakramaPrintPreview(previewData, ownerStage, afterActionCallback, onDialogClosed);
+		// 4. Open Preview with Lazy Save Action
+		receiptPrinter.showKaryakramaPrintPreview(tempReceiptData, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
 	}
 
 	private boolean validateInput() {

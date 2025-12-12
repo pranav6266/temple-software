@@ -170,32 +170,34 @@ public class ShashwathaPoojaController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		ShashwathaPoojaReceipt newReceipt = new ShashwathaPoojaReceipt(
+		// 1. Create Temp Data Object (ID = 0)
+		ShashwathaPoojaReceipt tempReceipt = new ShashwathaPoojaReceipt(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
 				receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode
 		);
 
-		int actualSavedId = repository.saveShashwathaPooja(newReceipt);
-		if (actualSavedId == -1) {
-			showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save Shashwatha Pooja receipt.");
-			return;
-		}
+		// 2. Define Lazy Save Action
+		java.util.function.Supplier<Integer> lazySaveAction = () -> {
+			return repository.saveShashwathaPooja(tempReceipt);
+		};
 
 		if (receiptPrinter != null) {
-			Consumer<Boolean> afterActionCallback = (success) -> {
-				Platform.runLater(this::closeWindow);
+			// 3. Setup Callbacks
+			java.util.function.Consumer<Boolean> afterActionCallback = (success) -> {
+				if (success) {
+					Platform.runLater(this::closeWindow);
+				}
 			};
 
 			Runnable onDialogClosed = this::closeWindow;
+
 			try {
 				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-				ShashwathaPoojaReceipt previewReceipt = new ShashwathaPoojaReceipt(
-						actualSavedId, newReceipt.getDevoteeName(), newReceipt.getPhoneNumber(), newReceipt.getAddress(),
-						newReceipt.getPanNumber(), newReceipt.getRashi(), newReceipt.getNakshatra(),
-						newReceipt.getReceiptDate(), newReceipt.getPoojaDate(), newReceipt.getAmount(), newReceipt.getPaymentMode()
-				);
-				receiptPrinter.showShashwathaPoojaPrintPreview(previewReceipt, ownerStage, afterActionCallback, onDialogClosed);
+
+				// 4. Open Preview with Lazy Save Action
+				receiptPrinter.showShashwathaPoojaPrintPreview(tempReceipt, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
+
 			} catch (Exception e) {
 				logger.error("Failed to open print preview for Shashwatha Pooja", e);
 				showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());

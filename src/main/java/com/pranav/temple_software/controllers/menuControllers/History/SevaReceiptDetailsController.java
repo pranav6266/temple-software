@@ -67,7 +67,15 @@ public class SevaReceiptDetailsController {
 	private void handleReprint() {
 		if (currentReceiptData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			receiptPrinter.showPrintPreview(currentReceiptData, stage, success -> System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled")), () -> System.out.println("Reprint preview was closed without action."));
+
+			// FIX: Pass existing ID
+			receiptPrinter.showPrintPreview(
+					currentReceiptData,
+					stage,
+					success -> System.out.println("Reprint status: " + (success ? "Success" : "Cancelled")),
+					() -> {},
+					() -> currentReceiptData.getReceiptId()
+			);
 		}
 	}
 

@@ -48,7 +48,15 @@ public class ShashwathaPoojaDetailsController {
 	private void handleReprint() {
 		if (currentPoojaData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			receiptPrinter.showShashwathaPoojaPrintPreview(currentPoojaData, stage, success -> System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled")), () -> System.out.println("Reprint preview was closed without action."));
+
+			// FIX: Pass existing ID
+			receiptPrinter.showShashwathaPoojaPrintPreview(
+					currentPoojaData,
+					stage,
+					success -> System.out.println("Reprint status: " + (success ? "Success" : "Cancelled")),
+					() -> {},
+					() -> currentPoojaData.getReceiptId()
+			);
 		}
 	}
 

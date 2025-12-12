@@ -149,33 +149,34 @@ public class InKindDonationController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		InKindDonation newDonation = new InKindDonation(
+		// 1. Create Temp Data Object (ID = 0)
+		InKindDonation tempDonation = new InKindDonation(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
 				donationDatePicker.getValue(), itemDescriptionArea.getText()
 		);
+
+		// 2. Define Lazy Save Action
+		java.util.function.Supplier<Integer> lazySaveAction = () -> {
+			return repository.saveInKindDonation(tempDonation);
+		};
+
 		try {
-			int actualSavedId = repository.saveInKindDonation(newDonation);
-
-			if (actualSavedId == -1) {
-				showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save in-kind donation.");
-				return;
-			}
-
 			ReceiptPrinter receiptPrinter = new ReceiptPrinter();
-			Consumer<Boolean> afterActionCallback = (success) -> {
-				Platform.runLater(this::closeWindow);
+
+			// 3. Setup Callbacks
+			java.util.function.Consumer<Boolean> afterActionCallback = (success) -> {
+				if (success) {
+					Platform.runLater(this::closeWindow);
+				}
 			};
 
-			Runnable onDialogClosed = this::closeWindow;
+			Runnable onDialogClosed = this::closeWindow; // Or do nothing if you want form to stay open on cancel
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 
-			InKindDonation previewDonation = new InKindDonation(
-					actualSavedId, newDonation.getDevoteeName(), newDonation.getPhoneNumber(), newDonation.getAddress(), newDonation.getPanNumber(),
-					newDonation.getRashi(), newDonation.getNakshatra(),
-					newDonation.getDonationDate(), newDonation.getItemDescription()
-			);
-			receiptPrinter.showInKindDonationPrintPreview(previewDonation, ownerStage, afterActionCallback, onDialogClosed);
+			// 4. Open Preview with Lazy Save Action
+			receiptPrinter.showInKindDonationPrintPreview(tempDonation, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
+
 		} catch (Exception e) {
 			logger.error("Failed to open print preview", e);
 			showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());

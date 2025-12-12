@@ -63,7 +63,15 @@ public class DonationDetailsController {
 	private void handleReprint() {
 		if (currentDonationData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
-			receiptPrinter.showDonationPrintPreview(currentDonationData, stage, success -> System.out.println("Reprint job from preview status: " + (success ? "Success" : "Failed/Cancelled")), () -> System.out.println("Reprint preview was closed without action."));
+
+			// FIX: Pass a supplier that simply returns the EXISTING ID
+			receiptPrinter.showDonationPrintPreview(
+					currentDonationData,
+					stage,
+					success -> System.out.println("Reprint status: " + (success ? "Success" : "Cancelled")),
+					() -> {},
+					() -> currentDonationData.getDonationReceiptId() // <--- The "Save Action" just returns the current ID
+			);
 		}
 	}
 }
