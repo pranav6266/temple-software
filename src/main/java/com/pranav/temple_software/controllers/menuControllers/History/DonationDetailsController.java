@@ -64,13 +64,13 @@ public class DonationDetailsController {
 		if (currentDonationData != null) {
 			Stage stage = (Stage) reprintButton.getScene().getWindow();
 
-			// FIX: Pass a supplier that simply returns the EXISTING ID
+			// FIX: Added 5th argument -> () -> currentDonationData.getDonationReceiptId()
 			receiptPrinter.showDonationPrintPreview(
 					currentDonationData,
 					stage,
 					success -> System.out.println("Reprint status: " + (success ? "Success" : "Cancelled")),
 					() -> {},
-					() -> currentDonationData.getDonationReceiptId() // <--- The "Save Action" just returns the current ID
+					() -> currentDonationData.getDonationReceiptId()
 			);
 		}
 	}

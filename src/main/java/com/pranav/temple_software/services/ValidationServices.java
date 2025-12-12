@@ -13,7 +13,6 @@ import javafx.scene.control.TextFormatter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +22,17 @@ public class ValidationServices {
 	private final DevoteeRepository devoteeRepository = new DevoteeRepository();
 	private double devoteeDailyCashTotal = 0.0;
 
-	// --- NEW FIELDS for 2-way Rashi/Nakshatra binding ---
+	// --- Rashi/Nakshatra Data ---
 	private final Map<String, String> nakshatraToRashiMap = new HashMap<>();
 	private final ObservableList<String> allRashis;
 	private final ObservableList<String> allNakshatras;
-	private boolean isUpdatingNakshatra = false; // Flag to prevent infinite loops
+	private boolean isUpdatingNakshatra = false;
 
+	// --- CONSTRUCTOR 1: For MainController (Preserves existing functionality) ---
 	public ValidationServices(MainController controller) {
 		this.controller = controller;
 
-		// --- NEW: Initialize master lists ---
+		// Initialize Lists
 		allRashis = FXCollections.observableArrayList(
 				"ಆಯ್ಕೆ", "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
 				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
@@ -43,38 +43,98 @@ public class ValidationServices {
 				"ಸ್ವಾತಿ", "ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ", "ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ",
 				"ಶ್ರವಣ", "ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"
 		);
-
-		// Initialize the reverse map
 		initializeNakshatraToRashiMap();
 	}
 
+	// --- CONSTRUCTOR 2: Default (For Donation, Karyakrama, etc.) ---
+	public ValidationServices() {
+		this.controller = null; // No controller needed for pure validation logic
+
+		// Initialize Lists (Same as above)
+		allRashis = FXCollections.observableArrayList(
+				"ಆಯ್ಕೆ", "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
+				"ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
+		);
+		allNakshatras = FXCollections.observableArrayList(
+				"ಆಯ್ಕೆ", "ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ", "ಆರ್ದ್ರ",
+				"ಪುನರ್ವಸು", "ಪುಷ್ಯ", "ಆಶ್ಲೇಷ", "ಮಘ", "ಪೂರ್ವ", "ಉತ್ತರ", "ಹಸ್ತ", "ಚಿತ್ರ",
+				"ಸ್ವಾತಿ", "ವಿಶಾಖ", "ಅನುರಾಧ", "ಜೇಷ್ಠ", "ಮೂಲ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ",
+				"ಶ್ರವಣ", "ಧನಿಷ್ಠ", "ಶತಭಿಷ", "ಪೂರ್ವಾಭಾದ್ರ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"
+		);
+		initializeNakshatraToRashiMap();
+	}
+
+	// --- CENTRALIZED VALIDATION METHOD (Used by all modules) ---
+	public String validateTransaction(String phoneNumber, double currentAmount, String paymentMode, String panNumber) {
+		// 1. Validate Phone (Basic)
+		if (phoneNumber == null || phoneNumber.length() != 10) {
+			return null; // Skip complex checks if phone is invalid (handled elsewhere)
+		}
+
+		// 2. Get Today's History
+		double pastCashTotal = devoteeRepository.getTodaysCashTotalByPhone(phoneNumber);
+		double totalCashExposure = pastCashTotal + (paymentMode.equalsIgnoreCase("Cash") ? currentAmount : 0);
+		double totalDailyValue = pastCashTotal + currentAmount;
+
+		// 3. Rule: No Cash > 2000 (Daily Cumulative)
+		if (paymentMode.equalsIgnoreCase("Cash") && totalCashExposure > 2000) {
+			return String.format(
+					"Cash Limit Exceeded!\n\n" +
+							"Past Cash Today: ₹%.2f\n" +
+							"Current Amount: ₹%.2f\n" +
+							"Total Cash: ₹%.2f\n\n" +
+							"Transactions exceeding ₹2000 in cash per day are not allowed.\n" +
+							"Please switch Payment Mode to 'Online'.",
+					pastCashTotal, currentAmount, totalCashExposure
+			);
+		}
+
+		// 4. Rule: PAN Mandatory if Daily Total > 2000
+		if (totalDailyValue > 2000) {
+			if (panNumber == null || panNumber.trim().isEmpty()) {
+				return String.format(
+						"PAN Required!\n\n" +
+								"Total transaction value for today (₹%.2f) exceeds ₹2000.\n" +
+								"Please enter a valid PAN number.",
+						totalDailyValue
+				);
+			}
+			if (!isValidPanFormat(panNumber.trim())) {
+				return "Invalid PAN Number!\n\nPlease enter a valid PAN (e.g., ABCDE1234F).";
+			}
+		}
+
+		return null; // No errors
+	}
+
+	// --- Helper Methods ---
+
 	private void initializeNakshatraToRashiMap() {
-		// This map is used when a Nakshatra is selected to find the Rashi
 		nakshatraToRashiMap.put("ಅಶ್ವಿನಿ", "ಮೇಷ");
 		nakshatraToRashiMap.put("ಭರಣಿ", "ಮೇಷ");
-		nakshatraToRashiMap.put("ಕೃತ್ತಿಕ", "ಮೇಷ"); // Note: Krittika is split, default to Mesha
+		nakshatraToRashiMap.put("ಕೃತ್ತಿಕ", "ಮೇಷ");
 		nakshatraToRashiMap.put("ರೋಹಿಣಿ", "ವೃಷಭ");
-		nakshatraToRashiMap.put("ಮೃಗಶಿರ", "ವೃಷಭ"); // Note: Mrigashira is split, default to Vrishabha
+		nakshatraToRashiMap.put("ಮೃಗಶಿರ", "ವೃಷಭ");
 		nakshatraToRashiMap.put("ಆರ್ದ್ರ", "ಮಿಥುನ");
-		nakshatraToRashiMap.put("ಪುನರ್ವಸು", "ಮಿಥುನ"); // Note: Punarvasu is split, default to Mithuna
+		nakshatraToRashiMap.put("ಪುನರ್ವಸು", "ಮಿಥುನ");
 		nakshatraToRashiMap.put("ಪುಷ್ಯ", "ಕರ್ಕಾಟಕ");
 		nakshatraToRashiMap.put("ಆಶ್ಲೇಷ", "ಕರ್ಕಾಟಕ");
 		nakshatraToRashiMap.put("ಮಘ", "ಸಿಂಹ");
 		nakshatraToRashiMap.put("ಪೂರ್ವ", "ಸಿಂಹ");
-		nakshatraToRashiMap.put("ಉತ್ತರ", "ಸಿಂಹ"); // Note: Uttara is split, default to Simha
+		nakshatraToRashiMap.put("ಉತ್ತರ", "ಸಿಂಹ");
 		nakshatraToRashiMap.put("ಹಸ್ತ", "ಕನ್ಯಾ");
-		nakshatraToRashiMap.put("ಚಿತ್ರ", "ಕನ್ಯಾ"); // Note: Chitra is split, default to Kanya
+		nakshatraToRashiMap.put("ಚಿತ್ರ", "ಕನ್ಯಾ");
 		nakshatraToRashiMap.put("ಸ್ವಾತಿ", "ತುಲಾ");
-		nakshatraToRashiMap.put("ವಿಶಾಖ", "ತುಲಾ"); // Note: Vishakha is split, default to Tula
+		nakshatraToRashiMap.put("ವಿಶಾಖ", "ತುಲಾ");
 		nakshatraToRashiMap.put("ಅನುರಾಧ", "ವೃಶ್ಚಿಕ");
 		nakshatraToRashiMap.put("ಜೇಷ್ಠ", "ವೃಶ್ಚಿಕ");
 		nakshatraToRashiMap.put("ಮೂಲ", "ಧನು");
 		nakshatraToRashiMap.put("ಪೂರ್ವಾಷಾಢ", "ಧನು");
-		nakshatraToRashiMap.put("ಉತ್ತರಾಷಾಢ", "ಧನು"); // Note: Uttarashadha is split, default to Dhanu
+		nakshatraToRashiMap.put("ಉತ್ತರಾಷಾಢ", "ಧನು");
 		nakshatraToRashiMap.put("ಶ್ರವಣ", "ಮಕರ");
-		nakshatraToRashiMap.put("ಧನಿಷ್ಠ", "ಮಕರ"); // Note: Dhanishtha is split, default to Makara
+		nakshatraToRashiMap.put("ಧನಿಷ್ಠ", "ಮಕರ");
 		nakshatraToRashiMap.put("ಶತಭಿಷ", "ಕುಂಭ");
-		nakshatraToRashiMap.put("ಪೂರ್ವಾಭಾದ್ರ", "ಕುಂಭ"); // Note: Purva Bhadrapada is split, default to Kumbha
+		nakshatraToRashiMap.put("ಪೂರ್ವಾಭಾದ್ರ", "ಕುಂಭ");
 		nakshatraToRashiMap.put("ಉತ್ತರಾಭಾದ್ರ", "ಮೀನ");
 		nakshatraToRashiMap.put("ರೇವತಿ", "ಮೀನ");
 	}
@@ -83,10 +143,21 @@ public class ValidationServices {
 		return devoteeDailyCashTotal;
 	}
 
+	// --- Logic for MainController (Legacy Support) ---
+
 	public void checkAndEnforceCashLimit() {
+		if (controller == null) return;
+
 		double currentCartTotal = controller.selectedSevas.stream()
 				.mapToDouble(SevaEntry::getTotalAmount)
 				.sum();
+
+		// Refresh past total just in case
+		String phone = controller.contactField.getText();
+		if(phone != null && phone.length() == 10) {
+			this.devoteeDailyCashTotal = devoteeRepository.getTodaysCashTotalByPhone(phone);
+		}
+
 		double grandTotal = devoteeDailyCashTotal + currentCartTotal;
 		if (grandTotal > 2000.0) {
 			if (!controller.onlineRadio.isSelected()) {
@@ -104,20 +175,9 @@ public class ValidationServices {
 		}
 	}
 
-	private void fetchPastTransactionsAndValidate() {
-		String phoneNumber = controller.contactField.getText();
-		if (phoneNumber != null && phoneNumber.length() == 10) {
-			this.devoteeDailyCashTotal = devoteeRepository.getTodaysCashTotalByPhone(phoneNumber);
-			checkAndEnforceCashLimit();
-		} else {
-			this.devoteeDailyCashTotal = 0.0;
-			checkAndEnforceCashLimit();
-		}
-	}
-
 	private void showAlert(String message) {
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
-		if (controller.mainStage != null) {
+		if (controller != null && controller.mainStage != null) {
 			alert.initOwner(controller.mainStage);
 		}
 		alert.setTitle("Cash Limit Exceeded");
@@ -127,6 +187,7 @@ public class ValidationServices {
 	}
 
 	public void setupPhoneValidation() {
+		if (controller == null) return;
 		controller.contactField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
 				String digitsOnly = newValue.replaceAll("\\D", "");
@@ -140,39 +201,34 @@ public class ValidationServices {
 				}
 
 				if (digitsOnly.length() == 10) {
-					// --- MODIFIED: Wrap populateDevoteeDetails in the flag ---
-					isUpdatingNakshatra = true;
+					// Update main controller logic
 					devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly)
 							.ifPresent(details -> Platform.runLater(() -> {
 								controller.populateDevoteeDetails(details);
-								isUpdatingNakshatra = false;
 							}));
-					if (!devoteeRepository.findLatestDevoteeDetailsByPhone(digitsOnly).isPresent()) {
-						isUpdatingNakshatra = false; // Ensure flag is reset if no devotee is found
-					}
-					// --- END MODIFICATION ---
-					fetchPastTransactionsAndValidate();
+
+					// Update local total for checkAndEnforceCashLimit
+					this.devoteeDailyCashTotal = devoteeRepository.getTodaysCashTotalByPhone(digitsOnly);
+					checkAndEnforceCashLimit();
 				} else {
 					this.devoteeDailyCashTotal = 0.0;
 					checkAndEnforceCashLimit();
 				}
 			}
 		});
+
 		controller.contactField.focusedProperty().addListener((_, _, newVal) -> {
 			if (!newVal) {
-				validatePhoneNumber();
+				String phone = controller.contactField.getText();
+				if (phone != null && !phone.isEmpty() && phone.length() < 10) {
+					controller.showAlert("Invalid Phone Number", "Phone number must contain at least 10 digits");
+				}
 			}
 		});
 	}
 
-	private void validatePhoneNumber() {
-		String phone = controller.contactField.getText();
-		if (phone != null && !phone.isEmpty() && phone.length() < 10) {
-			controller.showAlert("Invalid Phone Number", "Phone number must contain at least 10 digits");
-		}
-	}
-
 	public void setupPanValidation() {
+		if (controller == null) return;
 		controller.panNumberField.textProperty().addListener((_, _, newValue) -> {
 			if (newValue != null) {
 				String upperCase = newValue.toUpperCase();
@@ -184,6 +240,7 @@ public class ValidationServices {
 				}
 			}
 		});
+
 		controller.panNumberField.focusedProperty().addListener((_, _, newVal) -> {
 			if (!newVal) {
 				String pan = controller.panNumberField.getText();
@@ -206,6 +263,7 @@ public class ValidationServices {
 	}
 
 	public void setupNameValidation() {
+		if (controller == null) return;
 		TextFormatter<String> formatter = new TextFormatter<>(change -> {
 			String newText = change.getControlNewText();
 			if (newText.matches("[\\p{L} ]*")) {
@@ -218,6 +276,7 @@ public class ValidationServices {
 	}
 
 	public void radioCheck(){
+		if (controller == null) return;
 		controller.cashRadio.selectedProperty().addListener(
 				(_, _, newValue) -> {
 					if (newValue) {
@@ -233,6 +292,7 @@ public class ValidationServices {
 	}
 
 	public void calenderChecker() {
+		if (controller == null) return;
 		controller.sevaDatePicker.getEditor().textProperty().addListener((_, _, newText) -> {
 			if (newText == null || newText.isEmpty()) {
 				controller.sevaDatePicker.setValue(LocalDate.now());
@@ -240,13 +300,8 @@ public class ValidationServices {
 		});
 	}
 
-	// --- THIS IS THE OLD, ONE-WAY METHOD. IT IS REPLACED. ---
-	public void threeNakshatraForARashi() {
-		// This method is now obsolete and replaced by setupNakshatraToRashiListener
-	}
-
-	// --- *** NEW, REVERSIBLE LISTENER LOGIC *** ---
 	public void setupNakshatraToRashiListener() {
+		if (controller == null) return;
 		// 1. Populate both boxes with all items
 		controller.raashiComboBox.setItems(allRashis);
 		controller.nakshatraComboBox.setItems(allNakshatras);
@@ -256,22 +311,19 @@ public class ValidationServices {
 		// 2. Add listener to Rashi ComboBox (Rashi -> filters Nakshatra)
 		controller.raashiComboBox.getSelectionModel().selectedItemProperty().addListener(
 				(_, _, selectedRashi) -> {
-					if (isUpdatingNakshatra) return; // Prevent loop
+					if (isUpdatingNakshatra) return;
 					isUpdatingNakshatra = true;
 
 					if (selectedRashi == null || selectedRashi.equals("ಆಯ್ಕೆ")) {
-						// Reset Nakshatra box to show all
 						controller.nakshatraComboBox.setItems(allNakshatras);
 						controller.nakshatraComboBox.getSelectionModel().selectFirst();
 					} else {
-						// Filter Nakshatra list based on Rashi
 						List<String> nakshatrasForRashi = controller.rashiNakshatraMap.get(selectedRashi);
 						if (nakshatrasForRashi != null) {
 							ObservableList<String> nakshatraItems = FXCollections.observableArrayList(nakshatrasForRashi);
 							nakshatraItems.addFirst("ಆಯ್ಕೆ");
 							controller.nakshatraComboBox.setItems(nakshatraItems);
 
-							// Check if current Nakshatra is valid for this Rashi
 							String currentNakshatra = controller.nakshatraComboBox.getValue();
 							if (!nakshatraItems.contains(currentNakshatra)) {
 								controller.nakshatraComboBox.getSelectionModel().selectFirst();
@@ -284,19 +336,15 @@ public class ValidationServices {
 		// 3. Add listener to Nakshatra ComboBox (Nakshatra -> selects Rashi)
 		controller.nakshatraComboBox.getSelectionModel().selectedItemProperty().addListener(
 				(_, _, selectedNakshatra) -> {
-					if (isUpdatingNakshatra) return; // Prevent loop
+					if (isUpdatingNakshatra) return;
 					isUpdatingNakshatra = true;
 
 					if (selectedNakshatra == null || selectedNakshatra.equals("ಆಯ್ಕೆ")) {
-						// Reset Rashi box to show all
 						controller.raashiComboBox.setItems(allRashis);
 						controller.raashiComboBox.getSelectionModel().selectFirst();
 					} else {
-						// Find the Rashi for this Nakshatra
 						String rashi = nakshatraToRashiMap.get(selectedNakshatra);
 						if (rashi != null) {
-							// This Nakshatra has a primary Rashi.
-							// We must also check if this Nakshatra is split (e.g., Krittika)
 							List<String> mappedRashis = new ArrayList<>();
 							for (Map.Entry<String, List<String>> entry : controller.rashiNakshatraMap.entrySet()) {
 								if (entry.getValue().contains(selectedNakshatra)) {
@@ -305,26 +353,21 @@ public class ValidationServices {
 							}
 
 							if (mappedRashis.size() > 1) {
-								// This Nakshatra is split (e.g., Krittika). Filter the Rashi list.
 								mappedRashis.addFirst("ಆಯ್ಕೆ");
 								controller.raashiComboBox.setItems(FXCollections.observableArrayList(mappedRashis));
-								// Auto-select the *first* matching Rashi as a default
 								controller.raashiComboBox.setValue(rashi);
 							} else if (mappedRashis.size() == 1) {
-								// This Nakshatra belongs to only one Rashi. Auto-select it.
-								controller.raashiComboBox.setItems(allRashis); // Show all Rashis
-								controller.raashiComboBox.setValue(rashi); // Auto-select the correct one
+								controller.raashiComboBox.setItems(allRashis);
+								controller.raashiComboBox.setValue(rashi);
 							}
-
 						}
 					}
 					isUpdatingNakshatra = false;
 				});
 	}
-	// --- *** END OF NEW LOGIC *** ---
-
 
 	public void initializeTotalCalculation() {
+		if (controller == null) return;
 		DoubleBinding totalBinding = Bindings.createDoubleBinding(() ->
 						controller.selectedSevas.stream()
 								.mapToDouble(SevaEntry::getTotalAmount)

@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class ShashwathaPoojaController {
 
@@ -159,18 +158,39 @@ public class ShashwathaPoojaController {
 	}
 
 
+	// Add this field at the top
+	private final com.pranav.temple_software.services.ValidationServices validationServices = new com.pranav.temple_software.services.ValidationServices();
+
 	@FXML
 	private void handleSaveAndPrint() {
 		if (!validateInput()) {
 			return;
 		}
 		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
+
+		// --- CENTRALIZED VALIDATION CHECK ---
+		String errorMsg = validationServices.validateTransaction(
+				contactField.getText(),
+				currentPoojaAmount,
+				paymentMode,
+				panNumberField.getText()
+		);
+
+		if (errorMsg != null) {
+			showAlert(Alert.AlertType.WARNING, "Transaction Validation Failed", errorMsg);
+			if (errorMsg.contains("Cash Limit Exceeded")) {
+				onlineRadio.setSelected(true);
+			}
+			return;
+		}
+		// ------------------------------------
+
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		// 1. Create Temp Data Object (ID = 0)
+		// 1. Create Temp Data Object
 		ShashwathaPoojaReceipt tempReceipt = new ShashwathaPoojaReceipt(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
@@ -183,7 +203,6 @@ public class ShashwathaPoojaController {
 		};
 
 		if (receiptPrinter != null) {
-			// 3. Setup Callbacks
 			java.util.function.Consumer<Boolean> afterActionCallback = (success) -> {
 				if (success) {
 					Platform.runLater(this::closeWindow);
@@ -194,12 +213,9 @@ public class ShashwathaPoojaController {
 
 			try {
 				Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-
-				// 4. Open Preview with Lazy Save Action
 				receiptPrinter.showShashwathaPoojaPrintPreview(tempReceipt, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
-
 			} catch (Exception e) {
-				logger.error("Failed to open print preview for Shashwatha Pooja", e);
+				logger.error("Failed to open print preview", e);
 				showAlert(Alert.AlertType.ERROR, "Print Error", "Failed to open print preview: " + e.getMessage());
 				closeWindow();
 			}

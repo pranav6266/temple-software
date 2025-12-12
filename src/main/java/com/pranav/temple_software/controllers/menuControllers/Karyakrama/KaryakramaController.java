@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class KaryakramaController {
 
@@ -189,59 +188,76 @@ public class KaryakramaController {
 		amountField.clear();
 	}
 
+	// Add this field at the top
+	private final com.pranav.temple_software.services.ValidationServices validationServices = new com.pranav.temple_software.services.ValidationServices();
+
 	@FXML
 	private void handleSaveAndPrint() {
 		if (!validateInput()) return;
 
 		Karyakrama selectedKaryakrama = karyakramaComboBox.getValue();
 		double totalAmount = selectedOthers.stream().mapToDouble(SevaEntry::getTotalAmount).sum();
-		if (totalAmount > 2000 && (panNumberField.getText() == null || panNumberField.getText().trim().isEmpty())) {
-			showAlert(Alert.AlertType.ERROR, "Validation Error", "PAN number is mandatory for transactions above ₹2000.");
+		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
+
+		// --- CENTRALIZED VALIDATION CHECK ---
+		String errorMsg = validationServices.validateTransaction(
+				contactField.getText(),
+				totalAmount,
+				paymentMode,
+				panNumberField.getText()
+		);
+
+		if (errorMsg != null) {
+			showAlert(Alert.AlertType.WARNING, "Transaction Validation Failed", errorMsg);
+			if (errorMsg.contains("Cash Limit Exceeded")) {
+				onlineRadio.setSelected(true);
+			}
 			return;
 		}
+		// ------------------------------------
 
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		// 1. Create Temp Data Object (ID = 0)
+		// 1. Create Temp Data Object
 		KaryakramaReceiptData tempReceiptData = new KaryakramaReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
 				selectedKaryakrama.getName(), receiptDatePicker.getValue(),
 				new ArrayList<>(selectedOthers),
-				totalAmount, cashRadio.isSelected() ? "Cash" : "Online"
+				totalAmount, paymentMode
 		);
 
-		// 2. Define Lazy Save Action (Transaction Logic Moved Here)
+		// 2. Define Lazy Save Action
 		java.util.function.Supplier<Integer> lazySaveAction = () -> {
 			int actualSavedId = -1;
 			Connection conn = null;
 			try {
 				conn = DatabaseManager.getConnection();
-				conn.setAutoCommit(false); // Start Transaction
+				conn.setAutoCommit(false);
 
 				actualSavedId = receiptRepository.saveReceipt(conn, tempReceiptData);
 
 				if (actualSavedId != -1) {
 					boolean itemsSaved = receiptRepository.saveReceiptItems(conn, actualSavedId, tempReceiptData.getSevas());
 					if (itemsSaved) {
-						conn.commit(); // Commit Transaction
-						return actualSavedId; // Success
+						conn.commit();
+						return actualSavedId;
 					} else {
 						conn.rollback();
-						return -1; // Item save failed
+						return -1;
 					}
 				} else {
 					conn.rollback();
-					return -1; // Receipt save failed
+					return -1;
 				}
 			} catch (SQLException e) {
 				if (conn != null) {
 					try { conn.rollback(); } catch (SQLException ex) { /* Log error */ }
 				}
-				e.printStackTrace(); // Log error
+				e.printStackTrace();
 				return -1;
 			} finally {
 				if (conn != null) {
@@ -260,7 +276,6 @@ public class KaryakramaController {
 		Runnable onDialogClosed = this::closeWindow;
 		Stage ownerStage = (Stage) saveButton.getScene().getWindow();
 
-		// 4. Open Preview with Lazy Save Action
 		receiptPrinter.showKaryakramaPrintPreview(tempReceiptData, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
 	}
 

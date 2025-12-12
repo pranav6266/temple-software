@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class DonationController {
@@ -156,14 +155,36 @@ public class DonationController {
 		}
 	}
 
+	// Add this field at the top of the class
+	private final com.pranav.temple_software.services.ValidationServices validationServices = new com.pranav.temple_software.services.ValidationServices();
+
 	@FXML
 	private void handleSaveAndPrint() {
 		if (!validateInput()) {
 			return;
 		}
 
-		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
 		double amount = Double.parseDouble(amountField.getText());
+		String paymentMode = cashRadio.isSelected() ? "Cash" : "Online";
+
+		// --- CENTRALIZED VALIDATION CHECK ---
+		String errorMsg = validationServices.validateTransaction(
+				contactField.getText(),
+				amount,
+				paymentMode,
+				panNumberField.getText()
+		);
+
+		if (errorMsg != null) {
+			showAlert(Alert.AlertType.WARNING, "Transaction Validation Failed", errorMsg);
+			// If cash limit error, switch to online automatically for convenience
+			if (errorMsg.contains("Cash Limit Exceeded")) {
+				onlineRadio.setSelected(true);
+			}
+			return; // Stop saving
+		}
+		// ------------------------------------
+
 		String rashiValue = raashiComboBox.getValue();
 		String finalRashi = (rashiValue != null && rashiValue.equals("ಆಯ್ಕೆ")) ? "" : rashiValue;
 		String nakshatra = nakshatraComboBox.getValue();
@@ -178,7 +199,7 @@ public class DonationController {
 			);
 		};
 
-		// 2. Create Temp Data Object (ID = 0)
+		// 2. Create Temp Data Object
 		DonationReceiptData tempReceipt = new DonationReceiptData(
 				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
 				finalRashi, finalNakshatra, donationDatePicker.getValue(),
@@ -193,13 +214,9 @@ public class DonationController {
 				}
 			};
 
-			Runnable onDialogClosed = () -> {
-				// Optional: Action on cancel
-			};
+			Runnable onDialogClosed = () -> {};
 
 			Stage ownerStage = (Stage) saveButton.getScene().getWindow();
-
-			// 4. Open Preview with Lazy Save Action
 			receiptPrinter.showDonationPrintPreview(tempReceipt, ownerStage, afterActionCallback, onDialogClosed, lazySaveAction);
 
 		} else {
