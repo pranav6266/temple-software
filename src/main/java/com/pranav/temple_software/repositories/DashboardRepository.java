@@ -135,13 +135,15 @@ public class DashboardRepository {
 	public List<DashboardStats> getKaryakramaStatistics(LocalDate fromDate, LocalDate toDate, String paymentMethod, String specificKaryakramaId) {
 		List<DashboardStats> stats = new ArrayList<>();
 		StringBuilder sql = new StringBuilder();
+
+		// MODIFIED SQL: Counts Receipts instead of Items
 		sql.append("SELECT k.karyakrama_id, kr.karyakrama_name, ");
-		sql.append("SUM(kri.quantity) as total_count, ");
-		sql.append("SUM(CASE WHEN kr.payment_mode = 'Cash' THEN kri.quantity ELSE 0 END) as cash_count, ");
-		sql.append("SUM(CASE WHEN kr.payment_mode = 'Online' THEN kri.quantity ELSE 0 END) as online_count, ");
-		sql.append("SUM(kri.quantity * kri.price_at_sale) as total_amount ");
+		sql.append("COUNT(kr.receipt_id) as total_count, "); // Count unique receipts
+		sql.append("SUM(CASE WHEN kr.payment_mode = 'Cash' THEN 1 ELSE 0 END) as cash_count, "); // Count 1 for each cash receipt
+		sql.append("SUM(CASE WHEN kr.payment_mode = 'Online' THEN 1 ELSE 0 END) as online_count, "); // Count 1 for each online receipt
+		sql.append("SUM(kr.total_amount) as total_amount "); // Sum the total amount from the receipt header
 		sql.append("FROM KaryakramaReceipts kr ");
-		sql.append("JOIN Karyakrama_Receipt_Items kri ON kr.receipt_id = kri.receipt_id ");
+		// Removed JOIN Karyakrama_Receipt_Items entirely
 		sql.append("LEFT JOIN Karyakramagalu k ON kr.karyakrama_name = k.karyakrama_name ");
 		sql.append("WHERE kr.karyakrama_name IS NOT NULL ");
 
@@ -164,6 +166,7 @@ public class DashboardRepository {
 		}
 
 		sql.append("GROUP BY k.karyakrama_id, kr.karyakrama_name ORDER BY total_count DESC");
+
 		try (Connection conn = getConnection();
 		     PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 			for (int i = 0; i < parameters.size(); i++) {
@@ -186,7 +189,6 @@ public class DashboardRepository {
 		}
 		return stats;
 	}
-
 	// COPY-PASTE THIS ENTIRE METHOD
 	public List<DashboardStats> getShashwathaPoojaStatistics(LocalDate fromDate, LocalDate toDate) {
 		List<DashboardStats> stats = new ArrayList<>();
