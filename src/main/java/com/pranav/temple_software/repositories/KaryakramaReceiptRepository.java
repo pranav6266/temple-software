@@ -20,6 +20,20 @@ public class KaryakramaReceiptRepository {
 		return DatabaseManager.getConnection();
 	}
 
+	public int getNextPredictedReceiptNumber() {
+		String query = "SELECT COALESCE(MAX(receipt_id), 0) + 1 AS next_id FROM KaryakramaReceipts";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(query)) {
+			if (rs.next()) {
+				return rs.getInt("next_id");
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to fetch next predicted receipt number", e);
+		}
+		return 0;
+	}
+
 	public int saveReceipt(Connection conn, KaryakramaReceiptData data) throws SQLException {
 		String sql = "INSERT INTO KaryakramaReceipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, karyakrama_name, receipt_date, total_amount, payment_mode) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

@@ -221,9 +221,10 @@ public class KaryakramaController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		// 1. Create Temp Data Object
+		// 1. Create Temp Data Object (Predicted ID for preview)
+		int predictedReceiptNo = receiptRepository.getNextPredictedReceiptNumber();
 		KaryakramaReceiptData tempReceiptData = new KaryakramaReceiptData(
-				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				predictedReceiptNo, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
 				selectedKaryakrama.getName(), receiptDatePicker.getValue(),
 				new ArrayList<>(selectedOthers),

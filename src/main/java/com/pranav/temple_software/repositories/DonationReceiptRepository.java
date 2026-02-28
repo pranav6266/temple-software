@@ -88,6 +88,20 @@ public class DonationReceiptRepository {
 		return donationReceipts;
 	}
 
+	public int getNextPredictedReceiptNumber() {
+		String query = "SELECT COALESCE(MAX(donation_receipt_id), 0) + 1 AS next_id FROM DonationReceipts";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(query)) {
+			if (rs.next()) {
+				return rs.getInt("next_id");
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to fetch next predicted receipt number", e);
+		}
+		return 0;
+	}
+
 	public int saveDonationReceipt(String name, String phone, String address, String panNumber,
 	                               String rashi, String nakshatra, LocalDate date,
 	                               String donationName, double amount, String paymentMode) {

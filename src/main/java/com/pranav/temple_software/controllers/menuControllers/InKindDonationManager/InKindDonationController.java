@@ -149,9 +149,10 @@ public class InKindDonationController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		// 1. Create Temp Data Object (ID = 0)
+		// 1. Create Temp Data Object (Predicted ID for preview)
+		int predictedReceiptNo = repository.getNextPredictedReceiptNumber();
 		InKindDonation tempDonation = new InKindDonation(
-				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				predictedReceiptNo, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
 				donationDatePicker.getValue(), itemDescriptionArea.getText()
 		);

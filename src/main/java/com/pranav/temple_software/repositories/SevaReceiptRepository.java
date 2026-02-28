@@ -19,6 +19,20 @@ public class SevaReceiptRepository {
 		return DatabaseManager.getConnection();
 	}
 
+	public int getNextPredictedReceiptNumber() {
+		String query = "SELECT COALESCE(MAX(receipt_id), 0) + 1 AS next_id FROM Receipts";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(query)) {
+			if (rs.next()) {
+				return rs.getInt("next_id");
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to fetch next predicted receipt number", e);
+		}
+		return 0;
+	}
+
 	public int saveReceipt(Connection conn, String name, String phone, String address, String panNumber, String rashi, String nakshatra, LocalDate date,
 	                       double total, String paymentMode) throws SQLException {
 		String sql = "INSERT INTO Receipts (devotee_name, phone_number, address, pan_number, rashi, nakshatra, " +

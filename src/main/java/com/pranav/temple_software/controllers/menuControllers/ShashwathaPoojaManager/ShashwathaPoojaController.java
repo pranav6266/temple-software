@@ -190,9 +190,10 @@ public class ShashwathaPoojaController {
 		String nakshatra = nakshatraComboBox.getValue();
 		String finalNakshatra = (nakshatra != null && nakshatra.equals("ಆಯ್ಕೆ")) ? "" : nakshatra;
 
-		// 1. Create Temp Data Object
+		// 1. Create Temp Data Object (Predicted ID for preview)
+		int predictedReceiptNo = repository.getNextPredictedReceiptNumber();
 		ShashwathaPoojaReceipt tempReceipt = new ShashwathaPoojaReceipt(
-				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
+				predictedReceiptNo, devoteeNameField.getText(), contactField.getText(), addressField.getText(),
 				panNumberField.getText(), finalRashi, finalNakshatra,
 				receiptDatePicker.getValue(), poojaDateField.getText(), currentPoojaAmount, paymentMode
 		);

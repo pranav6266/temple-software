@@ -199,9 +199,10 @@ public class DonationController {
 			);
 		};
 
-		// 2. Create Temp Data Object
+		// 2. Create Temp Data Object (Predicted ID for preview)
+		int predictedReceiptNo = donationReceiptRepository.getNextPredictedReceiptNumber();
 		DonationReceiptData tempReceipt = new DonationReceiptData(
-				0, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
+				predictedReceiptNo, devoteeNameField.getText(), contactField.getText(), addressField.getText(), panNumberField.getText(),
 				finalRashi, finalNakshatra, donationDatePicker.getValue(),
 				donationComboBox.getValue(), amount, paymentMode
 		);

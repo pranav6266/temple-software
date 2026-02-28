@@ -141,9 +141,10 @@ public class ReceiptServices {
 			}
 		};
 
-		// 2. Create Temp Data Object (ID = 0)
+		// 2. Create Temp Data Object (Predicted ID for preview)
+		int predictedReceiptNo = controller.sevaReceiptRepository.getNextPredictedReceiptNumber();
 		SevaReceiptData tempData = new SevaReceiptData(
-				0, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
+				predictedReceiptNo, devoteeName, phoneNumber, address, panNumber, raashi, nakshatra,
 				date, FXCollections.observableArrayList(itemsToProcess), sevaTotal, paymentMode
 		);
 

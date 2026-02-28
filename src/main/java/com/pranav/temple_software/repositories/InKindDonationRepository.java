@@ -18,6 +18,20 @@ public class InKindDonationRepository {
 		return DatabaseManager.getConnection();
 	}
 
+	public int getNextPredictedReceiptNumber() {
+		String query = "SELECT COALESCE(MAX(in_kind_receipt_id), 0) + 1 AS next_id FROM InKindDonations";
+		try (Connection conn = getConnection();
+		     Statement stmt = conn.createStatement();
+		     ResultSet rs = stmt.executeQuery(query)) {
+			if (rs.next()) {
+				return rs.getInt("next_id");
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to fetch next predicted receipt number", e);
+		}
+		return 0;
+	}
+
 	public int saveInKindDonation(InKindDonation donation) {
 		String sql = "INSERT INTO InKindDonations (devotee_name, phone_number, address, pan_number, rashi, nakshatra, donation_date, item_description) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
