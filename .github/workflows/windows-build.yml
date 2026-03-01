@@ -35,4 +35,4 @@ jobs:
           name: Temple-Software-Windows-Installer
           # This grabs the generated .exe or .msi file and uploads it.
           # You may need to tweak this path based on where Gradle outputs your file.
-          path: build/installer/*.exe
+          path: build/installer/*.msi
