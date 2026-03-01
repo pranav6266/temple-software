@@ -50,7 +50,9 @@ shadowJar {
 }
 
 // Get the path to the jpackage executable from the current Java toolchain
-def jpackageTool = new File(System.getProperty("java.home"), "bin/jpackage")
+import org.gradle.internal.os.OperatingSystem
+def jpackageExecutable = OperatingSystem.current().isWindows() ? "jpackage.exe" : "jpackage"
+def jpackageTool = new File(System.getProperty("java.home"), "bin/" + jpackageExecutable)
 
 task createInstaller(type: Exec) {
     dependsOn shadowJar

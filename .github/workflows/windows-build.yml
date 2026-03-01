@@ -18,7 +18,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '21' # Change this if you are using Java 17 or another version
+          java-version: '23' # Change this if you are using Java 17 or another version
           distribution: 'temurin'
 
       - name: Setup Gradle
@@ -27,7 +27,7 @@ jobs:
       - name: Build the Application and Installer
         # This runs your Windows batch wrapper.
         # Replace 'jpackage' with your actual Gradle packaging task if it's different.
-        run: .\gradlew.bat jpackage
+        run: .\gradlew.bat createInstaller
 
       - name: Upload the Final Installer
         uses: actions/upload-artifact@v4
@@ -35,4 +35,4 @@ jobs:
           name: Temple-Software-Windows-Installer
           # This grabs the generated .exe or .msi file and uploads it.
           # You may need to tweak this path based on where Gradle outputs your file.
-          path: build/jpackage/*.exe
+          path: build/installer/*.exe
