@@ -1,0 +1,38 @@
+name: Build Windows Installer
+
+# This tells GitHub WHEN to run the build.
+on:
+  push:
+    branches: [ "main", "master" ] # Runs when you push to these branches
+  workflow_dispatch: # Gives you a manual "Run Workflow" button on GitHub
+
+jobs:
+  build-windows:
+    # This spins up a temporary Windows machine
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21' # Change this if you are using Java 17 or another version
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build the Application and Installer
+        # This runs your Windows batch wrapper.
+        # Replace 'jpackage' with your actual Gradle packaging task if it's different.
+        run: .\gradlew.bat jpackage
+
+      - name: Upload the Final Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Temple-Software-Windows-Installer
+          # This grabs the generated .exe or .msi file and uploads it.
+          # You may need to tweak this path based on where Gradle outputs your file.
+          path: build/jpackage/*.exe
