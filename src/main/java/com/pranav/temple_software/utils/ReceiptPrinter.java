@@ -56,17 +56,17 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Seva Receipt Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> { // Print Action
 						try {
+							int newId = saveAction.get();
+							if (newId == -1) throw new Exception("Database Save Failed");
+
 							SevaReceiptData finalDataClean = new SevaReceiptData(
-									0, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
+									newId, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
 									tempData.getRashi(), tempData.getNakshatra(),
 									java.time.LocalDate.now(),
 									tempData.getSevas(), tempData.getTotalAmount(), tempData.getPaymentMode()
 							);
 
 							new EscPosPrinterService(getPrinterName()).printSevaReceipt(finalDataClean);
-							
-							int newId = saveAction.get();
-							if (newId == -1) throw new Exception("Database Save Failed");
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -112,16 +112,16 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Donation Receipt Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
+							int newId = saveAction.get();
+							if (newId == -1) throw new Exception("Database Save Failed");
+
 							DonationReceiptData finalData = new DonationReceiptData(
-									0, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
+									newId, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
 									tempData.getRashi(), tempData.getNakshatra(), java.time.LocalDate.now(),
 									tempData.getDonationName(), tempData.getDonationAmount(), tempData.getPaymentMode()
 							);
 
 							new EscPosPrinterService(getPrinterName()).printDonationReceipt(finalData);
-							
-							int newId = saveAction.get();
-							if (newId == -1) throw new Exception("Database Save Failed");
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -167,16 +167,16 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Shashwatha Pooja Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
+							int newId = saveAction.get();
+							if (newId == -1) throw new Exception("Database Save Failed");
+
 							ShashwathaPoojaReceipt finalData = new ShashwathaPoojaReceipt(
-									0, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
+									newId, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
 									tempData.getRashi(), tempData.getNakshatra(), java.time.LocalDate.now(),
 									tempData.getPoojaDate(), tempData.getAmount(), tempData.getPaymentMode()
 							);
 
 							new EscPosPrinterService(getPrinterName()).printShashwathaPoojaReceipt(finalData);
-							
-							int newId = saveAction.get();
-							if (newId == -1) throw new Exception("Database Save Failed");
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -222,15 +222,15 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "In-Kind Donation Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
+							int newId = saveAction.get();
+							if (newId == -1) throw new Exception("Database Save Failed");
+
 							InKindDonation finalData = new InKindDonation(
-									0, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
+									newId, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
 									tempData.getRashi(), tempData.getNakshatra(), tempData.getDonationDate(), tempData.getItemDescription()
 							);
 
 							new EscPosPrinterService(getPrinterName()).printInKindDonationReceipt(finalData);
-							
-							int newId = saveAction.get();
-							if (newId == -1) throw new Exception("Database Save Failed");
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
@@ -275,16 +275,16 @@ public class ReceiptPrinter {
 			showPreviewDialog(receiptView, "Karyakrama Receipt Preview", ownerStage, onPrintComplete, onDialogClosed,
 					() -> {
 						try {
+							int newId = saveAction.get();
+							if (newId == -1) throw new Exception("Database Save Failed");
+
 							KaryakramaReceiptData finalData = new KaryakramaReceiptData(
-									0, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
+									newId, tempData.getDevoteeName(), tempData.getPhoneNumber(), tempData.getAddress(), tempData.getPanNumber(),
 									tempData.getRashi(), tempData.getNakshatra(), tempData.getKaryakramaName(), tempData.getReceiptDate(),
 									tempData.getSevas(), tempData.getTotalAmount(), tempData.getPaymentMode()
 							);
 
 							new EscPosPrinterService(getPrinterName()).printKaryakramaReceipt(finalData);
-							
-							int newId = saveAction.get();
-							if (newId == -1) throw new Exception("Database Save Failed");
 							return true;
 						} catch (Exception e) {
 							showAlert(ownerStage, "Printing Error", "Could not print receipt: " + e.getMessage());
